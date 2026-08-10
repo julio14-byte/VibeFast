@@ -1,4 +1,4 @@
-// ============================================================
+/// ============================================================
 // VibeFast · config.js
 // ------------------------------------------------------------
 // ESTE ES EL ARCHIVO MÁS IMPORTANTE DEL BOILERPLATE.
@@ -22,10 +22,10 @@ const config = {
   // Identidad del producto
   // -----------------------------------------------------------
   app: {
-    name: "VibeFast",
+    name: "Mostrador",
     description:
-      "Boilerplate AI-native para founders. Construido para el Curso de Vibecoding Remotto.",
-    domain: "vibefast.dev", // sin https://, sin www
+      "Punto de venta e inventario con IA conversacional para comercios tradicionales que quieren dejar de perder tiempo buscando piezas.",
+    domain: "mostrador.app", // sin https://, sin www
     locale: "es", // "es" | "en"
     // URL pública: usa NEXT_PUBLIC_APP_URL en .env. En este config solo definimos el default.
     defaultUrl: "http://localhost:3000",
@@ -36,7 +36,7 @@ const config = {
   // -----------------------------------------------------------
   brand: {
     // Color primario en HEX. DaisyUI lo aplica como --color-primary via theme.
-    primary: "#0ea5e9", // sky-500 (azul cielo)
+    primary: "#D97706", // amber-600 (calidez industrial, ferretería)
     // Logo: puede ser texto o ruta a /public/logo.svg
     logoText: "VibeFast",
     logoSrc: null,
@@ -107,11 +107,11 @@ const config = {
       { label: "Docs", href: "/docs" },
     ],
     hero: {
-      eyebrow: "Curso Vibecoding · Remotto × Startup Chihuahua",
-      title: "De 0 a producto AI-native en 11 semanas.",
+      eyebrow: "Para ferreterías y tiendas de barrio",
+      title: "Encuentra cualquier pieza y controla tu inventario hablando.",
       subtitle:
-        "VibeFast es la plantilla del curso: Next.js, Supabase, OpenAI y MCP cableados desde el día 1. Tú extiendes con prompts en Cursor.",
-      cta: { label: "Únete al waitlist", href: "#waitlist" },
+        "Mostrador usa IA conversacional para que atiendas más rápido en el mostrador y sepas al instante qué te falta en anaquel.",
+      cta: { label: "Solicitar acceso", href: "#waitlist" },
       ctaSecondary: { label: "Ver docs", href: "/docs" },
     },
     problem: {
@@ -143,34 +143,19 @@ const config = {
       subtitle: "No pierdes tiempo eligiendo herramientas. Te enfocas en tu producto.",
       items: [
         {
-          icon: "Sparkles",
-          title: "AI nativa",
-          body: "OpenAI con structured outputs, tool use, agentes con LangGraph y MCP. Listo para activar.",
+          icon: "Search",
+          title: "Busca piezas al instante",
+          body: "Pregunta en lenguaje natural y encuentra la pieza correcta sin hojear catálogos lentos.",
         },
         {
-          icon: "Database",
-          title: "Supabase + Auth",
-          body: "Base de datos con RLS, Google Auth y tablas pre-modeladas. No diseñas schema desde cero.",
+          icon: "Package",
+          title: "Inventario siempre al día",
+          body: "Sabe qué falta en anaquel y qué reordenar antes de perder ventas por desabasto.",
         },
         {
-          icon: "Zap",
-          title: "Deploy en minutos",
-          body: "Vercel + Supabase Cloud. Una URL pública el primer día.",
-        },
-        {
-          icon: "BookOpen",
-          title: "Docs semana a semana",
-          body: "Tutoriales mapeados al temario del curso, con prompts de Cursor listos para copiar.",
-        },
-        {
-          icon: "Mail",
-          title: "Email + analytics",
-          body: "Resend para correos transaccionales y PostHog opcional para tracking.",
-        },
-        {
-          icon: "Cpu",
-          title: "Hardware-ready",
-          body: "Conexión MCP al ESP-Claw para el caso de hardware con IA del Módulo 3.",
+          icon: "Mic",
+          title: "Atiende desde el mostrador",
+          body: "Habla o escribe mientras atiendes clientes; la IA no te saca del piso de venta.",
         },
       ],
     },
@@ -179,20 +164,20 @@ const config = {
       title: "Lo que todo founder pregunta antes de arrancar.",
       items: [
         {
-          q: "¿Necesito saber programar?",
-          a: "No. El curso asume founders no técnicos. Construyes describiendo en Cursor; el boilerplate hace el resto.",
+          q: "¿Funciona si mi inventario está desordenado o solo en Excel?",
+          a: "Sí. Mostrador está pensado para comercios que parten de listas incompletas o hojas de cálculo; te ayudamos a ordenar el catálogo mientras ya lo usas en el mostrador.",
         },
         {
-          q: "¿Cuánto cuesta correr esto?",
-          a: "Vercel y Supabase tienen tiers gratuitos generosos. OpenAI cobra por uso: con gpt-4o-mini, el costo de un MVP del curso ronda US$5-20.",
+          q: "¿Necesito comprar cámaras, lectores o equipo nuevo?",
+          a: "No. Funciona desde tu celular o computadora en el mostrador; no requiere hardware especial ni cambiar tu caja registradora.",
         },
         {
-          q: "¿Puedo cambiar el stack?",
-          a: "Sí, pero el curso (y las docs) asumen este stack. Cambiar pieza por pieza es posible después del curso.",
+          q: "¿Cuánto tarda en implementarse en mi ferretería?",
+          a: "La mayoría de tiendas empieza a usarlo el mismo día: cargas tu catálogo básico y en minutos ya puedes buscar piezas y consultar existencias.",
         },
         {
-          q: "¿Y si me atoro?",
-          a: "Las docs incluyen una sección de troubleshooting con los 20 errores más comunes. Además hay sesión semanal con el docente.",
+          q: "¿Qué pasa si se va el internet en el local?",
+          a: "Las consultas de inventario recientes quedan disponibles sin conexión; al reconectar, el stock se sincroniza automáticamente.",
         },
       ],
     },
