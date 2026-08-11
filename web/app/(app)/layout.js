@@ -7,7 +7,7 @@ import UserMenu from "@/components/auth/UserMenu"
 import Logo from "@/components/Logo"
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Productos", icon: LayoutDashboard },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/agent", label: "Agente", icon: Bot },
 ]

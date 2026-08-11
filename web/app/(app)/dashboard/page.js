@@ -1,127 +1,179 @@
-import { Check, RotateCcw, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { Pencil, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { createItem, toggleItem, deleteItem } from "./actions"
+import { createProducto, updateProducto, deleteProducto } from "./actions"
 
-export const metadata = { title: "Dashboard" }
+export const metadata = { title: "Productos · SmartPOS" }
 
-export default async function DashboardPage() {
+function formatPrecio(value) {
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+  }).format(value)
+}
+
+export default async function DashboardPage({ searchParams }) {
   const supabase = await createClient()
-  const { data: items, error } = await supabase
-    .from("core_items")
+  const { data: productos, error } = await supabase
+    .from("productos")
     .select("*")
     .order("created_at", { ascending: false })
+
+  const params = await searchParams
+  const editId = params?.edit?.toString()
+  const editProducto = editId
+    ? productos?.find((p) => p.id === editId) ?? null
+    : null
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tu dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
         <p className="mt-1 text-sm text-base-content/70">
-          CRUD genérico sobre <code>core_items</code>. En Sem 2 lo renombras a
-          tu dominio (leads, recetas, proyectos…).
+          Catálogo e inventario de SmartPOS. Administra nombre, código, precio y
+          existencias de cada producto.
         </p>
       </div>
 
-      {/* Crear */}
+      {/* Crear / editar */}
       <form
-        action={createItem}
+        action={editProducto ? updateProducto : createProducto}
         className="rounded-box border border-base-200 bg-base-100 p-4"
       >
-        <div className="flex flex-col gap-2 sm:flex-row">
+        {editProducto && (
+          <input type="hidden" name="id" value={editProducto.id} />
+        )}
+
+        <p className="mb-3 text-sm font-medium">
+          {editProducto ? "Editar producto" : "Nuevo producto"}
+        </p>
+
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <input
-            name="title"
+            name="codigo"
+            required
+            maxLength={40}
+            defaultValue={editProducto?.codigo ?? ""}
+            placeholder="Código"
+            aria-label="Código del producto"
+            className="input input-bordered"
+          />
+          <input
+            name="nombre"
             required
             maxLength={120}
-            placeholder="Título del item"
-            aria-label="Título del item"
-            className="input input-bordered flex-1"
+            defaultValue={editProducto?.nombre ?? ""}
+            placeholder="Nombre"
+            aria-label="Nombre del producto"
+            className="input input-bordered sm:col-span-2"
           />
           <input
-            name="description"
-            maxLength={280}
-            placeholder="Descripción (opcional)"
-            aria-label="Descripción del item"
-            className="input input-bordered flex-1"
+            name="precio"
+            type="number"
+            required
+            min="0"
+            step="0.01"
+            defaultValue={editProducto?.precio ?? ""}
+            placeholder="Precio"
+            aria-label="Precio del producto"
+            className="input input-bordered"
           />
+          <input
+            name="stock"
+            type="number"
+            required
+            min="0"
+            step="1"
+            defaultValue={editProducto?.stock ?? ""}
+            placeholder="Stock"
+            aria-label="Stock del producto"
+            className="input input-bordered"
+          />
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
           <button type="submit" className="btn btn-primary">
-            Agregar
+            {editProducto ? "Guardar cambios" : "Agregar producto"}
           </button>
+          {editProducto && (
+            <Link href="/dashboard" className="btn btn-ghost">
+              Cancelar
+            </Link>
+          )}
         </div>
       </form>
 
       {error && (
         <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
-          No pudimos cargar tus items: {error.message}
+          No pudimos cargar tus productos: {error.message}
         </div>
       )}
 
       {/* Lista */}
-      {!items?.length ? (
+      {!productos?.length ? (
         <div className="rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-12 text-center text-base-content/60">
-          Aún no tienes items. Crea el primero arriba.
+          Aún no tienes productos. Agrega el primero arriba.
         </div>
       ) : (
-        <ul className="space-y-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-3 rounded-box border border-base-200 bg-base-100 px-4 py-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p
-                  className={
-                    item.status === "done"
-                      ? "truncate font-medium text-base-content/40 line-through"
-                      : "truncate font-medium"
-                  }
-                >
-                  {item.title}
-                </p>
-                {item.description && (
-                  <p className="truncate text-sm text-base-content/60">
-                    {item.description}
-                  </p>
-                )}
-              </div>
+        <div className="overflow-x-auto rounded-box border border-base-200 bg-base-100">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th className="text-right">Precio</th>
+                <th className="text-right">Stock</th>
+                <th className="w-24 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productos.map((producto) => (
+                <tr key={producto.id}>
+                  <td className="font-mono text-sm">{producto.codigo}</td>
+                  <td className="font-medium">{producto.nombre}</td>
+                  <td className="text-right">{formatPrecio(producto.precio)}</td>
+                  <td className="text-right">
+                    <span
+                      className={`badge badge-sm ${
+                        producto.stock === 0
+                          ? "badge-error"
+                          : producto.stock <= 5
+                            ? "badge-warning"
+                            : "badge-success"
+                      }`}
+                    >
+                      {producto.stock}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex justify-end gap-1">
+                      <Link
+                        href={`/dashboard?edit=${producto.id}`}
+                        className="btn btn-ghost btn-sm btn-square"
+                        title="Editar producto"
+                        aria-label={`Editar ${producto.nombre}`}
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
 
-              <span
-                className={`badge badge-sm ${
-                  item.status === "done" ? "badge-success" : "badge-ghost"
-                }`}
-              >
-                {item.status}
-              </span>
-
-              <form action={toggleItem}>
-                <input type="hidden" name="id" value={item.id} />
-                <input type="hidden" name="status" value={item.status} />
-                <button
-                  type="submit"
-                  className="btn btn-ghost btn-sm btn-square"
-                  title={item.status === "done" ? "Reabrir" : "Marcar como hecho"}
-                  aria-label={item.status === "done" ? "Reabrir item" : "Marcar como hecho"}
-                >
-                  {item.status === "done" ? (
-                    <RotateCcw className="size-4" />
-                  ) : (
-                    <Check className="size-4" />
-                  )}
-                </button>
-              </form>
-
-              <form action={deleteItem}>
-                <input type="hidden" name="id" value={item.id} />
-                <button
-                  type="submit"
-                  className="btn btn-ghost btn-sm btn-square text-error"
-                  title="Borrar"
-                  aria-label={`Borrar ${item.title}`}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
+                      <form action={deleteProducto}>
+                        <input type="hidden" name="id" value={producto.id} />
+                        <button
+                          type="submit"
+                          className="btn btn-ghost btn-sm btn-square text-error"
+                          title="Eliminar producto"
+                          aria-label={`Eliminar ${producto.nombre}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )

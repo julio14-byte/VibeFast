@@ -22,9 +22,9 @@ const config = {
   // Identidad del producto
   // -----------------------------------------------------------
   app: {
-    name: "Mostrador",
+    name: "SmartPOS",
     description:
-      "Punto de venta e inventario con IA conversacional para comercios tradicionales que quieren dejar de perder tiempo buscando piezas.",
+      "Punto de venta y gestión de inventarios inteligente para comercios tradicionales y ferreterías.",
     domain: "mostrador.app", // sin https://, sin www
     locale: "es", // "es" | "en"
     // URL pública: usa NEXT_PUBLIC_APP_URL en .env. En este config solo definimos el default.
@@ -38,7 +38,7 @@ const config = {
     // Color primario en HEX. DaisyUI lo aplica como --color-primary via theme.
     primary: "#D97706", // amber-600 (calidez industrial, ferretería)
     // Logo: puede ser texto o ruta a /public/logo.svg
-    logoText: "VibeFast",
+    logoText: "SmartPOS",
     logoSrc: null,
     // Estilo del bordeado global (DaisyUI usa esto para botones, cards)
     radius: "1rem",
