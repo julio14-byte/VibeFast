@@ -14,6 +14,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import config from "@/config"
+import { isSupabaseConfigured } from "./env"
 
 // Rutas que requieren sesión. Todo lo que cuelga de /(app) en realidad,
 // pero el middleware no ve grupos de rutas, así que listamos prefijos.
@@ -27,7 +28,7 @@ export async function updateSession(request) {
 
   // Antes de Sem 2 el alumno aún no configuró Supabase. Sin claves,
   // dejamos pasar todo para que la landing (Sem 1) funcione igual.
-  if (!url || !anonKey) return response
+  if (!isSupabaseConfigured()) return response
 
   const supabase = createServerClient(
     url,

@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { createProducto, updateProducto, deleteProducto } from "./actions"
 
 export const metadata = { title: "Productos · SmartPOS" }
+export const dynamic = "force-dynamic"
 
 function formatPrecio(value) {
   return new Intl.NumberFormat("es-MX", {
@@ -13,11 +15,27 @@ function formatPrecio(value) {
 }
 
 export default async function DashboardPage({ searchParams }) {
-  const supabase = await createClient()
-  const { data: productos, error } = await supabase
-    .from("productos")
-    .select("*")
-    .order("created_at", { ascending: false })
+  let productos = null
+  let error = null
+
+  if (!isSupabaseConfigured()) {
+    error = {
+      message:
+        "Supabase no está configurado en el servidor. Agrega NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en Vercel.",
+    }
+  } else {
+    try {
+      const supabase = await createClient()
+      const result = await supabase
+        .from("productos")
+        .select("*")
+        .order("created_at", { ascending: false })
+      productos = result.data
+      error = result.error
+    } catch (err) {
+      error = { message: err.message }
+    }
+  }
 
   const params = await searchParams
   const editId = params?.edit?.toString()

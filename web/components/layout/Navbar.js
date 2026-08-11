@@ -22,6 +22,11 @@ export default function Navbar() {
                   <Link href={item.href}>{item.label}</Link>
                 </li>
               ))}
+              {config.features.googleAuth && (
+                <li>
+                  <Link href={config.auth.loginUrl}>Entrar</Link>
+                </li>
+              )}
             </ul>
           </div>
 

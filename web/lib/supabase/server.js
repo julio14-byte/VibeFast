@@ -11,8 +11,13 @@
 
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { isSupabaseConfigured } from "./env"
 
 export async function createClient() {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase no configurado: faltan variables de entorno.")
+  }
+
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -41,11 +46,17 @@ export async function createClient() {
 // Helper: devuelve el usuario autenticado o null.
 // Usa getUser() (valida el JWT contra Supabase), no getSession().
 export async function getUser() {
-  // Antes de configurar Supabase (Sem 2) no hay sesión posible.
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user
+  if (!isSupabaseConfigured()) return null
+
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+    if (error) return null
+    return user
+  } catch {
+    return null
+  }
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { LayoutDashboard, MessageSquare, Bot } from "lucide-react"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
+import { isSupabaseConfigured } from "@/lib/supabase/env"
 import UserMenu from "@/components/auth/UserMenu"
 import Logo from "@/components/Logo"
 
@@ -12,9 +13,15 @@ const NAV = [
   { href: "/agent", label: "Agente", icon: Bot },
 ]
 
+export const dynamic = "force-dynamic"
+
 // Layout de la zona privada. El middleware ya bloquea sin sesión,
 // pero revalidamos aquí para tener el `user` y proteger por si acaso.
 export default async function AppLayout({ children }) {
+  if (!isSupabaseConfigured()) {
+    redirect(`${config.auth.loginUrl}?error=supabase`)
+  }
+
   const user = await getUser()
   if (!user) redirect(config.auth.loginUrl)
 
