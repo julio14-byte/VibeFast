@@ -56,7 +56,7 @@ const config = {
     agents: true, // LangGraph agents — Sem 5
     mcp: true, // Servidor MCP en /api/mcp — Sem 5
     rag: false, // RAG con pgvector — opcional
-    posthog: false, // Tracking — opcional
+    posthog: true, // Tracking — opcional
     resend: true, // Email — Sem 1+
     pricing: true, // Muestra la sección de precios en la landing (vitrina; el cobro real es `payments`)
     payments: false, // Stripe — opcional, fuera del temario
@@ -83,8 +83,8 @@ const config = {
     // Asegúrate de tener el dominio verificado en Resend antes de cambiar `from`.
     // En desarrollo Resend permite enviar a tu propio correo desde `onboarding@resend.dev`.
     from: "VibeFast <onboarding@resend.dev>",
-    replyTo: "hola@vibefast.dev",
-    supportEmail: "soporte@vibefast.dev",
+    replyTo: "juliobitar14@gmail.com",
+    supportEmail: "juliobitar14@gmail.com",
   },
 
   // -----------------------------------------------------------

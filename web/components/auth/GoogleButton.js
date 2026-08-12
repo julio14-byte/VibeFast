@@ -22,7 +22,11 @@ export default function GoogleButton({ next = "/dashboard" }) {
     setLoading(true)
     setError(null)
     const supabase = createClient()
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },

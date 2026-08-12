@@ -31,12 +31,16 @@ export default function Chat() {
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: history }),
       })
 
       if (!res.ok || !res.body) {
-        throw new Error(`El servidor respondió ${res.status}`)
+        const body = await res.json().catch(() => null)
+        throw new Error(
+          body?.error || `El servidor respondió ${res.status}`
+        )
       }
 
       const reader = res.body.getReader()

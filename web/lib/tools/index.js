@@ -11,6 +11,7 @@
 
 import { crearItem } from "./examples/crearItem.js"
 import { buscarItems } from "./examples/buscarItems.js"
+import { ajustarInventario } from "./examples/ajustarInventario.js"
 import { enviarEmail } from "./examples/enviarEmail.js"
 
 const registry = new Map()
@@ -38,4 +39,4 @@ export async function executeTool(name, args) {
 }
 
 // Auto-registro de los ejemplos incluidos.
-;[crearItem, buscarItems, enviarEmail].forEach(registerTool)
+;[crearItem, buscarItems, ajustarInventario, enviarEmail].forEach(registerTool)

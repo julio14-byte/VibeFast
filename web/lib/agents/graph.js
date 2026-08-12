@@ -25,6 +25,12 @@
 import { StateGraph, Annotation, START, END } from "@langchain/langgraph"
 import { openai } from "@/lib/openai/client"
 import config from "@/config"
+import {
+  buildFallbackToolCall,
+  detectForcedTool,
+  getLastUserMessage,
+  looksLikeGenericRefusal,
+} from "@/lib/agents/intent.js"
 
 // Canales del estado del grafo. `messages` acumula; los demás son
 // utilidades de runtime (no se serializan: corremos en memoria).
@@ -46,17 +52,17 @@ const AgentState = Annotation.Root({
 
 // Llama al modelo en streaming y ensambla el resultado: emite los
 // tokens de contenido y reconstruye los tool_calls fragmentados.
-async function callModel({ model, messages, tools, emit }) {
+async function callModel({ model, messages, tools, emit, toolChoice, suppressTokens = false }) {
   const stream = await openai.chat.completions.create({
     model,
     messages,
     tools: tools.length ? tools : undefined,
-    tool_choice: tools.length ? "auto" : undefined,
+    tool_choice: toolChoice ?? (tools.length ? "auto" : undefined),
     stream: true,
   })
 
   let content = ""
-  const toolCalls = [] // indexado por `index` del delta
+  const toolCalls = []
 
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta
@@ -64,7 +70,9 @@ async function callModel({ model, messages, tools, emit }) {
 
     if (delta.content) {
       content += delta.content
-      emit({ type: "token", text: delta.content })
+      if (!suppressTokens) {
+        emit({ type: "token", text: delta.content })
+      }
     }
 
     for (const tc of delta.tool_calls ?? []) {
@@ -116,14 +124,33 @@ export async function* runAgent({
 
   // --- Nodo decide: el modelo elige tool(s) o responde ---
   async function decide(state) {
-    const { content, toolCalls } = await callModel({
+    const userText = getLastUserMessage(state.messages)
+    const forcedTool =
+      state.steps === 0 && tools.length ? detectForcedTool(userText) : null
+
+    let { content, toolCalls } = await callModel({
       model,
       messages: state.messages,
       tools,
       emit,
+      toolChoice: forcedTool
+        ? { type: "function", function: { name: forcedTool } }
+        : undefined,
+      suppressTokens: Boolean(forcedTool),
     })
 
-    // Mensaje del assistant tal cual lo necesita la siguiente vuelta.
+    if (!toolCalls.length && forcedTool) {
+      const fallback = buildFallbackToolCall(forcedTool, userText)
+      if (fallback) {
+        toolCalls = [fallback]
+        content = ""
+      } else {
+        content = looksLikeGenericRefusal(content) ? "" : content
+      }
+    } else if (!toolCalls.length && looksLikeGenericRefusal(content)) {
+      content = ""
+    }
+
     const assistantMessage = {
       role: "assistant",
       content: content || null,
@@ -134,8 +161,9 @@ export async function* runAgent({
         type: "function",
         function: { name: tc.name, arguments: tc.arguments },
       }))
-      // El texto que acompaña a un tool call es el razonamiento.
-      emit({ type: "reasoning", text: content || "(sin texto)" })
+      emit({ type: "reasoning", text: content || "(ejecutando herramienta)" })
+    } else if (content && !forcedTool) {
+      // Respuesta directa sin herramientas.
     }
 
     return {

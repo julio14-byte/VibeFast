@@ -18,6 +18,14 @@ import { streamChat } from "@/lib/openai/chat"
 
 export async function POST(request) {
   try {
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: "Debes iniciar sesión para usar el chat con inventario." },
+        { status: 401 }
+      )
+    }
+
     const { messages, conversationId } = await request.json()
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -32,6 +40,8 @@ export async function POST(request) {
     // await rechaza y cae al catch de abajo → error JSON controlado.
     let assistantText = ""
     const stream = await streamChat(messages, {
+      useTools: true,
+      conversationId,
       onToken: (token) => {
         assistantText += token
       },

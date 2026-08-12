@@ -16,10 +16,19 @@
 // ============================================================
 
 import { NextResponse } from "next/server"
+import { getUser } from "@/lib/supabase/server"
 import { runRecoverDecideAct } from "@/lib/agents/examples/recoverDecideAct.js"
 
 export async function POST(request) {
   try {
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: "Debes iniciar sesión para usar el agente." },
+        { status: 401 }
+      )
+    }
+
     const { messages, conversationId } = await request.json()
 
     if (!Array.isArray(messages) || messages.length === 0) {

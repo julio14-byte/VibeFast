@@ -69,7 +69,6 @@ export async function createProducto(formData) {
     }
 
     revalidatePath("/dashboard")
-    revalidatePath("/inventario")
     redirect("/dashboard?ok=creado")
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
@@ -100,7 +99,6 @@ export async function updateProducto(formData) {
     }
 
     revalidatePath("/dashboard")
-    revalidatePath("/inventario")
     redirect("/dashboard?ok=actualizado")
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
@@ -125,7 +123,6 @@ export async function deleteProducto(formData) {
     }
 
     revalidatePath("/dashboard")
-    revalidatePath("/inventario")
     redirect("/dashboard?ok=eliminado")
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err

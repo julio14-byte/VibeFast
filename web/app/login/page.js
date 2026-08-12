@@ -58,6 +58,16 @@ export default async function LoginPage({ searchParams }) {
           </div>
         )}
 
+        {supabaseConfigured && (
+          <p className="mt-4 text-xs text-base-content/50">
+            Desarrollo local: entra siempre en{" "}
+            <strong>http://localhost:3000</strong> (no la URL de Vercel). En
+            Supabase → Authentication → URL Configuration agrega{" "}
+            <code className="text-[0.65rem]">http://localhost:3000/**</code> a
+            Redirect URLs.
+          </p>
+        )}
+
         <div className="mt-6">
           {googleEnabled ? (
             <GoogleButton next={next} />

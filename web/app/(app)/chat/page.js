@@ -11,7 +11,8 @@ export default function ChatPage() {
           Chat con {config.app.name}
         </h1>
         <p className="mt-1 text-sm text-base-content/70">
-          Conversa con el asistente AI. Las respuestas llegan en streaming.
+          Conversa con el asistente AI. Puede buscar, crear y modificar
+          productos en tu inventario.
         </p>
       </div>
 

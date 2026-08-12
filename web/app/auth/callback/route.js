@@ -2,23 +2,48 @@ import { NextResponse, after } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { sendWelcome } from "@/lib/resend/send"
 
-// En el primer login, created_at y last_sign_in_at quedan casi idénticos.
-// Si difieren en menos de este margen, lo tratamos como alta nueva.
 const FIRST_LOGIN_WINDOW_MS = 10_000
 
-// Callback de OAuth. Supabase redirige aquí con un `code` que
-// intercambiamos por una sesión (cookies). Luego mandamos al
-// usuario a `next` (o /dashboard por default).
+function safeNextPath(value) {
+  if (!value?.startsWith("/") || value.startsWith("//")) return "/dashboard"
+  return value
+}
+
+function getRedirectBase(request) {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim()?.replace(/\/$/, "")
+  const { origin } = new URL(request.url)
+  const isLocal =
+    origin.includes("localhost") || origin.includes("127.0.0.1")
+
+  // Desarrollo: quedarse en localhost aunque NEXT_PUBLIC_APP_URL apunte a prod.
+  if (isLocal) {
+    return origin
+  }
+
+  // Producción: URL pública configurada (Vercel) > headers del proxy > origin.
+  if (configured && !configured.includes("localhost")) {
+    return configured
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host")
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https"
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`
+  }
+
+  return origin
+}
+
 export async function GET(request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/dashboard"
+  const next = safeNextPath(searchParams.get("next"))
+  const base = getRedirectBase(request)
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Bienvenida solo en el primer login. Best-effort, post-respuesta.
       after(async () => {
         const {
           data: { user },
@@ -34,14 +59,9 @@ export async function GET(request) {
         }
       })
 
-      // En prod detrás de proxy (Vercel), respeta el host reenviado.
-      const forwardedHost = request.headers.get("x-forwarded-host")
-      const isLocal = process.env.NODE_ENV === "development"
-      if (isLocal) return NextResponse.redirect(`${origin}${next}`)
-      if (forwardedHost) return NextResponse.redirect(`https://${forwardedHost}${next}`)
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(`${base}${next}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`)
+  return NextResponse.redirect(`${base}/login?error=auth`)
 }
