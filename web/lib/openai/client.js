@@ -1,28 +1,48 @@
 // ============================================================
 // OpenAI · cliente compartido
 // ------------------------------------------------------------
-// TODO el acceso a OpenAI pasa por aquí. Un solo cliente para
-// chat, structured outputs, agentes y embeddings — así la API key
-// y la configuración del SDK viven en un único lugar.
+// Soporta dos modos (server-only, nunca en el browser):
+//   · OpenAI directo  → OPENAI_API_KEY
+//   · Cursor vía proxy → CURSOR_API_KEY + CURSOR_API_BASE_URL
 //
-// Importa desde aquí en server-only (Route Handlers, Server
-// Actions). Nunca expongas este cliente al browser.
-//
-// El cliente se construye de forma perezosa (Proxy): el SDK valida
-// la presencia de OPENAI_API_KEY al instanciarse, y `next build`
-// importa cada route para recolectar su metadata. Si construyéramos
-// el cliente al importar, el build fallaría sin la key. Difiriendo
-// la construcción al primer uso, el build pasa y una request sin
-// key falla de forma controlada dentro del try/catch de la route.
+// El cliente se construye de forma perezosa (Proxy) para que
+// `next build` no falle si aún no hay keys en .env.local.
 // ============================================================
 
 import OpenAI from "openai"
 
 let client = null
 
+function getClientConfig() {
+  const cursorKey = process.env.CURSOR_API_KEY?.trim()
+  if (cursorKey) {
+    const baseURL = process.env.CURSOR_API_BASE_URL?.trim()
+    if (!baseURL) {
+      throw new Error(
+        "CURSOR_API_BASE_URL es obligatorio con CURSOR_API_KEY. " +
+          "Cursor no tiene chat/completions público: usa un proxy local " +
+          "(ej. http://localhost:3457/v1). Mira web/.env.example."
+      )
+    }
+    return { apiKey: cursorKey, baseURL }
+  }
+
+  const openaiKey = process.env.OPENAI_API_KEY?.trim()
+  if (!openaiKey) {
+    throw new Error(
+      "Falta OPENAI_API_KEY o CURSOR_API_KEY en web/.env.local."
+    )
+  }
+
+  const config = { apiKey: openaiKey }
+  const baseURL = process.env.OPENAI_BASE_URL?.trim()
+  if (baseURL) config.baseURL = baseURL
+  return config
+}
+
 function getClient() {
   if (!client) {
-    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    client = new OpenAI(getClientConfig())
   }
   return client
 }

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LayoutDashboard, MessageSquare, Bot } from "lucide-react"
+import { LayoutDashboard, MessageSquare, Bot, PackageSearch } from "lucide-react"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
@@ -9,6 +9,7 @@ import Logo from "@/components/Logo"
 
 const NAV = [
   { href: "/dashboard", label: "Productos", icon: LayoutDashboard },
+  { href: "/inventario", label: "Inventario", icon: PackageSearch },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/agent", label: "Agente", icon: Bot },
 ]
@@ -26,7 +27,7 @@ export default async function AppLayout({ children }) {
   if (!user) redirect(config.auth.loginUrl)
 
   return (
-    <div className="flex min-h-screen flex-col bg-base-200">
+    <div className="flex min-h-screen flex-col bg-base-200 pb-16 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-base-200 bg-base-100">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/dashboard" className="flex items-center gap-2 font-bold">
@@ -55,6 +56,21 @@ export default async function AppLayout({ children }) {
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-base-200 bg-base-100 md:hidden">
+        <div className="grid grid-cols-4">
+          {NAV.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium text-base-content/70 hover:bg-base-200 hover:text-base-content"
+            >
+              <Icon className="size-5" />
+              {label}
+            </Link>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }

@@ -9,7 +9,7 @@ export const buscarItems = {
     properties: {
       query: {
         type: "string",
-        description: "Texto a buscar en nombre o código del producto.",
+        description: "Texto a buscar en nombre o código numérico del producto.",
       },
     },
     required: ["query"],
@@ -22,11 +22,22 @@ export const buscarItems = {
     } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    const { data, error } = await supabase
+    const q = query.trim()
+    const codigo = Number.parseInt(q, 10)
+    const porCodigo = !Number.isNaN(codigo) && String(codigo) === q
+
+    let request = supabase
       .from("productos")
       .select("id, nombre, codigo, precio, stock")
       .eq("user_id", user.id)
-      .or(`nombre.ilike.%${query}%,codigo.ilike.%${query}%`)
+
+    if (porCodigo) {
+      request = request.or(`nombre.ilike.%${q}%,codigo.eq.${codigo}`)
+    } else {
+      request = request.ilike("nombre", `%${q}%`)
+    }
+
+    const { data, error } = await request
     if (error) throw new Error(error.message)
     return { ok: true, productos: data }
   },

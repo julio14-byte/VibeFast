@@ -39,19 +39,41 @@ export default async function DashboardPage({ searchParams }) {
 
   const params = await searchParams
   const editId = params?.edit?.toString()
+  const formError = params?.error?.toString()
+  const ok = params?.ok?.toString()
   const editProducto = editId
     ? productos?.find((p) => p.id === editId) ?? null
     : null
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-        <p className="mt-1 text-sm text-base-content/70">
-          Catálogo e inventario de SmartPOS. Administra nombre, código, precio y
-          existencias de cada producto.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
+          <p className="mt-1 text-sm text-base-content/70">
+            Catálogo e inventario de SmartPOS. Administra nombre, código, precio y
+            existencias de cada producto.
+          </p>
+        </div>
+        <Link href="/inventario" className="btn btn-outline btn-sm">
+          Ver inventario
+        </Link>
       </div>
+
+      {formError && (
+        <div role="alert" className="alert alert-error">
+          <span>{formError}</span>
+        </div>
+      )}
+      {ok && !formError && (
+        <div role="alert" className="alert alert-success">
+          <span>
+            {ok === "creado" && "Producto agregado."}
+            {ok === "actualizado" && "Producto actualizado."}
+            {ok === "eliminado" && "Producto eliminado."}
+          </span>
+        </div>
+      )}
 
       {/* Crear / editar */}
       <form
@@ -69,8 +91,10 @@ export default async function DashboardPage({ searchParams }) {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <input
             name="codigo"
+            type="number"
             required
-            maxLength={40}
+            min="0"
+            step="1"
             defaultValue={editProducto?.codigo ?? ""}
             placeholder="Código"
             aria-label="Código del producto"
@@ -147,7 +171,7 @@ export default async function DashboardPage({ searchParams }) {
             <tbody>
               {productos.map((producto) => (
                 <tr key={producto.id}>
-                  <td className="font-mono text-sm">{producto.codigo}</td>
+                  <td className="font-mono text-sm tabular-nums">{producto.codigo}</td>
                   <td className="font-medium">{producto.nombre}</td>
                   <td className="text-right">{formatPrecio(producto.precio)}</td>
                   <td className="text-right">

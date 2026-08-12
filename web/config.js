@@ -69,6 +69,7 @@ const config = {
   ai: {
     chatModel: "gpt-4o-mini", // default barato y rápido
     structuredModel: "gpt-4o-mini",
+    cursorModel: "composer-2.5", // cuando usas CURSOR_API_KEY + proxy local
     agentModel: "gpt-4o", // los agentes razonan mejor con full gpt-4o
     embeddingModel: "text-embedding-3-small",
     maxTokens: 1500,

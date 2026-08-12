@@ -16,13 +16,14 @@
 // ============================================================
 
 import { openai } from "./client"
+import { getAiModel } from "./provider"
 import config from "@/config"
 
 // messages: [{ role, content }] · opts: { model?, onToken? }
 // Devuelve un ReadableStream que emite el texto a medida que llega.
 export async function streamChat(messages, { model = config.ai.chatModel, onToken } = {}) {
   const completion = await openai.chat.completions.create({
-    model,
+    model: getAiModel(model),
     messages,
     max_tokens: config.ai.maxTokens,
     temperature: config.ai.temperature,

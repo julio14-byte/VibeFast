@@ -8,7 +8,7 @@ export const crearItem = {
     type: "object",
     properties: {
       nombre: { type: "string", description: "Nombre del producto." },
-      codigo: { type: "string", description: "Código o SKU del producto." },
+      codigo: { type: "integer", description: "Código numérico del producto." },
       precio: { type: "number", description: "Precio de venta." },
       stock: { type: "integer", description: "Existencias actuales." },
     },

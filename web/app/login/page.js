@@ -41,8 +41,10 @@ export default async function LoginPage({ searchParams }) {
             className="mt-4 rounded-lg border border-error/40 bg-error/10 px-3 py-2 text-sm text-error"
           >
             {supabaseMisconfigured
-              ? "Supabase no está configurado en Vercel. Agrega NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en Environment Variables."
-              : "No pudimos iniciar sesión. Revisa Google OAuth en Supabase e intenta de nuevo."}
+              ? "Supabase no está configurado. Revisa web/.env.local."
+              : params?.error === "auth"
+                ? "Debes iniciar sesión con Google para guardar productos. Configura Google OAuth en Supabase (Authentication → Providers → Google)."
+                : "No pudimos iniciar sesión. Revisa Google OAuth en Supabase e intenta de nuevo."}
           </div>
         )}
 
