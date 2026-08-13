@@ -27,6 +27,39 @@ export function looksLikeFakeSuccess(content) {
   )
 }
 
+export function parseGestionarInventarioArgs(text) {
+  if (!text?.trim()) return null
+  const normalized = normalizeProductText(text)
+
+  const codigo =
+    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*["'""]?([A-Za-z0-9_-]+)["'""]?/i)?.[1] ??
+    normalized.match(/\bc[oó]digo\s+["'""]?([A-Za-z0-9_-]+)["'""]?/i)?.[1]
+
+  const nombre =
+    normalized.match(/producto\s+["'""]([^"'""]+)["'""]/i)?.[1] ??
+    normalized.match(/nombre\s*(?:de\s*)?:?\s*["'""]([^"'""]+)["'""]/i)?.[1] ??
+    normalized.match(/nombre\s*(?:de\s*)?:?\s*(.+?)(?=\s+precio|\s+stock|$)/i)?.[1]
+
+  const precio =
+    normalized.match(/precio\s+p[uú]blico\s*:?\s*\$?\s*([\d.]+)/i)?.[1] ??
+    normalized.match(/precio(?:\s+de)?\s*:?\s*\$?\s*([\d.]+)/i)?.[1] ??
+    normalized.match(/\$\s*([\d.]+)/)?.[1]
+
+  const stock =
+    normalized.match(/stock(?:\s+inicial)?(?:\s+de)?\s*:?\s*(\d+)/i)?.[1] ??
+    normalized.match(/(?:un\s+)?stock\s+de\s+(\d+)/i)?.[1] ??
+    normalized.match(/(\d+)\s+unidades/i)?.[1]
+
+  if (!codigo || !nombre || !precio || !stock) return null
+
+  return {
+    nombre: nombre.trim(),
+    codigo: codigo.trim(),
+    precio: Number.parseFloat(precio),
+    stock: Number(stock),
+  }
+}
+
 export function parseCreateProductArgs(text) {
   if (!text?.trim()) return null
   const normalized = normalizeProductText(text)
@@ -99,6 +132,9 @@ export function parseVentaArgs(text) {
 }
 
 export function detectProductAction(text) {
+  const gestionarArgs = parseGestionarInventarioArgs(text)
+  if (gestionarArgs) return "gestionar_inventario"
+
   const args = parseCreateProductArgs(text)
   if (!args) return null
 
@@ -133,6 +169,9 @@ export function detectForcedTool(text) {
   const ventaArgs = parseVentaArgs(text)
   if (ventaArgs) return "registrar_venta"
 
+  const gestionarArgs = parseGestionarInventarioArgs(text)
+  if (gestionarArgs) return "gestionar_inventario"
+
   const productAction = detectProductAction(text)
   if (productAction) return productAction
 
@@ -142,7 +181,7 @@ export function detectForcedTool(text) {
     hasRegistrationIntent(text) &&
     (/\b(c[oó]digo|precio|stock|nombre)\b/i.test(t) || /\b\d{3,}\b/.test(t))
   ) {
-    return "crear_producto"
+    return parseGestionarInventarioArgs(text) ? "gestionar_inventario" : "crear_producto"
   }
 
   if (
@@ -188,6 +227,16 @@ export function parseSearchQuery(text) {
 export function buildFallbackToolCall(toolName, userText) {
   if (toolName === "registrar_venta") {
     const args = parseVentaArgs(userText)
+    if (!args) return null
+    return {
+      id: `call_force_${Date.now()}`,
+      name: toolName,
+      arguments: JSON.stringify(args),
+    }
+  }
+
+  if (toolName === "gestionar_inventario") {
+    const args = parseGestionarInventarioArgs(userText)
     if (!args) return null
     return {
       id: `call_force_${Date.now()}`,

@@ -1,24 +1,11 @@
 // ============================================================
-// OpenAI · chat con inventario (ejecución directa + agente)
+// OpenAI · chat con inventario vía LangGraph
 // ============================================================
 
 import { openai } from "./client"
 import { getAiModel } from "./provider"
 import config from "@/config"
 import { runRecoverDecideAct } from "@/lib/agents/examples/recoverDecideAct.js"
-import {
-  detectProductAction,
-  extractProductFromConversation,
-  getLastUserMessage,
-  hasRegistrationIntent,
-  looksLikeFakeSuccess,
-  looksLikeGenericRefusal,
-  parseCreateProductArgs,
-  parseSearchQuery,
-  parseVentaArgs,
-  resolveInventoryUserText,
-} from "@/lib/agents/intent.js"
-import { executeTool } from "@/lib/tools/index.js"
 
 function formatProducto(producto) {
   if (!producto) return ""
@@ -85,54 +72,9 @@ function formatToolResult(name, result) {
   return ""
 }
 
-async function runTool(name, args) {
-  try {
-    return await executeTool(name, args)
-  } catch (err) {
-    return { ok: false, error: err?.message ?? "Error ejecutando la tool." }
-  }
-}
-
-async function tryDirectInventoryAction(messages) {
-  const lastUser = getLastUserMessage(messages)
-  const resolvedText = resolveInventoryUserText(messages)
-  const args =
-    parseCreateProductArgs(lastUser) ?? parseCreateProductArgs(resolvedText)
-
-  if (args) {
-    const tool = detectProductAction(resolvedText) ?? "crear_producto"
-    const result = await runTool(tool, args)
-    return formatToolResult(tool, result)
-  }
-
-  const extracted = extractProductFromConversation(messages)
-  if (extracted && (hasRegistrationIntent(lastUser) || extracted.source === "user")) {
-    const result = await runTool(extracted.tool, extracted.args)
-    return formatToolResult(extracted.tool, result)
-  }
-
-  if (/\b(busca|buscar)\b/i.test(lastUser)) {
-    const result = await runTool("buscar_productos", {
-      query: parseSearchQuery(lastUser),
-    })
-    return formatToolResult("buscar_productos", result)
-  }
-
-  const ventaArgs = parseVentaArgs(lastUser)
-  if (ventaArgs) {
-    const result = await runTool("registrar_venta", ventaArgs)
-    return formatToolResult("registrar_venta", result)
-  }
-
-  return null
-}
-
 function formatChatEvent(event) {
   switch (event.type) {
     case "token":
-      if (looksLikeGenericRefusal(event.text) || looksLikeFakeSuccess(event.text)) {
-        return ""
-      }
       return event.text || ""
     case "reasoning":
       if (!event.text || event.text === "(ejecutando herramienta)") return ""
@@ -157,37 +99,26 @@ function textStream(text, onToken) {
   })
 }
 
-async function streamChatViaAgent(messages, { onToken, conversationId }) {
-  const direct = await tryDirectInventoryAction(messages)
-  if (direct) {
-    return textStream(direct.trim(), onToken)
-  }
-
+async function streamChatViaLangGraph(messages, { onToken, conversationId }) {
   let text = ""
   for await (const event of runRecoverDecideAct({ messages, conversationId })) {
     if (event.type === "error") {
-      throw new Error(event.message ?? "Error del agente")
+      throw new Error(event.message ?? "Error del agente LangGraph")
     }
-    text += formatChatEvent(event)
+    const chunk = formatChatEvent(event)
+    if (chunk && onToken) onToken(chunk)
+    text += chunk
   }
 
-  text = text.trim()
-  if (looksLikeGenericRefusal(text) || looksLikeFakeSuccess(text)) {
-    const retry = await tryDirectInventoryAction(messages)
-    text =
-      retry?.trim() ||
-      'No pude guardar el producto. Prueba: Registra el producto "Llave Stillson 20 pulgadas" con código 2053, precio 110.50 y stock 30.'
-  }
-
-  return textStream(text, onToken)
+  return textStream(text.trim(), onToken)
 }
 
 export async function streamChat(
   messages,
   { model = config.ai.chatModel, onToken, conversationId, useTools = false } = {}
 ) {
-  if (useTools && config.features.toolUse) {
-    return streamChatViaAgent(messages, { onToken, conversationId })
+  if (useTools && config.features.toolUse && config.features.agents) {
+    return streamChatViaLangGraph(messages, { onToken, conversationId })
   }
 
   const completion = await openai.chat.completions.create({
@@ -216,3 +147,5 @@ export async function streamChat(
     },
   })
 }
+
+export { formatToolResult, formatChatEvent }

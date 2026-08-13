@@ -4,6 +4,7 @@ import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import GoogleButton from "@/components/auth/GoogleButton"
+import EmailPasswordForm from "@/components/auth/EmailPasswordForm"
 import UsernamePasswordForm from "@/components/auth/UsernamePasswordForm"
 import Logo from "@/components/Logo"
 
@@ -22,6 +23,7 @@ export default async function LoginPage({ searchParams }) {
 
   const supabaseConfigured = isSupabaseConfigured()
   const googleEnabled = config.features.googleAuth
+  const emailEnabled = config.features.emailLogin
   const usernameEnabled = config.features.usernameLogin
 
   return (
@@ -34,7 +36,7 @@ export default async function LoginPage({ searchParams }) {
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Entra a tu cuenta</h1>
         <p className="mt-2 text-sm text-base-content/70">
-          Google o usuario y contraseña para {config.app.name}.
+          Google o correo y contraseña para {config.app.name}.
         </p>
 
         {hasError && (
@@ -45,7 +47,7 @@ export default async function LoginPage({ searchParams }) {
             {supabaseMisconfigured
               ? "Supabase no está configurado."
               : params?.error === "auth"
-                ? "Usuario o contraseña incorrectos."
+                ? "Correo o contraseña incorrectos."
                 : "No pudimos iniciar sesión. Intenta de nuevo."}
           </div>
         )}
@@ -65,17 +67,19 @@ export default async function LoginPage({ searchParams }) {
           </div>
         )}
 
-        {googleEnabled && usernameEnabled && supabaseConfigured && (
+        {googleEnabled && (emailEnabled || usernameEnabled) && supabaseConfigured && (
           <div className="divider my-6 text-xs text-base-content/40">
-            o con usuario
+            {emailEnabled ? "o con correo" : "o con usuario"}
           </div>
         )}
 
-        {usernameEnabled && supabaseConfigured && (
+        {emailEnabled && supabaseConfigured && <EmailPasswordForm next={next} />}
+
+        {usernameEnabled && !emailEnabled && supabaseConfigured && (
           <UsernamePasswordForm next={next} />
         )}
 
-        {!googleEnabled && !usernameEnabled && (
+        {!googleEnabled && !emailEnabled && !usernameEnabled && (
           <p className="mt-6 text-sm text-base-content/60">
             Activa login en <code>config.js</code>
           </p>

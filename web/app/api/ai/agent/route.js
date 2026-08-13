@@ -17,6 +17,7 @@
 
 import { NextResponse } from "next/server"
 import { getUser } from "@/lib/supabase/server"
+import config from "@/config"
 import { runRecoverDecideAct } from "@/lib/agents/examples/recoverDecideAct.js"
 
 export async function POST(request) {
@@ -26,6 +27,13 @@ export async function POST(request) {
       return NextResponse.json(
         { error: "Debes iniciar sesión para usar el agente." },
         { status: 401 }
+      )
+    }
+
+    if (!config.features.agents) {
+      return NextResponse.json(
+        { error: "Los agentes LangGraph están desactivados en config.features.agents." },
+        { status: 503 }
       )
     }
 
