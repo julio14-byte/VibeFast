@@ -229,3 +229,31 @@ h4,
   size: 80mm auto;
   margin: 2mm;
 }
+
+/* ============================================================
+   Dashboard POS · Ferretería (industrial + acento ámbar)
+   ============================================================ */
+.dashboard-pos .dashboard-hero {
+  box-shadow:
+    0 1px 0 0 color-mix(in oklch, var(--color-primary) 25%, transparent),
+    0 8px 24px -8px color-mix(in oklch, var(--color-neutral) 15%, transparent);
+}
+
+.dashboard-kpi {
+  backdrop-filter: blur(4px);
+}
+
+.dashboard-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .dashboard-table .table {
+    font-size: 0.8125rem;
+  }
+  .dashboard-kpi p.text-3xl {
+    font-size: 1.5rem;
+  }
+}
