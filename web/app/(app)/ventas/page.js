@@ -15,7 +15,7 @@ export default async function VentasPage({ searchParams }) {
       .from("productos")
       .select("*, proveedor:proveedores(id, nombre)")
       .order("nombre"),
-    supabase.from("clientes").select("id, nombre").order("nombre"),
+    supabase.from("clientes").select("id, nombre, razon_social").order("nombre"),
     supabase
       .from("ventas")
       .select("id, folio, total, created_at, tipo_precio")
@@ -30,6 +30,7 @@ export default async function VentasPage({ searchParams }) {
   const ok = params?.ok?.toString()
   const folioOk = params?.folio?.toString()
   const totalOk = params?.total?.toString()
+  const ventaId = params?.venta_id?.toString()
 
   return (
     <div className="space-y-6">
@@ -53,9 +54,19 @@ export default async function VentasPage({ searchParams }) {
       )}
       {ok === "venta" && (
         <div role="alert" className="alert alert-success">
-          <span>
-            Venta #{folioOk} registrada por {formatPrecio(totalOk)}.
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              Venta #{folioOk} registrada por {formatPrecio(totalOk)}.
+            </span>
+            {ventaId && (
+              <Link
+                href={`/ventas/ticket/${ventaId}?print=1`}
+                className="btn btn-sm btn-outline"
+              >
+                Imprimir ticket
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
@@ -72,6 +83,7 @@ export default async function VentasPage({ searchParams }) {
                   <th>Fecha</th>
                   <th>Tipo</th>
                   <th className="text-right">Total</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -84,6 +96,14 @@ export default async function VentasPage({ searchParams }) {
                     <td className="text-sm capitalize">{v.tipo_precio}</td>
                     <td className="text-right font-medium">
                       {formatPrecio(v.total)}
+                    </td>
+                    <td>
+                      <Link
+                        href={`/ventas/ticket/${v.id}`}
+                        className="btn btn-ghost btn-xs"
+                      >
+                        Ticket
+                      </Link>
                     </td>
                   </tr>
                 ))}

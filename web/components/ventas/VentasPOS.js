@@ -13,6 +13,7 @@ export default function VentasPOS({ productos, clientes }) {
   const [formaPago, setFormaPago] = useState("01")
   const [clienteId, setClienteId] = useState("")
   const [notas, setNotas] = useState("")
+  const [imprimirTicket, setImprimirTicket] = useState(true)
   const [loading, setLoading] = useState(false)
 
   function addToCart(producto) {
@@ -97,6 +98,7 @@ export default function VentasPOS({ productos, clientes }) {
     formData.set("metodo_pago", "PUE")
     if (clienteId) formData.set("cliente_id", clienteId)
     if (notas) formData.set("notas", notas)
+    if (imprimirTicket) formData.set("imprimir_ticket", "1")
 
     try {
       await registrarVenta(formData)
@@ -219,9 +221,21 @@ export default function VentasPOS({ productos, clientes }) {
           >
             <option value="">Sin cliente (público general)</option>
             {clientes.map((c) => (
-              <option key={c.id} value={c.id}>{c.nombre}</option>
+              <option key={c.id} value={c.id}>
+                {c.razon_social ?? c.nombre}
+              </option>
             ))}
           </select>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={imprimirTicket}
+              onChange={(e) => setImprimirTicket(e.target.checked)}
+              className="checkbox checkbox-sm checkbox-primary"
+            />
+            Imprimir ticket (80mm) al cobrar
+          </label>
 
           <select
             value={formaPago}

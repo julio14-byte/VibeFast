@@ -4,16 +4,14 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
+const BASE = "/productos"
+
 async function requireUser() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login?next=/dashboard&error=auth")
-  }
-
+  if (!user) redirect(`/login?next=${BASE}&error=auth`)
   return { supabase, user }
 }
 
@@ -74,16 +72,14 @@ function parseProductoForm(formData) {
   }
 }
 
-function fail(message, path = "/dashboard") {
-  redirect(`${path}?error=${encodeURIComponent(message)}`)
+function fail(message) {
+  redirect(`${BASE}?error=${encodeURIComponent(message)}`)
 }
 
 export async function createProducto(formData) {
   try {
     const data = parseProductoForm(formData)
-    if (!data) {
-      fail("Revisa código, nombre, precios y stock. Todos son obligatorios.")
-    }
+    if (!data) fail("Revisa código, nombre, precios y stock.")
 
     const { supabase, user } = await requireUser()
     const { error } = await supabase.from("productos").insert({
@@ -92,22 +88,17 @@ export async function createProducto(formData) {
     })
 
     if (error) {
-      if (error.code === "23505") {
-        fail(`Ya existe un producto con el código "${data.codigo}".`)
-      }
-      if (error.message?.includes("does not exist") || error.code === "42P01") {
-        fail("La tabla productos no existe. Corre: supabase db push")
-      }
+      if (error.code === "23505") fail(`Ya existe código "${data.codigo}".`)
       fail(error.message || "No se pudo crear el producto.")
     }
 
-    revalidatePath("/dashboard")
+    revalidatePath(BASE)
     revalidatePath("/inventario")
     revalidatePath("/ventas")
-    redirect("/dashboard?ok=creado")
+    redirect(`${BASE}?ok=creado`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message || "Error inesperado al crear el producto.")
+    fail(err?.message || "Error al crear.")
   }
 }
 
@@ -115,9 +106,7 @@ export async function updateProducto(formData) {
   try {
     const id = formData.get("id")?.toString()
     const data = parseProductoForm(formData)
-    if (!id || !data) {
-      fail("Datos inválidos al actualizar el producto.")
-    }
+    if (!id || !data) fail("Datos inválidos.")
 
     const { supabase, user } = await requireUser()
     const { error } = await supabase
@@ -127,26 +116,24 @@ export async function updateProducto(formData) {
       .eq("user_id", user.id)
 
     if (error) {
-      if (error.code === "23505") {
-        fail(`Ya existe un producto con el código "${data.codigo}".`)
-      }
-      fail(error.message || "No se pudo actualizar el producto.")
+      if (error.code === "23505") fail(`Ya existe código "${data.codigo}".`)
+      fail(error.message || "No se pudo actualizar.")
     }
 
-    revalidatePath("/dashboard")
+    revalidatePath(BASE)
     revalidatePath("/inventario")
     revalidatePath("/ventas")
-    redirect("/dashboard?ok=actualizado")
+    redirect(`${BASE}?ok=actualizado`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message || "Error inesperado al actualizar el producto.")
+    fail(err?.message || "Error al actualizar.")
   }
 }
 
 export async function deleteProducto(formData) {
   try {
     const id = formData.get("id")?.toString()
-    if (!id) fail("Falta el id del producto.")
+    if (!id) fail("Falta el id.")
 
     const { supabase, user } = await requireUser()
     const { error } = await supabase
@@ -155,64 +142,13 @@ export async function deleteProducto(formData) {
       .eq("id", id)
       .eq("user_id", user.id)
 
-    if (error) {
-      fail(error.message || "No se pudo eliminar el producto.")
-    }
+    if (error) fail(error.message || "No se pudo eliminar.")
 
-    revalidatePath("/dashboard")
+    revalidatePath(BASE)
     revalidatePath("/inventario")
-    redirect("/dashboard?ok=eliminado")
+    redirect(`${BASE}?ok=eliminado`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message || "Error inesperado al eliminar el producto.")
-  }
-}
-
-export async function createProveedor(formData) {
-  try {
-    const nombre = formData.get("nombre")?.toString().trim()
-    if (!nombre) fail("El nombre del proveedor es obligatorio.", "/proveedores")
-
-    const { supabase, user } = await requireUser()
-    const { error } = await supabase.from("proveedores").insert({
-      user_id: user.id,
-      nombre,
-      contacto: formData.get("contacto")?.toString().trim() || null,
-      telefono: formData.get("telefono")?.toString().trim() || null,
-      email: formData.get("email")?.toString().trim() || null,
-      notas: formData.get("notas")?.toString().trim() || null,
-    })
-
-    if (error) fail(error.message, "/proveedores")
-
-    revalidatePath("/proveedores")
-    revalidatePath("/dashboard")
-    redirect("/proveedores?ok=creado")
-  } catch (err) {
-    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message, "/proveedores")
-  }
-}
-
-export async function deleteProveedor(formData) {
-  try {
-    const id = formData.get("id")?.toString()
-    if (!id) fail("Falta el id.", "/proveedores")
-
-    const { supabase, user } = await requireUser()
-    const { error } = await supabase
-      .from("proveedores")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id)
-
-    if (error) fail(error.message, "/proveedores")
-
-    revalidatePath("/proveedores")
-    revalidatePath("/dashboard")
-    redirect("/proveedores?ok=eliminado")
-  } catch (err) {
-    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message, "/proveedores")
+    fail(err?.message || "Error al eliminar.")
   }
 }

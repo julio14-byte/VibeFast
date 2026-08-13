@@ -199,3 +199,33 @@ h4,
 .prose-vf hr {
   @apply my-8 border-base-300;
 }
+
+/* Ticket impresora 80mm (térmica) */
+.ticket-80mm {
+  width: 80mm;
+  max-width: 80mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #ticket-print,
+  #ticket-print * {
+    visibility: visible;
+  }
+  #ticket-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+@page ticket {
+  size: 80mm auto;
+  margin: 2mm;
+}

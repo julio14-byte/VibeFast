@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { createProveedor, deleteProveedor } from "../dashboard/actions"
+import { createProveedor, deleteProveedor } from "./actions"
 
 export const metadata = { title: "Proveedores · SmartPOS" }
 export const dynamic = "force-dynamic"
@@ -27,7 +27,7 @@ export default async function ProveedoresPage({ searchParams }) {
             productos.
           </p>
         </div>
-        <Link href="/dashboard" className="btn btn-outline btn-sm">
+        <Link href="/productos" className="btn btn-outline btn-sm">
           Productos
         </Link>
       </div>

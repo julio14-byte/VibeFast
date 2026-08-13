@@ -20,11 +20,13 @@ import { isSupabaseConfigured } from "./env"
 // pero el middleware no ve grupos de rutas, así que listamos prefijos.
 const PROTECTED_PREFIXES = [
   "/dashboard",
+  "/productos",
   "/account",
   "/chat",
   "/inventario",
   "/ventas",
   "/facturacion",
+  "/clientes",
   "/proveedores",
   "/agent",
 ]

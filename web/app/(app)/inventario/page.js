@@ -26,7 +26,7 @@ export default async function InventarioPage() {
     return (
       <div className="mx-auto max-w-3xl rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-10 text-center">
         <p className="text-base-content/70">Aún no hay productos guardados.</p>
-        <Link href="/dashboard" className="btn btn-primary btn-sm mt-4">
+        <Link href="/productos" className="btn btn-primary btn-sm mt-4">
           Ir a Productos
         </Link>
       </div>
