@@ -7,7 +7,7 @@ export default function Message({ role, content }) {
   return (
     <div className={`chat ${isUser ? "chat-end" : "chat-start"}`}>
       <div
-        className={`chat-bubble whitespace-pre-wrap break-words ${
+        className={`chat-bubble max-w-[92%] whitespace-pre-wrap break-words text-sm sm:max-w-md sm:text-base ${
           isUser ? "chat-bubble-primary" : ""
         }`}
       >

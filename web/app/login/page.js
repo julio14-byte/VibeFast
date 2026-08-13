@@ -27,14 +27,14 @@ export default async function LoginPage({ searchParams }) {
   const usernameEnabled = config.features.usernameLogin
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-base-200 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-base-200 bg-base-100 p-8 shadow-sm">
+    <main className="flex min-h-dvh min-h-screen items-center justify-center bg-base-200 px-4 py-6 safe-area-top safe-area-bottom">
+      <div className="w-full max-w-sm rounded-2xl border border-base-200 bg-base-100 p-6 shadow-sm sm:p-8">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
           <Logo className="size-7" />
           {config.brand.logoText}
         </Link>
 
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">Entra a tu cuenta</h1>
+        <h1 className="mt-6 text-xl font-bold tracking-tight sm:text-2xl">Entra a tu cuenta</h1>
         <p className="mt-2 text-sm text-base-content/70">
           Google o correo y contraseña para {config.app.name}.
         </p>

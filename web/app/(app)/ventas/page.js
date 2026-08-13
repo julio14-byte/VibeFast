@@ -35,14 +35,13 @@ export default async function VentasPage({ searchParams }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Ventas</h1>
-          <p className="mt-1 text-sm text-base-content/70">
-            Punto de venta para mostrador. Busca productos, cobra y descuenta
-            stock automáticamente.
+        <div className="min-w-0">
+          <h1 className="page-title">Ventas</h1>
+          <p className="page-lead">
+            Punto de venta para mostrador. Busca, cobra y descuenta stock.
           </p>
         </div>
-        <Link href="/facturacion" className="btn btn-outline btn-sm">
+        <Link href="/facturacion" className="btn btn-outline btn-sm shrink-0 touch-manipulation">
           Facturación
         </Link>
       </div>

@@ -17,14 +17,14 @@ export default function InventarioClient({ productos, alertasCount }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
-          <p className="mt-1 text-sm text-base-content/70">
-            Busca productos por nombre, código o proveedor. Precios de compra,
-            mayoreo y público.
+        <div className="min-w-0">
+          <h1 className="page-title">Inventario</h1>
+          <p className="page-lead">
+            Busca por nombre, código o proveedor. Precios de compra, mayoreo y
+            público.
           </p>
         </div>
-        <Link href="/chat" className="btn btn-primary btn-sm">
+        <Link href="/chat" className="btn btn-primary btn-sm shrink-0 touch-manipulation">
           Buscar con chat
         </Link>
       </div>
@@ -45,7 +45,49 @@ export default function InventarioClient({ productos, alertasCount }) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-box border border-base-200 bg-base-100">
+      {/* Vista móvil: tarjetas */}
+      <div className="space-y-2 md:hidden">
+        {filtered.length === 0 ? (
+          <p className="rounded-box border border-base-200 bg-base-100 px-4 py-8 text-center text-sm text-base-content/60">
+            No hay productos que coincidan con tu búsqueda.
+          </p>
+        ) : (
+          filtered.map((p) => (
+            <article
+              key={p.id}
+              className="rounded-box border border-base-200 bg-base-100 p-3 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium leading-snug">{p.nombre}</p>
+                  <p className="mt-0.5 font-mono text-xs text-base-content/55">
+                    Cód. {p.codigo}
+                  </p>
+                </div>
+                <span
+                  className={`badge shrink-0 ${
+                    p.stock === 0
+                      ? "badge-error"
+                      : p.stock < 2
+                        ? "badge-warning"
+                        : "badge-success"
+                  }`}
+                >
+                  {p.stock} u.
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
+                <span>Público {formatPrecio(p.precio_publico ?? p.precio)}</span>
+                <span>Mayoreo {formatPrecio(p.precio_mayoreo)}</span>
+                {p.proveedor?.nombre && <span>{p.proveedor.nombre}</span>}
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      {/* Vista escritorio: tabla */}
+      <div className="hidden overflow-x-auto rounded-box border border-base-200 bg-base-100 md:block">
         <table className="table">
           <thead>
             <tr>

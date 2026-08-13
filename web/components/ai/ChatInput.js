@@ -31,13 +31,13 @@ export default function ChatInput({ onSubmit, disabled }) {
         disabled={disabled}
         rows={1}
         placeholder="Escribe tu mensaje…"
-        className="textarea textarea-bordered max-h-40 min-h-12 flex-1 resize-none"
+        className="textarea textarea-bordered max-h-32 min-h-11 flex-1 resize-none text-base sm:max-h-40 sm:min-h-12"
       />
       <button
         type="button"
         onClick={send}
         disabled={disabled || !text.trim()}
-        className="btn btn-primary btn-square"
+        className="btn btn-primary btn-square min-h-11 min-w-11 touch-manipulation"
         aria-label="Enviar"
       >
         {disabled ? (

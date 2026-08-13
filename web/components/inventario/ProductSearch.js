@@ -27,7 +27,7 @@ export default function ProductSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="grow bg-transparent outline-none"
+          className="grow bg-transparent outline-none text-base sm:text-sm"
           aria-label="Buscar productos"
         />
         {query && (
@@ -58,7 +58,7 @@ export default function ProductSearch({
                       onSelect?.(p)
                       setQuery("")
                     }}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-base-200/60"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left touch-manipulation active:bg-base-200/60"
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">{p.nombre}</p>

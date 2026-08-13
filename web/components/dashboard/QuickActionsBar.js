@@ -18,14 +18,14 @@ const ACTIONS = [
 export default function QuickActionsBar() {
   return (
     <nav
-      className="flex flex-wrap gap-2"
+      className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none sm:flex-wrap sm:overflow-visible"
       aria-label="Acciones rápidas"
     >
       {ACTIONS.map(({ href, label, icon: Icon }) => (
         <Link
           key={href}
           href={href}
-          className="btn btn-ghost btn-sm gap-2 border border-base-300/80 bg-base-100/80 hover:border-primary/40 hover:bg-primary/5"
+          className="btn btn-ghost btn-sm gap-2 shrink-0 border border-base-300/80 bg-base-100/80 touch-manipulation hover:border-primary/40 hover:bg-primary/5"
         >
           <Icon className="size-4 opacity-70" />
           {label}

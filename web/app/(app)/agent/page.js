@@ -5,13 +5,11 @@ export const metadata = { title: "Agente" }
 
 export default function AgentPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Agente de {config.app.name}
-        </h1>
-        <p className="mt-1 text-sm text-base-content/70">
-          El agente decide qué herramientas usar y muestra su razonamiento.
+        <h1 className="page-title">Agente de {config.app.name}</h1>
+        <p className="page-lead">
+          LangGraph decide qué herramientas usar y muestra su razonamiento.
         </p>
       </div>
 

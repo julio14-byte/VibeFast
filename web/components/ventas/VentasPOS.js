@@ -108,7 +108,7 @@ export default function VentasPOS({ productos, clientes }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 pb-20 lg:pb-0 lg:grid-cols-2">
       <div className="space-y-4">
         <ProductSearch
           productos={productos}
@@ -212,7 +212,7 @@ export default function VentasPOS({ productos, clientes }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3" id="venta-form">
           <select
             value={clienteId}
             onChange={(e) => setClienteId(e.target.value)}
@@ -261,12 +261,40 @@ export default function VentasPOS({ productos, clientes }) {
           <button
             type="submit"
             disabled={cart.length === 0 || loading}
-            className="btn btn-primary w-full"
+            className="btn btn-primary w-full touch-manipulation hidden lg:flex"
           >
             {loading ? "Registrando…" : "Cobrar venta"}
           </button>
         </form>
       </div>
+
+      {cart.length > 0 && (
+        <div
+          className="fixed inset-x-0 z-30 border-t border-base-200 bg-base-100/95 p-3 shadow-lg backdrop-blur-md lg:hidden"
+          style={{
+            bottom: "calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-base-content/60">
+                {cart.length} producto{cart.length === 1 ? "" : "s"}
+              </p>
+              <p className="text-lg font-bold tabular-nums">
+                {formatPrecio(totals.total)}
+              </p>
+            </div>
+            <button
+              type="submit"
+              form="venta-form"
+              disabled={loading}
+              className="btn btn-primary min-h-11 touch-manipulation shrink-0"
+            >
+              {loading ? "…" : "Cobrar"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

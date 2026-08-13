@@ -130,8 +130,8 @@ export default function AgentRun() {
   }
 
   return (
-    <div className="flex h-[72vh] flex-col rounded-box border border-base-200 bg-base-100">
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
+    <div className="mobile-chat-panel flex flex-col rounded-box border border-base-200 bg-base-100 shadow-sm">
+      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto overscroll-contain p-3 sm:p-4">
         {timeline.length === 0 ? (
           <div className="flex h-full items-center justify-center text-center text-sm text-base-content/60">
             Pídele algo al agente. Verás su razonamiento y las herramientas que
@@ -185,7 +185,7 @@ export default function AgentRun() {
         )}
       </div>
 
-      <div className="border-t border-base-200 p-4">
+      <div className="shrink-0 border-t border-base-200 p-3 sm:p-4">
         <ChatInput onSubmit={handleSubmit} disabled={running} />
       </div>
     </div>
