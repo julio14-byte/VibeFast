@@ -21,8 +21,8 @@ Al final vas a tener:
 - ✅ Tus <Term id="api-key">keys</Term> en `web/.env.local`.
 - ✅ El <Term id="prompt">prompt</Term> para que tu IA construya el <Term id="checkout">checkout</Term>.
 
-<Callout type="warning" title="El código de cobro lo construye tu IA">
-El boilerplate trae el toggle `features.payments` y el lugar para el `stripePriceId` en `web/config.js`, pero **el módulo de cobro (checkout + <Term id="webhook">webhook</Term>) no viene pre-armado** — lo construye Cursor con el prompt del final de esta página. Esta guía cubre la parte que la IA no puede hacer por ti: los clicks en el <Term id="dashboard">dashboard</Term> de Stripe.
+<Callout type="success" title="El plugin Stripe ya está en el boilerplate">
+El toggle `features.payments` y el plugin en `web/plugins/stripe/` incluyen checkout, portal de cliente, webhook y paywall. Esta guía cubre la parte que la IA no puede hacer por ti: los clicks en el <Term id="dashboard">dashboard</Term> de Stripe y las variables de entorno.
 </Callout>
 
 ## Paso 1 · Crea tu cuenta
@@ -77,17 +77,19 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 ```
 
-## Paso 6 · Deja que tu IA construya el cobro
+## Paso 6 · Verifica el plugin en tu proyecto
 
-Con las keys en su lugar, pega esto en Cursor:
+Con las keys en su lugar, confirma que el plugin está activo:
 
-<PromptBox label="Prompt para Cursor">
-Implementa suscripciones con Stripe en mi proyecto VibeFast (Next.js App Router, la app vive en web/):
-1. Un endpoint de checkout que cree una Stripe Checkout Session en modo suscripción usando el stripePriceId de web/config.js (pricing.plans) y STRIPE_SECRET_KEY de web/.env.local.
-2. Un webhook en web/app/api/webhooks/stripe/route.js que escuche checkout.session.completed y customer.subscription.deleted, verifique la firma con STRIPE_WEBHOOK_SECRET, y guarde el estado de la suscripción del usuario en Supabase.
-3. Un helper hasActiveSubscription(user) en web/lib/ para saber si el usuario tiene suscripción activa y mostrar u ocultar features según su plan.
-4. Conecta el botón del plan Pro de la landing al checkout.
-Usa la versión más reciente del SDK de Stripe. Explícame qué archivos creaste al final.
+- `features.payments: true` en `web/config.js`
+- Código en `web/plugins/stripe/` (checkout, portal, webhook, paywall)
+- Migración `013_saas_organizations.sql` aplicada en Supabase
+- Página `/account/billing` para gestionar el plan
+
+Detalle de cada módulo → [Pagos (Stripe)](/docs/features/payments).
+
+<PromptBox label="Prompt para Cursor (si falta algo)">
+Revisa el plugin Stripe en web/plugins/stripe/. Confirma que checkout, portal, webhook y paywall funcionan con mis variables de .env.local. Si algo falta, complétalo sin duplicar lógica fuera del plugin.
 </PromptBox>
 
 ## Paso 7 · El webhook (cuando ya tengas deploy)
@@ -96,7 +98,7 @@ El **webhook** es la URL de tu app que Stripe llama automáticamente cuando pasa
 
 1. En Stripe: **Developers** → **Webhooks** → **+ Add endpoint**.
 2. **Endpoint URL**: `https://TU-URL/api/webhooks/stripe` — aquí tienes que cambiar `TU-URL` por la URL de tu deploy (ej. `tu-producto.vercel.app` o tu dominio propio).
-3. En **Select events**, elige `checkout.session.completed` y `customer.subscription.deleted`.
+3. En **Select events**, elige `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`.
 4. **Add endpoint** → en la pantalla del webhook, copia el **Signing secret** (empieza con `whsec_...`).
 5. Agrégalo como `STRIPE_WEBHOOK_SECRET` en `web/.env.local` **y también en Vercel** (Settings → Environment Variables), y redeploya.
 

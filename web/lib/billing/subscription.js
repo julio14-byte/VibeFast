@@ -1,2 +1,2 @@
 /** Re-export del plugin Stripe — compat con imports `@/lib/billing/*`. */
-export * from "@/plugins/stripe/plans"
+export { hasActiveSubscription } from "@/plugins/stripe/subscription"

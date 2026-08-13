@@ -14,8 +14,7 @@ import {
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
-import { getOrganizationForUser } from "@/lib/billing/organization"
-import { isSubscriptionActive } from "@/lib/billing/plans"
+import { getPaywallRedirect } from "@/plugins/stripe"
 import UserMenu from "@/components/auth/UserMenu"
 import Logo from "@/components/Logo"
 import MobileNav from "@/components/layout/MobileNav"
@@ -42,13 +41,10 @@ export default async function AppLayout({ children }) {
   if (!user) redirect(config.auth.loginUrl)
 
   const pathname = (await headers()).get("x-pathname") || ""
-  const isAccountRoute = pathname.startsWith("/account")
 
-  if (config.features.payments && !isAccountRoute) {
-    const organization = await getOrganizationForUser(user.id)
-    if (organization && !isSubscriptionActive(organization)) {
-      redirect("/account/billing?reason=subscription")
-    }
+  const paywallRedirect = await getPaywallRedirect(user.id, pathname)
+  if (paywallRedirect) {
+    redirect(paywallRedirect)
   }
 
   return (

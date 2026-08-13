@@ -1,0 +1,45 @@
+---
+title: Pagos (Stripe)
+description: Plugin de suscripciones mensuales con checkout, webhook y paywall.
+order: 10
+---
+
+<StackBadge tech={["next", "supabase"]} />
+
+<Callout type="info">
+Plugin **`stripe`** — activo cuando `features.payments: true` en `web/config.js`. Configuración click-por-click en [Stripe paso a paso](/docs/configuracion/stripe).
+</Callout>
+
+## Qué incluye el plugin
+
+El código vive en `web/plugins/stripe/`:
+
+| Pieza | Ubicación |
+|---|---|
+| Checkout Session | `checkout.js` → `POST /api/stripe/checkout` |
+| Portal de cliente | `portal.js` → `POST /api/stripe/portal` |
+| Webhook firmado | `webhook.js` → `POST /api/webhooks/stripe` |
+| Paywall en app | `paywall.js` → layout `(app)` |
+| UI facturación | `/account/billing` + componentes del plugin |
+| Organizaciones SaaS | migración `013_saas_organizations.sql` |
+
+## Activación
+
+1. Aplica la migración `013` en Supabase.
+2. Configura Stripe ([guía](/docs/configuracion/stripe)) y variables en `web/.env.local`.
+3. En `web/config.js`: `features.payments: true` y `stripePriceId` en el plan Pro.
+
+## Helpers
+
+```js
+import { hasActiveSubscription } from "@/plugins/stripe"
+// o compat: import { hasActiveSubscription } from "@/lib/billing/subscription"
+
+const active = await hasActiveSubscription(userId)
+```
+
+Otros exports útiles: `getOrganizationForUser`, `isSubscriptionActive`, `getPlanLimits`, `getStripePriceId`.
+
+## Registry de plugins
+
+`web/plugins/registry.js` lista plugins instalados. Hoy solo está `stripe`; futuros plugins se registran ahí.
