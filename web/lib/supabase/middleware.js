@@ -23,6 +23,9 @@ const PROTECTED_PREFIXES = [
   "/account",
   "/chat",
   "/inventario",
+  "/ventas",
+  "/facturacion",
+  "/proveedores",
   "/agent",
 ]
 

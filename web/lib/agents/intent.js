@@ -40,22 +40,61 @@ export function parseCreateProductArgs(text) {
     normalized.match(/nombre\s*(?:de\s*)?:?\s*["'""]([^"'""]+)["'""]/i)?.[1] ??
     normalized.match(/nombre\s*(?:de\s*)?:?\s*(.+?)(?=\s+precio|\s+stock|$)/i)?.[1]
 
-  const precio =
+  const precio_publico =
+    normalized.match(/precio\s+p[uú]blico\s*:?\s*\$?\s*([\d.]+)/i)?.[1] ??
     normalized.match(/precio(?:\s+de)?\s*:?\s*\$?\s*([\d.]+)/i)?.[1] ??
     normalized.match(/\$\s*([\d.]+)/)?.[1]
+
+  const precio_compra =
+    normalized.match(/precio\s+compra\s*:?\s*\$?\s*([\d.]+)/i)?.[1]
+
+  const precio_mayoreo =
+    normalized.match(/precio\s+mayoreo\s*:?\s*\$?\s*([\d.]+)/i)?.[1]
 
   const stock =
     normalized.match(/stock(?:\s+inicial)?(?:\s+de)?\s*:?\s*(\d+)/i)?.[1] ??
     normalized.match(/(?:un\s+)?stock\s+de\s+(\d+)/i)?.[1] ??
     normalized.match(/(\d+)\s+unidades/i)?.[1]
 
-  if (!codigo || !nombre || !precio || !stock) return null
+  if (!codigo || !nombre || !precio_publico || !stock) return null
 
-  return {
+  const result = {
     nombre: nombre.trim(),
     codigo: Number(codigo),
-    precio: Number.parseFloat(precio),
+    precio: Number.parseFloat(precio_publico),
+    precio_publico: Number.parseFloat(precio_publico),
     stock: Number(stock),
+  }
+
+  if (precio_compra) result.precio_compra = Number.parseFloat(precio_compra)
+  if (precio_mayoreo) result.precio_mayoreo = Number.parseFloat(precio_mayoreo)
+
+  return result
+}
+
+export function parseVentaArgs(text) {
+  if (!text?.trim()) return null
+  const normalized = normalizeProductText(text)
+
+  const codigo =
+    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*(\d+)/i)?.[1] ??
+    normalized.match(/\bc[oó]digo\s+(\d+)/i)?.[1]
+
+  const cantidad =
+    normalized.match(/(\d+)\s*(?:unidades|pzas|piezas)/i)?.[1] ??
+    normalized.match(/vende?\s+(\d+)/i)?.[1] ??
+    normalized.match(/vender?\s+(\d+)/i)?.[1] ??
+    normalized.match(/cantidad\s*:?\s*(\d+)/i)?.[1]
+
+  if (!codigo || !cantidad) return null
+
+  const tipo_precio = /\bmayoreo\b/i.test(normalized) ? "mayoreo" : "publico"
+
+  return {
+    codigo: Number(codigo),
+    cantidad: Number(cantidad),
+    tipo_precio,
+    forma_pago: "01",
   }
 }
 
@@ -91,6 +130,9 @@ export function hasRegistrationIntent(text) {
 }
 
 export function detectForcedTool(text) {
+  const ventaArgs = parseVentaArgs(text)
+  if (ventaArgs) return "registrar_venta"
+
   const productAction = detectProductAction(text)
   if (productAction) return productAction
 
@@ -114,7 +156,14 @@ export function detectForcedTool(text) {
   }
 
   if (
-    /\b(ajusta|ajustar|actualiza|actualizar|modifica|modificar|vend[ií]|recib[ií]|entrada|salida)\b/i.test(
+    /\b(vende|vender|venta|cobrar|cobro)\b/i.test(t) &&
+    (/\b(c[oó]digo|\d{3,})\b/i.test(t) || /\d+\s*(unidades|pzas|piezas)/i.test(t))
+  ) {
+    return "registrar_venta"
+  }
+
+  if (
+    /\b(ajusta|ajustar|actualiza|actualizar|modifica|modificar|recib[ií]|entrada|salida)\b/i.test(
       t
     ) &&
     (/\b(c[oó]digo|precio|stock|nombre)\b/i.test(t) || /\b\d{3,}\b/.test(t))
@@ -137,6 +186,16 @@ export function parseSearchQuery(text) {
 }
 
 export function buildFallbackToolCall(toolName, userText) {
+  if (toolName === "registrar_venta") {
+    const args = parseVentaArgs(userText)
+    if (!args) return null
+    return {
+      id: `call_force_${Date.now()}`,
+      name: toolName,
+      arguments: JSON.stringify(args),
+    }
+  }
+
   if (toolName === "crear_producto" || toolName === "ajustar_inventario") {
     const args = parseCreateProductArgs(userText)
     if (!args) return null

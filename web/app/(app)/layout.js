@@ -1,6 +1,13 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LayoutDashboard, MessageSquare, Bot, PackageSearch } from "lucide-react"
+import {
+  LayoutDashboard,
+  MessageSquare,
+  Bot,
+  PackageSearch,
+  ShoppingCart,
+  FileText,
+} from "lucide-react"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
@@ -10,14 +17,14 @@ import Logo from "@/components/Logo"
 const NAV = [
   { href: "/dashboard", label: "Productos", icon: LayoutDashboard },
   { href: "/inventario", label: "Inventario", icon: PackageSearch },
+  { href: "/ventas", label: "Ventas", icon: ShoppingCart },
+  { href: "/facturacion", label: "Facturación", icon: FileText },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/agent", label: "Agente", icon: Bot },
 ]
 
 export const dynamic = "force-dynamic"
 
-// Layout de la zona privada. El middleware ya bloquea sin sesión,
-// pero revalidamos aquí para tener el `user` y proteger por si acaso.
 export default async function AppLayout({ children }) {
   if (!isSupabaseConfigured()) {
     redirect(`${config.auth.loginUrl}?error=supabase`)
@@ -58,15 +65,15 @@ export default async function AppLayout({ children }) {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-base-200 bg-base-100 md:hidden">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-6">
           {NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium text-base-content/70 hover:bg-base-200 hover:text-base-content"
+              className="flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium text-base-content/70 hover:bg-base-200 hover:text-base-content"
             >
-              <Icon className="size-5" />
-              {label}
+              <Icon className="size-4" />
+              <span className="truncate w-full text-center">{label}</span>
             </Link>
           ))}
         </div>

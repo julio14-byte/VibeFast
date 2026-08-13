@@ -8,11 +8,10 @@ function termVariants(term) {
   return [...variants]
 }
 
-// Busca productos del inventario de la ferretería por descripción o código.
 export const buscarItems = {
   name: "buscar_productos",
   description:
-    "Busca productos en el inventario de la ferretería por descripción o código.",
+    "Busca productos en el inventario de la ferretería por descripción, código o proveedor.",
   parameters: {
     type: "object",
     properties: {
@@ -40,7 +39,9 @@ export const buscarItems = {
 
     let request = supabase
       .from("productos")
-      .select("codigo, nombre, stock")
+      .select(
+        "codigo, nombre, stock, precio_compra, precio_mayoreo, precio_publico, precio, proveedor:proveedores(nombre)"
+      )
       .eq("user_id", user.id)
 
     if (porCodigo) {
@@ -71,6 +72,10 @@ export const buscarItems = {
       codigo: p.codigo,
       descripcion: p.nombre,
       stock: p.stock,
+      precio_compra: p.precio_compra,
+      precio_mayoreo: p.precio_mayoreo,
+      precio_publico: p.precio_publico ?? p.precio,
+      proveedor: p.proveedor?.nombre ?? null,
     }))
 
     return { ok: true, total: productos.length, productos }

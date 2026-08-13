@@ -15,18 +15,28 @@ import {
   looksLikeGenericRefusal,
   parseCreateProductArgs,
   parseSearchQuery,
+  parseVentaArgs,
   resolveInventoryUserText,
 } from "@/lib/agents/intent.js"
 import { executeTool } from "@/lib/tools/index.js"
 
 function formatProducto(producto) {
   if (!producto) return ""
-  return [
+  const lines = [
     `- Código: ${producto.codigo}`,
     `- Nombre: ${producto.descripcion ?? producto.nombre}`,
-    `- Precio: $${producto.precio}`,
     `- Stock: ${producto.stock}`,
-  ].join("\n")
+  ]
+  if (producto.precio_compra != null) {
+    lines.push(`- Precio compra: $${producto.precio_compra}`)
+  }
+  if (producto.precio_mayoreo != null) {
+    lines.push(`- Precio mayoreo: $${producto.precio_mayoreo}`)
+  }
+  const pub = producto.precio_publico ?? producto.precio
+  if (pub != null) lines.push(`- Precio público: $${pub}`)
+  if (producto.proveedor) lines.push(`- Proveedor: ${producto.proveedor}`)
+  return lines.join("\n")
 }
 
 function formatToolResult(name, result) {
@@ -50,8 +60,17 @@ function formatToolResult(name, result) {
   if (name === "buscar_productos" && result?.ok) {
     if (!result.total) return "No encontré productos con ese criterio."
     return result.productos
-      .map((p) => `- Código ${p.codigo}: ${p.descripcion} · Stock ${p.stock}`)
+      .map(
+        (p) =>
+          `- Código ${p.codigo}: ${p.descripcion} · Stock ${p.stock} · Público $${p.precio_publico ?? "—"} · Mayoreo $${p.precio_mayoreo ?? "—"}${p.proveedor ? ` · ${p.proveedor}` : ""}`
+      )
       .join("\n")
+  }
+  if (name === "registrar_venta" && result?.ok) {
+    return result.mensaje ?? "Venta registrada."
+  }
+  if (name === "registrar_venta" && result?.error) {
+    return `No se pudo registrar la venta: ${result.error}`
   }
   if (result?.error) return `Error: ${result.error}`
   return ""
@@ -88,6 +107,12 @@ async function tryDirectInventoryAction(messages) {
       query: parseSearchQuery(lastUser),
     })
     return formatToolResult("buscar_productos", result)
+  }
+
+  const ventaArgs = parseVentaArgs(lastUser)
+  if (ventaArgs) {
+    const result = await runTool("registrar_venta", ventaArgs)
+    return formatToolResult("registrar_venta", result)
   }
 
   return null
