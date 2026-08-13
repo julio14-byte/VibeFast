@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeSearch } from "@/lib/productos"
+import { getOrganizationForUser } from "@/lib/billing/organization"
 
 const BASE = "/productos"
 const IMPORT_BATCH = 200
@@ -153,6 +154,22 @@ export async function importProductosCsv(formData) {
       return {
         ok: false,
         error: rowErrors[0] ?? "No hay filas válidas en el CSV.",
+      }
+    }
+
+    const organization = await getOrganizationForUser(user.id)
+    if (organization?.product_limit) {
+      const { count: currentCount } = await supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+
+      const projected = (currentCount ?? 0) + payloads.length
+      if (projected > organization.product_limit) {
+        return {
+          ok: false,
+          error: `Tu plan permite hasta ${organization.product_limit} productos. Tendrías ${projected}. Mejora tu plan en Facturación.`,
+        }
       }
     }
 

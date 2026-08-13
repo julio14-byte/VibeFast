@@ -4,6 +4,7 @@ import config from "@/config"
 
 export default function Pricing() {
   const { eyebrow, title, subtitle, plans } = config.pricing
+  const paymentsEnabled = config.features.payments
 
   return (
     <section id="pricing" className="border-t border-base-200 bg-base-100 py-20 md:py-28">
@@ -53,12 +54,29 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                href="#waitlist"
-                className={`btn mt-8 ${plan.highlighted ? "btn-accent" : "btn-outline"}`}
-              >
-                {plan.cta}
-              </Link>
+              {plan.id === "starter" ? (
+                <Link
+                  href="/login"
+                  className={`btn mt-8 touch-manipulation ${
+                    plan.highlighted ? "btn-accent" : "btn-outline"
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              ) : paymentsEnabled ? (
+                <Link
+                  href={`/login?next=${encodeURIComponent("/account/billing?upgrade=pro")}`}
+                  className={`btn mt-8 touch-manipulation ${
+                    plan.highlighted ? "btn-primary" : "btn-outline"
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              ) : (
+                <Link href="#waitlist" className="btn btn-outline mt-8">
+                  {plan.cta}
+                </Link>
+              )}
             </div>
           ))}
         </div>

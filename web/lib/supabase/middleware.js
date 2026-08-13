@@ -70,6 +70,9 @@ export async function updateSession(request) {
   const { pathname } = request.nextUrl
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
 
+  // Header para que el layout server pueda conocer la ruta (suscripción SaaS).
+  response.headers.set("x-pathname", pathname)
+
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = config.auth.loginUrl

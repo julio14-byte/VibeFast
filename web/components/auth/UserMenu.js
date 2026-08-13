@@ -33,6 +33,9 @@ export default function UserMenu({ user }) {
       >
         <li className="menu-title truncate">{user.email}</li>
         <li>
+          <Link href="/account/billing">Facturación y plan</Link>
+        </li>
+        <li>
           <Link href="/productos">Productos</Link>
         </li>
         <li>

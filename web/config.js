@@ -60,7 +60,7 @@ const config = {
     posthog: true, // Tracking — opcional
     resend: true, // Email — Sem 1+
     pricing: true, // Muestra la sección de precios en la landing (vitrina; el cobro real es `payments`)
-    payments: false, // Stripe — opcional, fuera del temario
+    payments: true, // Stripe suscripciones — Fase 1 SaaS
     hardware: false, // ESP-Claw bridge — Sem 8
   },
 
@@ -270,30 +270,41 @@ const config = {
   // -----------------------------------------------------------
   pricing: {
     eyebrow: "Precios",
-    title: "Simple y sin sorpresas.",
-    subtitle: "Empieza gratis. Sube de plan cuando tu producto crezca.",
+    title: "Rentabiliza tu ferretería.",
+    subtitle: "14 días gratis. Luego un plan mensual simple vía Stripe.",
     plans: [
       {
         id: "starter",
         name: "Starter",
         price: 0,
-        currency: "USD",
+        currency: "MXN",
         interval: "mes",
-        description: "Para probar el producto.",
-        features: ["Hasta 100 usuarios", "Soporte por email", "Branding VibeFast"],
+        description: "Prueba el POS e inventario en tu mostrador.",
+        features: [
+          "14 días de prueba",
+          "Hasta 200 productos",
+          "1 usuario",
+          "Ventas y tickets",
+        ],
         cta: "Empezar gratis",
       },
       {
         id: "pro",
-        name: "Pro",
-        price: 29,
-        currency: "USD",
+        name: "Ferretería Pro",
+        price: 599,
+        currency: "MXN",
         interval: "mes",
-        description: "Para founders que ya facturan.",
-        features: ["Usuarios ilimitados", "Soporte prioritario", "Sin branding"],
-        cta: "Probar Pro",
+        description: "Para negocios que ya facturan todos los días.",
+        features: [
+          "Hasta 5.000 productos",
+          "3 usuarios (próximamente)",
+          "Importación CSV masiva",
+          "Chat IA + agente LangGraph",
+          "Facturación CFDI",
+        ],
+        cta: "Suscribirse a Pro",
         highlighted: true,
-        stripePriceId: "", // llenar cuando se active payments
+        stripePriceId: "", // o STRIPE_PRICE_ID_PRO en .env.local
       },
     ],
   },
