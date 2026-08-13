@@ -57,6 +57,15 @@ function formatToolResult(name, result) {
   if (name === "ajustar_inventario" && result?.error) {
     return `No se pudo actualizar el producto: ${result.error}`
   }
+  if (name === "gestionar_inventario" && result?.ok) {
+    const msg =
+      result.mensaje ??
+      `Producto ${result.accion === "creado" ? "registrado" : "actualizado"} correctamente.`
+    return `${msg}\n${formatProducto(result.producto)}`
+  }
+  if (name === "gestionar_inventario" && result?.error) {
+    return `No se pudo gestionar el inventario: ${result.error}`
+  }
   if (name === "buscar_productos" && result?.ok) {
     if (!result.total) return "No encontré productos con ese criterio."
     return result.productos

@@ -5,6 +5,7 @@
 import { crearItem } from "./examples/crearItem.js"
 import { buscarItems } from "./examples/buscarItems.js"
 import { ajustarInventario } from "./examples/ajustarInventario.js"
+import { gestionarInventario } from "./examples/gestionarInventario.js"
 import { registrarVenta } from "./examples/registrarVenta.js"
 import { enviarEmail } from "./examples/enviarEmail.js"
 
@@ -31,10 +32,15 @@ export async function executeTool(name, args) {
   return tool.execute(args)
 }
 
+export function getRegisteredTools() {
+  return [...registry.values()]
+}
+
 ;[
   crearItem,
   buscarItems,
   ajustarInventario,
+  gestionarInventario,
   registrarVenta,
   enviarEmail,
 ].forEach(registerTool)
