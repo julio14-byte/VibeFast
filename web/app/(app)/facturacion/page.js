@@ -2,6 +2,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { formatPrecio, SAT_REGIMENES } from "@/lib/productos"
 import { PAC_PROVIDERS } from "@/lib/pac/sandbox"
+import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
 import {
   guardarEmpresaFiscal,
   guardarPacConfig,
@@ -20,7 +21,9 @@ export default async function FacturacionPage({ searchParams }) {
     supabase.from("empresa_fiscal").select("*").maybeSingle(),
     supabase
       .from("facturas")
-      .select("id, serie, folio, total, estado, rfc_receptor, uuid_cfdi, created_at")
+      .select(
+        "id, serie, folio, total, estado, rfc_receptor, uuid_cfdi, created_at, cliente_id, email_enviado_at, whatsapp_enviado_at, cliente:clientes(email, telefono, razon_social, nombre)"
+      )
       .order("created_at", { ascending: false })
       .limit(20),
     supabase
@@ -43,6 +46,7 @@ export default async function FacturacionPage({ searchParams }) {
   const ok = params?.ok?.toString()
   const folioOk = params?.folio?.toString()
   const estadoOk = params?.estado?.toString()
+  const waLink = params?.url?.toString()
 
   return (
     <div className="space-y-8">
@@ -90,6 +94,31 @@ export default async function FacturacionPage({ searchParams }) {
       {ok === "timbrada" && (
         <div role="alert" className="alert alert-success">
           <span>Factura {folioOk} timbrada correctamente.</span>
+        </div>
+      )}
+      {ok === "email" && (
+        <div role="alert" className="alert alert-success">
+          <span>CFDI folio {folioOk} enviado por correo electrónico.</span>
+        </div>
+      )}
+      {ok === "whatsapp" && (
+        <div role="alert" className="alert alert-success">
+          <span>CFDI folio {folioOk} enviado por WhatsApp API.</span>
+        </div>
+      )}
+      {ok === "whatsapp_link" && waLink && (
+        <div role="alert" className="alert alert-info">
+          <span className="flex flex-wrap items-center gap-2">
+            Abre WhatsApp para enviar el mensaje al cliente.
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-sm btn-success"
+            >
+              Abrir WhatsApp
+            </a>
+          </span>
         </div>
       )}
 
@@ -283,6 +312,7 @@ export default async function FacturacionPage({ searchParams }) {
                   <th>UUID</th>
                   <th className="text-right">Total</th>
                   <th>Estado</th>
+                  <th>Enviar CFDI</th>
                   <th />
                 </tr>
               </thead>
@@ -307,6 +337,20 @@ export default async function FacturacionPage({ searchParams }) {
                       >
                         {f.estado}
                       </span>
+                    </td>
+                    <td>
+                      <EnviarCfdiButtons
+                        facturaId={f.id}
+                        defaultEmail={f.cliente?.email ?? ""}
+                        defaultTelefono={f.cliente?.telefono ?? ""}
+                      />
+                      {(f.email_enviado_at || f.whatsapp_enviado_at) && (
+                        <p className="mt-1 text-[10px] text-base-content/50">
+                          {f.email_enviado_at && "✉ Email"}
+                          {f.email_enviado_at && f.whatsapp_enviado_at && " · "}
+                          {f.whatsapp_enviado_at && "WA"}
+                        </p>
+                      )}
                     </td>
                     <td>
                       {f.estado === "pendiente" && (

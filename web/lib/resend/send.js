@@ -12,6 +12,7 @@ import config from "@/config"
 import { getResend } from "@/lib/resend/client"
 import WaitlistConfirm from "@/lib/resend/templates/WaitlistConfirm"
 import Welcome from "@/lib/resend/templates/Welcome"
+import CfdiFactura from "@/lib/resend/templates/CfdiFactura"
 
 // Email genérico de texto plano. Lo usa la tool `enviar_email` del
 // registry (lib/tools) para que un agente pueda mandar correos.
@@ -67,6 +68,57 @@ export async function sendWelcome(to, name) {
 
   if (error) {
     console.error("[resend] welcome:", error.message)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
+
+export async function sendCfdiEmail({
+  to,
+  emisorNombre,
+  receptorNombre,
+  serie,
+  folio,
+  totalFmt,
+  uuid,
+  xmlContent,
+  downloadUrl,
+}) {
+  const resend = getResend()
+  if (!resend) {
+    return { ok: false, skipped: true, error: "Resend no configurado." }
+  }
+
+  const filename = `CFDI_${serie}-${folio}.xml`
+
+  const { error } = await resend.emails.send({
+    from: config.email.from,
+    replyTo: config.email.replyTo,
+    to,
+    subject: `Factura ${serie}-${folio} · ${emisorNombre || config.app.name}`,
+    react: (
+      <CfdiFactura
+        emisorNombre={emisorNombre}
+        receptorNombre={receptorNombre}
+        serie={serie}
+        folio={folio}
+        totalFmt={totalFmt}
+        uuid={uuid}
+        downloadUrl={downloadUrl}
+      />
+    ),
+    attachments: xmlContent
+      ? [
+          {
+            filename,
+            content: Buffer.from(xmlContent, "utf-8"),
+          },
+        ]
+      : undefined,
+  })
+
+  if (error) {
+    console.error("[resend] cfdi:", error.message)
     return { ok: false, error: error.message }
   }
   return { ok: true }

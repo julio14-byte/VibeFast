@@ -4,6 +4,7 @@ import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import GoogleButton from "@/components/auth/GoogleButton"
+import EmailPasswordForm from "@/components/auth/EmailPasswordForm"
 import Logo from "@/components/Logo"
 
 export const metadata = { title: "Entrar" }
@@ -21,6 +22,7 @@ export default async function LoginPage({ searchParams }) {
 
   const supabaseConfigured = isSupabaseConfigured()
   const googleEnabled = config.features.googleAuth
+  const emailEnabled = config.features.emailLogin
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-base-200 px-4">
@@ -32,7 +34,7 @@ export default async function LoginPage({ searchParams }) {
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Entra a tu cuenta</h1>
         <p className="mt-2 text-sm text-base-content/70">
-          Usa tu cuenta de Google para acceder a {config.app.name}.
+          Google o correo y contraseña para acceder a {config.app.name}.
         </p>
 
         {hasError && (
@@ -43,8 +45,8 @@ export default async function LoginPage({ searchParams }) {
             {supabaseMisconfigured
               ? "Supabase no está configurado. Revisa web/.env.local."
               : params?.error === "auth"
-                ? "Debes iniciar sesión con Google para guardar productos. Configura Google OAuth en Supabase (Authentication → Providers → Google)."
-                : "No pudimos iniciar sesión. Revisa Google OAuth en Supabase e intenta de nuevo."}
+                ? "Credenciales incorrectas o sesión expirada. Intenta de nuevo."
+                : "No pudimos iniciar sesión. Revisa la configuración e intenta otra vez."}
           </div>
         )}
 
@@ -53,34 +55,34 @@ export default async function LoginPage({ searchParams }) {
             role="alert"
             className="mt-4 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-content"
           >
-            Falta configurar Supabase. En local usa <code>web/.env.local</code>;
-            en Vercel agrega las variables en Settings → Environment Variables.
+            Falta configurar Supabase en <code>web/.env.local</code> o Vercel.
           </div>
         )}
 
-        {supabaseConfigured && (
-          <p className="mt-4 text-xs text-base-content/50">
-            Desarrollo local: entra siempre en{" "}
-            <strong>http://localhost:3000</strong> (no la URL de Vercel). En
-            Supabase → Authentication → URL Configuration agrega{" "}
-            <code className="text-[0.65rem]">http://localhost:3000/**</code> a
-            Redirect URLs.
+        {googleEnabled && supabaseConfigured && (
+          <div className="mt-6">
+            <GoogleButton next={next} />
+          </div>
+        )}
+
+        {googleEnabled && emailEnabled && supabaseConfigured && (
+          <div className="divider my-6 text-xs text-base-content/40">
+            o continúa con email
+          </div>
+        )}
+
+        {emailEnabled && supabaseConfigured && (
+          <EmailPasswordForm next={next} />
+        )}
+
+        {!googleEnabled && !emailEnabled && (
+          <p className="mt-6 text-sm text-base-content/60">
+            Activa <code>googleAuth</code> o <code>emailLogin</code> en config.js
           </p>
         )}
 
-        <div className="mt-6">
-          {googleEnabled ? (
-            <GoogleButton next={next} />
-          ) : (
-            <p className="text-sm text-base-content/60">
-              Activa <code>features.googleAuth: true</code> en{" "}
-              <code>web/config.js</code> y reinicia el servidor.
-            </p>
-          )}
-        </div>
-
         <p className="mt-6 text-center text-xs text-base-content/50">
-          ¿Ya entraste y no ves esta pantalla? Cierra sesión desde el menú de usuario.
+          ¿Problemas al entrar? Verifica providers en Supabase → Authentication.
         </p>
       </div>
     </main>

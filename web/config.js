@@ -50,7 +50,7 @@ const config = {
   features: {
     waitlist: true, // Captura emails en landing — Sem 1
     googleAuth: true, // Login con Google — Sem 2
-    emailLogin: false, // Magic link email — opcional
+    emailLogin: true, // Email + contraseña — Sem 2
     aiChat: true, // Chat AI en /chat — Sem 3
     toolUse: true, // Tool use registry — Sem 4
     agents: true, // LangGraph agents — Sem 5
@@ -94,7 +94,7 @@ const config = {
     loginUrl: "/login",
     afterLoginUrl: "/dashboard",
     afterLogoutUrl: "/",
-    providers: ["google"], // sincronizado con features.googleAuth
+    providers: ["google", "email"], // sincronizado con features
   },
 
   // -----------------------------------------------------------
