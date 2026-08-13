@@ -1,9 +1,15 @@
 import DashboardKpis from "@/components/dashboard/DashboardKpis"
 import InventoryTable from "@/components/dashboard/InventoryTable"
 import StockAlertsPanel from "@/components/dashboard/StockAlertsPanel"
+import DashboardCharts from "@/components/dashboard/DashboardCharts"
 import QuickActionsBar from "@/components/dashboard/QuickActionsBar"
 
-export default function DashboardView({ metrics, productos, appName }) {
+export default function DashboardView({
+  metrics,
+  productos,
+  appName,
+  chartData,
+}) {
   return (
     <div className="dashboard-pos space-y-6">
       <header className="dashboard-hero relative overflow-hidden rounded-2xl border border-base-300/60 bg-gradient-to-br from-neutral via-base-200 to-base-100 px-5 py-6 sm:px-8 sm:py-8">
@@ -38,6 +44,12 @@ export default function DashboardView({ metrics, productos, appName }) {
       </div>
 
       <DashboardKpis metrics={metrics} />
+
+      <DashboardCharts
+        ventasChart={chartData.ventasChart}
+        stockDist={chartData.stockDist}
+        topValor={chartData.topValor}
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
         <InventoryTable productos={productos} />

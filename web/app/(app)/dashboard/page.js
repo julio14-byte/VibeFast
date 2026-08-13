@@ -2,6 +2,11 @@ import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import config from "@/config"
 import { computeDashboardMetrics } from "@/lib/dashboard/metrics"
+import {
+  computeStockDistribution,
+  computeTopValorInventario,
+  computeVentasPorDia,
+} from "@/lib/dashboard/chartData"
 import DashboardView from "@/components/dashboard/DashboardView"
 
 export const metadata = { title: "Dashboard · SmartPOS" }
@@ -9,6 +14,7 @@ export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
   let productos = []
+  let ventas = []
   let error = null
 
   if (!isSupabaseConfigured()) {
@@ -16,19 +22,35 @@ export default async function DashboardPage() {
   } else {
     try {
       const supabase = await createClient()
-      const { data, error: dbError } = await supabase
-        .from("productos")
-        .select("id, codigo, nombre, precio, precio_publico, stock")
-        .order("nombre", { ascending: true })
+      const desde = new Date()
+      desde.setDate(desde.getDate() - 7)
 
-      productos = data ?? []
-      error = dbError?.message
+      const [productosRes, ventasRes] = await Promise.all([
+        supabase
+          .from("productos")
+          .select("id, codigo, nombre, precio, precio_publico, stock")
+          .order("nombre", { ascending: true }),
+        supabase
+          .from("ventas")
+          .select("total, created_at")
+          .gte("created_at", desde.toISOString())
+          .order("created_at", { ascending: true }),
+      ])
+
+      productos = productosRes.data ?? []
+      ventas = ventasRes.data ?? []
+      error = productosRes.error?.message || ventasRes.error?.message
     } catch (err) {
       error = err.message
     }
   }
 
   const metrics = computeDashboardMetrics(productos)
+  const chartData = {
+    ventasChart: computeVentasPorDia(ventas, 7),
+    stockDist: computeStockDistribution(productos),
+    topValor: computeTopValorInventario(productos, 5),
+  }
 
   if (error) {
     return (
@@ -43,6 +65,7 @@ export default async function DashboardPage() {
       metrics={metrics}
       productos={productos}
       appName={config.app.name}
+      chartData={chartData}
     />
   )
 }

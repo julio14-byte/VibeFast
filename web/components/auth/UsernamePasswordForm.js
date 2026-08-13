@@ -2,15 +2,20 @@
 
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import {
+  normalizeUsername,
+  usernameToAuthEmail,
+  validateUsername,
+} from "@/lib/auth/username"
 
 const supabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-export default function EmailPasswordForm({ next = "/dashboard" }) {
+export default function UsernamePasswordForm({ next = "/dashboard" }) {
   const [mode, setMode] = useState("login")
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -23,23 +28,38 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
       return
     }
 
+    const validation = validateUsername(username)
+    if (!validation.ok) {
+      setError(validation.error)
+      return
+    }
+
     setLoading(true)
     setError(null)
     setMessage(null)
 
     const supabase = createClient()
-    const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const normalized = validation.username
+    const authEmail = usernameToAuthEmail(normalized)
 
     try {
       if (mode === "register") {
+        const { data: available, error: rpcError } = await supabase.rpc(
+          "is_username_available",
+          { check_username: normalized }
+        )
+
+        if (rpcError) throw rpcError
+        if (!available) {
+          throw new Error("Ese usuario ya está registrado.")
+        }
+
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: authEmail,
           password,
           options: {
-            emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+            data: { username: normalized },
+            emailRedirectTo: undefined,
           },
         })
 
@@ -50,19 +70,23 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
           return
         }
 
-        setMessage(
-          "Cuenta creada. Si tu proyecto requiere confirmación por correo, revisa tu bandeja antes de entrar."
-        )
+        setMessage("Cuenta creada. Ya puedes entrar con tu usuario y contraseña.")
+        setMode("login")
         setLoading(false)
         return
       }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: authEmail,
         password,
       })
 
-      if (signInError) throw signInError
+      if (signInError) {
+        if (signInError.message?.includes("Invalid login")) {
+          throw new Error("Usuario o contraseña incorrectos.")
+        }
+        throw signInError
+      }
 
       window.location.href = next
     } catch (err) {
@@ -108,19 +132,25 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="label py-1" htmlFor="auth-email">
-            <span className="label-text text-xs font-medium">Correo / usuario</span>
+          <label className="label py-1" htmlFor="auth-username">
+            <span className="label-text text-xs font-medium">Usuario</span>
           </label>
           <input
-            id="auth-email"
-            type="email"
+            id="auth-username"
+            type="text"
             required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@ferreteria.com"
-            className="input input-bordered w-full"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+            placeholder="ej. mostrador01"
+            className="input input-bordered w-full font-mono"
+            minLength={3}
+            maxLength={32}
+            pattern="[a-z0-9_]+"
           />
+          <p className="mt-1 text-xs text-base-content/50">
+            Solo letras minúsculas, números y guion bajo.
+          </p>
         </div>
         <div>
           <label className="label py-1" htmlFor="auth-password">
@@ -151,24 +181,20 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
             ? "Procesando…"
             : mode === "register"
               ? "Crear cuenta"
-              : "Entrar con email"}
+              : "Entrar"}
         </button>
       </form>
 
       {message && (
-        <p role="status" className="text-sm text-success">
-          {message}
-        </p>
+        <p role="status" className="text-sm text-success">{message}</p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-error">
-          {error}
-        </p>
+        <p role="alert" className="text-sm text-error">{error}</p>
       )}
 
       <p className="text-xs text-base-content/50">
-        En Supabase activa <strong>Email</strong> en Authentication → Providers
-        y, para desarrollo, puedes desactivar &quot;Confirm email&quot;.
+        En Supabase activa el provider <strong>Email</strong> (sin confirmación
+        de correo en desarrollo). El usuario no usa email visible.
       </p>
     </div>
   )

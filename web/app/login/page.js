@@ -4,7 +4,7 @@ import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import GoogleButton from "@/components/auth/GoogleButton"
-import EmailPasswordForm from "@/components/auth/EmailPasswordForm"
+import UsernamePasswordForm from "@/components/auth/UsernamePasswordForm"
 import Logo from "@/components/Logo"
 
 export const metadata = { title: "Entrar" }
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }) {
 
   const supabaseConfigured = isSupabaseConfigured()
   const googleEnabled = config.features.googleAuth
-  const emailEnabled = config.features.emailLogin
+  const usernameEnabled = config.features.usernameLogin
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-base-200 px-4">
@@ -34,7 +34,7 @@ export default async function LoginPage({ searchParams }) {
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Entra a tu cuenta</h1>
         <p className="mt-2 text-sm text-base-content/70">
-          Google o correo y contraseña para acceder a {config.app.name}.
+          Google o usuario y contraseña para {config.app.name}.
         </p>
 
         {hasError && (
@@ -43,19 +43,19 @@ export default async function LoginPage({ searchParams }) {
             className="mt-4 rounded-lg border border-error/40 bg-error/10 px-3 py-2 text-sm text-error"
           >
             {supabaseMisconfigured
-              ? "Supabase no está configurado. Revisa web/.env.local."
+              ? "Supabase no está configurado."
               : params?.error === "auth"
-                ? "Credenciales incorrectas o sesión expirada. Intenta de nuevo."
-                : "No pudimos iniciar sesión. Revisa la configuración e intenta otra vez."}
+                ? "Usuario o contraseña incorrectos."
+                : "No pudimos iniciar sesión. Intenta de nuevo."}
           </div>
         )}
 
         {!supabaseConfigured && (
           <div
             role="alert"
-            className="mt-4 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-content"
+            className="mt-4 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm"
           >
-            Falta configurar Supabase en <code>web/.env.local</code> o Vercel.
+            Configura Supabase en <code>web/.env.local</code>.
           </div>
         )}
 
@@ -65,25 +65,21 @@ export default async function LoginPage({ searchParams }) {
           </div>
         )}
 
-        {googleEnabled && emailEnabled && supabaseConfigured && (
+        {googleEnabled && usernameEnabled && supabaseConfigured && (
           <div className="divider my-6 text-xs text-base-content/40">
-            o continúa con email
+            o con usuario
           </div>
         )}
 
-        {emailEnabled && supabaseConfigured && (
-          <EmailPasswordForm next={next} />
+        {usernameEnabled && supabaseConfigured && (
+          <UsernamePasswordForm next={next} />
         )}
 
-        {!googleEnabled && !emailEnabled && (
+        {!googleEnabled && !usernameEnabled && (
           <p className="mt-6 text-sm text-base-content/60">
-            Activa <code>googleAuth</code> o <code>emailLogin</code> en config.js
+            Activa login en <code>config.js</code>
           </p>
         )}
-
-        <p className="mt-6 text-center text-xs text-base-content/50">
-          ¿Problemas al entrar? Verifica providers en Supabase → Authentication.
-        </p>
       </div>
     </main>
   )
