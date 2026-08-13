@@ -81,3 +81,24 @@ export function computeDashboardMetrics(productos = []) {
 function round2(n) {
   return Math.round(n * 100) / 100
 }
+
+/** Construye métricas del dashboard desde stats calculados en servidor. */
+export function metricsFromServerStats(stats) {
+  const alertasList = (stats.alertasList ?? []).map((p) => ({
+    id: p.id,
+    codigo: p.codigo,
+    nombre: p.nombre,
+    stock: Number(p.stock) || 0,
+    status: getStockStatus(p.stock),
+  }))
+
+  return {
+    totalProductos: stats.totalProductos ?? 0,
+    valorInventario: stats.valorInventario ?? 0,
+    valorInventarioFmt: formatPrecio(stats.valorInventario ?? 0),
+    alertasCriticas: stats.alertasCriticas ?? 0,
+    agotados: stats.agotados ?? 0,
+    alertasList,
+    stockCriticoThreshold: STOCK_CRITICO,
+  }
+}

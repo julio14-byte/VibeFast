@@ -3,60 +3,100 @@ import { Pencil, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { formatPrecio } from "@/lib/productos"
-import { createProducto, updateProducto, deleteProducto } from "./actions"
+import { getProductosPage } from "@/lib/productos/queries"
+import {
+  createProducto,
+  updateProducto,
+  deleteProducto,
+} from "./actions"
+import ProductCsvImport from "@/components/productos/ProductCsvImport"
+import ProductosPagination, {
+  ProductosTable,
+} from "@/components/productos/ProductosList"
 
 export const metadata = { title: "Productos · SmartPOS" }
 export const dynamic = "force-dynamic"
 
 export default async function ProductosPage({ searchParams }) {
-  let productos = null
+  const params = await searchParams
+  const page = Number(params?.page) || 1
+  const query = typeof params?.q === "string" ? params.q.trim() : ""
+  const editId = params?.edit?.toString()
+  const formError = params?.error?.toString()
+  const ok = params?.ok?.toString()
+  const importCreados = params?.creados?.toString()
+  const importActualizados = params?.actualizados?.toString()
+  const importErrores = params?.errores?.toString()
+
+  let productos = []
   let proveedores = []
+  let pagination = { page: 1, totalPages: 1, total: 0 }
+  let editProducto = null
   let error = null
 
   if (!isSupabaseConfigured()) {
-    error = {
-      message: "Supabase no está configurado.",
-    }
+    error = { message: "Supabase no está configurado." }
   } else {
     try {
       const supabase = await createClient()
-      const [productosRes, proveedoresRes] = await Promise.all([
-        supabase
-          .from("productos")
-          .select("*, proveedor:proveedores(id, nombre)")
-          .order("created_at", { ascending: false }),
-        supabase.from("proveedores").select("id, nombre").order("nombre"),
-      ])
-      productos = productosRes.data
-      proveedores = proveedoresRes.data ?? []
-      error = productosRes.error
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        error = { message: "No autenticado." }
+      } else {
+        const [pageRes, proveedoresRes] = await Promise.all([
+          getProductosPage(supabase, user.id, { page, query }),
+          supabase.from("proveedores").select("id, nombre").order("nombre"),
+        ])
+
+        productos = pageRes.productos
+        pagination = {
+          page: pageRes.page,
+          totalPages: pageRes.totalPages,
+          total: pageRes.total,
+        }
+        error = pageRes.error
+        proveedores = proveedoresRes.data ?? []
+
+        if (editId) {
+          const { data: editRow } = await supabase
+            .from("productos")
+            .select("*, proveedor:proveedores(id, nombre)")
+            .eq("id", editId)
+            .eq("user_id", user.id)
+            .maybeSingle()
+          editProducto = editRow
+        }
+      }
     } catch (err) {
       error = { message: err.message }
     }
   }
 
-  const params = await searchParams
-  const editId = params?.edit?.toString()
-  const formError = params?.error?.toString()
-  const ok = params?.ok?.toString()
-  const editProducto = editId
-    ? productos?.find((p) => p.id === editId) ?? null
-    : null
+  function listHref(extra = {}) {
+    const sp = new URLSearchParams()
+    if (query) sp.set("q", query)
+    if (extra.page && extra.page > 1) sp.set("page", String(extra.page))
+    const qs = sp.toString()
+    return qs ? `/productos?${qs}` : "/productos"
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-          <p className="mt-1 text-sm text-base-content/70">
-            Catálogo de ferretería: precios, stock, proveedor y claves SAT.
+        <div className="min-w-0">
+          <h1 className="page-title">Productos</h1>
+          <p className="page-lead">
+            Catálogo con paginación, búsqueda y importación CSV masiva.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/proveedores" className="btn btn-outline btn-sm">
+        <div className="flex shrink-0 gap-2">
+          <Link href="/proveedores" className="btn btn-outline btn-sm touch-manipulation">
             Proveedores
           </Link>
-          <Link href="/inventario" className="btn btn-outline btn-sm">
+          <Link href="/inventario" className="btn btn-outline btn-sm touch-manipulation">
             Inventario
           </Link>
         </div>
@@ -67,7 +107,19 @@ export default async function ProductosPage({ searchParams }) {
           <span>{formError}</span>
         </div>
       )}
-      {ok && !formError && (
+      {ok === "importado" && (
+        <div role="alert" className="alert alert-success">
+          <span>
+            Importación completada: {importCreados ?? 0} creados,{" "}
+            {importActualizados ?? 0} actualizados
+            {importErrores && Number(importErrores) > 0
+              ? `, ${importErrores} filas omitidas`
+              : ""}
+            .
+          </span>
+        </div>
+      )}
+      {ok && ok !== "importado" && !formError && (
         <div role="alert" className="alert alert-success">
           <span>
             {ok === "creado" && "Producto agregado."}
@@ -76,6 +128,31 @@ export default async function ProductosPage({ searchParams }) {
           </span>
         </div>
       )}
+
+      <ProductCsvImport />
+
+      <form
+        action={listHref()}
+        method="get"
+        className="flex flex-wrap items-center gap-2"
+      >
+        <input
+          type="search"
+          name="q"
+          defaultValue={query}
+          placeholder="Buscar por nombre o código…"
+          className="input input-bordered input-sm w-full max-w-xs"
+          aria-label="Buscar productos"
+        />
+        <button type="submit" className="btn btn-outline btn-sm touch-manipulation">
+          Buscar
+        </button>
+        {query && (
+          <Link href="/productos" className="btn btn-ghost btn-sm touch-manipulation">
+            Limpiar
+          </Link>
+        )}
+      </form>
 
       <form
         action={editProducto ? updateProducto : createProducto}
@@ -92,12 +169,10 @@ export default async function ProductosPage({ searchParams }) {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input
             name="codigo"
-            type="number"
+            type="text"
             required
-            min="0"
-            step="1"
             defaultValue={editProducto?.codigo ?? ""}
-            placeholder="Código"
+            placeholder="Código / SKU"
             className="input input-bordered"
             aria-label="Código"
           />
@@ -190,11 +265,13 @@ export default async function ProductosPage({ searchParams }) {
         />
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary touch-manipulation">
             {editProducto ? "Guardar cambios" : "Agregar producto"}
           </button>
           {editProducto && (
-            <Link href="/productos" className="btn btn-ghost">Cancelar</Link>
+            <Link href={listHref()} className="btn btn-ghost touch-manipulation">
+              Cancelar
+            </Link>
           )}
         </div>
       </form>
@@ -205,81 +282,20 @@ export default async function ProductosPage({ searchParams }) {
         </div>
       )}
 
-      {!productos?.length ? (
+      {!pagination.total && !query ? (
         <div className="rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-12 text-center text-base-content/60">
-          Sin productos. Agrega el primero o usa el{" "}
+          Sin productos. Agrega el primero, importa un CSV o usa el{" "}
           <Link href="/chat" className="link link-primary">chat</Link>.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-box border border-base-200 bg-base-100">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Proveedor</th>
-                <th className="text-right">Compra</th>
-                <th className="text-right">Mayoreo</th>
-                <th className="text-right">Público</th>
-                <th className="text-right">Stock</th>
-                <th className="w-24 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productos.map((producto) => (
-                <tr key={producto.id}>
-                  <td className="font-mono text-sm tabular-nums">{producto.codigo}</td>
-                  <td className="font-medium">{producto.nombre}</td>
-                  <td className="text-sm text-base-content/70">
-                    {producto.proveedor?.nombre ?? "—"}
-                  </td>
-                  <td className="text-right text-sm">
-                    {formatPrecio(producto.precio_compra)}
-                  </td>
-                  <td className="text-right text-sm">
-                    {formatPrecio(producto.precio_mayoreo)}
-                  </td>
-                  <td className="text-right font-medium">
-                    {formatPrecio(producto.precio_publico ?? producto.precio)}
-                  </td>
-                  <td className="text-right">
-                    <span
-                      className={`badge badge-sm ${
-                        producto.stock === 0
-                          ? "badge-error"
-                          : producto.stock <= 5
-                            ? "badge-warning"
-                            : "badge-success"
-                      }`}
-                    >
-                      {producto.stock}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex justify-end gap-1">
-                      <Link
-                        href={`/productos?edit=${producto.id}`}
-                        className="btn btn-ghost btn-sm btn-square"
-                        aria-label={`Editar ${producto.nombre}`}
-                      >
-                        <Pencil className="size-4" />
-                      </Link>
-                      <form action={deleteProducto}>
-                        <input type="hidden" name="id" value={producto.id} />
-                        <button
-                          type="submit"
-                          className="btn btn-ghost btn-sm btn-square text-error"
-                          aria-label={`Eliminar ${producto.nombre}`}
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="overflow-hidden rounded-box border border-base-200 bg-base-100">
+          <ProductosTable productos={productos} />
+          <ProductosPagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            query={query}
+          />
         </div>
       )}
     </div>

@@ -7,7 +7,7 @@ import ProductSearch from "@/components/inventario/ProductSearch"
 import { formatPrecio, getPrecioVenta, SAT_FORMAS_PAGO } from "@/lib/productos"
 import { registrarVenta } from "@/app/(app)/ventas/actions"
 
-export default function VentasPOS({ productos, clientes }) {
+export default function VentasPOS({ clientes }) {
   const [cart, setCart] = useState([])
   const [tipoPrecio, setTipoPrecio] = useState("publico")
   const [formaPago, setFormaPago] = useState("01")
@@ -38,6 +38,10 @@ export default function VentasPOS({ productos, clientes }) {
           stock: producto.stock,
           cantidad: 1,
           precio: getPrecioVenta(producto, tipoPrecio),
+          precio_publico: Number(
+            producto.precio_publico ?? producto.precio ?? 0
+          ),
+          precio_mayoreo: Number(producto.precio_mayoreo ?? 0),
         },
       ])
     }
@@ -67,14 +71,16 @@ export default function VentasPOS({ productos, clientes }) {
     return { subtotal, iva, total: subtotal + iva }
   }, [cart])
 
-  // Recalcular precios si cambia tipo
   function handleTipoPrecioChange(tipo) {
     setTipoPrecio(tipo)
     setCart(
-      cart.map((c) => {
-        const p = productos.find((pr) => pr.id === c.producto_id)
-        return p ? { ...c, precio: getPrecioVenta(p, tipo) } : c
-      })
+      cart.map((c) => ({
+        ...c,
+        precio:
+          tipo === "mayoreo"
+            ? c.precio_mayoreo ?? c.precio
+            : c.precio_publico ?? c.precio,
+      }))
     )
   }
 
@@ -111,7 +117,7 @@ export default function VentasPOS({ productos, clientes }) {
     <div className="grid gap-6 pb-20 lg:pb-0 lg:grid-cols-2">
       <div className="space-y-4">
         <ProductSearch
-          productos={productos}
+          serverSearch
           onSelect={addToCart}
           placeholder="Buscar producto para vender…"
         />

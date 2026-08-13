@@ -10,11 +10,7 @@ export default async function VentasPage({ searchParams }) {
   const supabase = await createClient()
   const params = await searchParams
 
-  const [productosRes, clientesRes, ventasRes] = await Promise.all([
-    supabase
-      .from("productos")
-      .select("*, proveedor:proveedores(id, nombre)")
-      .order("nombre"),
+  const [clientesRes, ventasRes] = await Promise.all([
     supabase.from("clientes").select("id, nombre, razon_social").order("nombre"),
     supabase
       .from("ventas")
@@ -23,7 +19,6 @@ export default async function VentasPage({ searchParams }) {
       .limit(10),
   ])
 
-  const productos = productosRes.data ?? []
   const clientes = clientesRes.data ?? []
   const ventas = ventasRes.data ?? []
   const formError = params?.error?.toString()
@@ -38,10 +33,13 @@ export default async function VentasPage({ searchParams }) {
         <div className="min-w-0">
           <h1 className="page-title">Ventas</h1>
           <p className="page-lead">
-            Punto de venta para mostrador. Busca, cobra y descuenta stock.
+            Punto de venta con búsqueda en servidor (miles de productos).
           </p>
         </div>
-        <Link href="/facturacion" className="btn btn-outline btn-sm shrink-0 touch-manipulation">
+        <Link
+          href="/facturacion"
+          className="btn btn-outline btn-sm shrink-0 touch-manipulation"
+        >
           Facturación
         </Link>
       </div>
@@ -60,7 +58,7 @@ export default async function VentasPage({ searchParams }) {
             {ventaId && (
               <Link
                 href={`/ventas/ticket/${ventaId}?print=1`}
-                className="btn btn-sm btn-outline"
+                className="btn btn-sm btn-outline touch-manipulation"
               >
                 Imprimir ticket
               </Link>
@@ -69,7 +67,7 @@ export default async function VentasPage({ searchParams }) {
         </div>
       )}
 
-      <VentasPOS productos={productos} clientes={clientes} />
+      <VentasPOS clientes={clientes} />
 
       {ventas.length > 0 && (
         <div className="rounded-box border border-base-200 bg-base-100 p-4">
@@ -99,7 +97,7 @@ export default async function VentasPage({ searchParams }) {
                     <td>
                       <Link
                         href={`/ventas/ticket/${v.id}`}
-                        className="btn btn-ghost btn-xs"
+                        className="btn btn-ghost btn-xs touch-manipulation"
                       >
                         Ticket
                       </Link>

@@ -7,6 +7,7 @@ import QuickActionsBar from "@/components/dashboard/QuickActionsBar"
 export default function DashboardView({
   metrics,
   productos,
+  totalProductos,
   appName,
   chartData,
 }) {
@@ -52,7 +53,17 @@ export default function DashboardView({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
-        <InventoryTable productos={productos} />
+        <div className="space-y-2">
+          {totalProductos > productos.length && (
+            <p className="text-xs text-base-content/55 px-1">
+              Mostrando {productos.length} de {totalProductos} productos.{" "}
+              <a href="/inventario" className="link link-primary">
+                Ver inventario completo
+              </a>
+            </p>
+          )}
+          <InventoryTable productos={productos} />
+        </div>
         <StockAlertsPanel
           alertasList={metrics.alertasList}
           totalCriticas={metrics.alertasCriticas}

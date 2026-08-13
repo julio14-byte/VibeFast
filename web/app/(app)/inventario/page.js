@@ -1,41 +1,51 @@
-import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import InventarioClient from "@/components/inventario/InventarioClient"
+import { getAlertasStockCount, getProductosPage } from "@/lib/productos/queries"
 
 export const metadata = { title: "Inventario · SmartPOS" }
 export const dynamic = "force-dynamic"
 
-export default async function InventarioPage() {
+export default async function InventarioPage({ searchParams }) {
+  const params = await searchParams
+  const page = Number(params?.page) || 1
+  const query = typeof params?.q === "string" ? params.q.trim() : ""
+
   const supabase = await createClient()
-  const { data: productos, error } = await supabase
-    .from("productos")
-    .select("*, proveedor:proveedores(id, nombre)")
-    .order("nombre", { ascending: true })
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  const alertas = productos?.filter((p) => p.stock < 2) ?? []
-
-  if (error) {
+  if (!user) {
     return (
       <div role="alert" className="alert alert-error">
-        <span>No pudimos cargar el inventario: {error.message}</span>
+        <span>Debes iniciar sesión.</span>
       </div>
     )
   }
 
-  if (!productos?.length) {
+  const [pageRes, alertasRes] = await Promise.all([
+    getProductosPage(supabase, user.id, { page, query }),
+    getAlertasStockCount(supabase, user.id),
+  ])
+
+  if (pageRes.error) {
     return (
-      <div className="mx-auto max-w-3xl rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-10 text-center">
-        <p className="text-base-content/70">Aún no hay productos guardados.</p>
-        <Link href="/productos" className="btn btn-primary btn-sm mt-4">
-          Ir a Productos
-        </Link>
+      <div role="alert" className="alert alert-error">
+        <span>No pudimos cargar el inventario: {pageRes.error}</span>
       </div>
     )
   }
 
   return (
     <div className="mx-auto max-w-6xl">
-      <InventarioClient productos={productos} alertasCount={alertas.length} />
+      <InventarioClient
+        productos={pageRes.productos}
+        alertasCount={alertasRes.count ?? 0}
+        page={pageRes.page}
+        totalPages={pageRes.totalPages}
+        total={pageRes.total}
+        query={query}
+      />
     </div>
   )
 }

@@ -15,10 +15,14 @@ export function computeStockDistribution(productos = []) {
     else dist.ok += 1
   }
 
-  const total = productos.length || 1
+  return stockDistributionFromCounts(dist, productos.length)
+}
+
+export function stockDistributionFromCounts(dist, total) {
+  const safeTotal = total || 1
   return {
     ...dist,
-    total: productos.length,
+    total,
     segments: [
       { key: "ok", label: "En stock", count: dist.ok, color: "bg-success" },
       { key: "bajo", label: "Bajo", count: dist.bajo, color: "bg-warning/70" },
@@ -26,10 +30,10 @@ export function computeStockDistribution(productos = []) {
       { key: "agotado", label: "Agotado", count: dist.agotado, color: "bg-error" },
     ].filter((s) => s.count > 0),
     pct: {
-      ok: Math.round((dist.ok / total) * 100),
-      bajo: Math.round((dist.bajo / total) * 100),
-      critico: Math.round((dist.critico / total) * 100),
-      agotado: Math.round((dist.agotado / total) * 100),
+      ok: Math.round((dist.ok / safeTotal) * 100),
+      bajo: Math.round((dist.bajo / safeTotal) * 100),
+      critico: Math.round((dist.critico / safeTotal) * 100),
+      agotado: Math.round((dist.agotado / safeTotal) * 100),
     },
   }
 }
