@@ -40,6 +40,11 @@ export const gestionarInventario = {
     const codigoStr = String(codigo ?? "").trim()
     if (!codigoStr) throw new Error("El código del producto es obligatorio.")
 
+    const codigoNum = Number.parseInt(codigoStr, 10)
+    if (!Number.isFinite(codigoNum) || String(codigoNum) !== codigoStr) {
+      throw new Error("El código debe ser un número entero (sin letras ni decimales).")
+    }
+
     const precioNum = Number(precio)
     if (!Number.isFinite(precioNum) || precioNum < 0) {
       throw new Error("El precio debe ser un número >= 0.")
@@ -54,7 +59,7 @@ export const gestionarInventario = {
       .from("productos")
       .select("id, codigo, nombre, precio, stock")
       .eq("user_id", user.id)
-      .eq("codigo", codigoStr)
+      .eq("codigo", codigoNum)
       .maybeSingle()
 
     if (selectError) throw new Error(selectError.message)
@@ -88,7 +93,7 @@ export const gestionarInventario = {
       .insert({
         user_id: user.id,
         nombre: nombreStr,
-        codigo: codigoStr,
+        codigo: codigoNum,
         precio: precioNum,
         precio_publico: precioNum,
         precio_compra: 0,

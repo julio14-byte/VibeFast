@@ -1,6 +1,6 @@
 /**
  * Búsqueda de productos en Supabase (server-side).
- * Reutilizado por API, inventario y tools.
+ * Busca por nombre (ilike) o código (exacto / prefijo vía codigo_text).
  */
 
 function termVariants(term) {
@@ -15,6 +15,29 @@ function escapeFilterValue(value) {
   return value.replace(/[%_,.()]/g, "")
 }
 
+/** Cláusulas OR para un term: nombre + código (exacto o prefijo numérico). */
+function orClausesForTerm(term) {
+  const safe = escapeFilterValue(term)
+  if (!safe) return []
+
+  const clauses = []
+  for (const v of termVariants(safe)) {
+    clauses.push(`nombre.ilike.%${v}%`)
+  }
+
+  const asCodigo = Number.parseInt(term, 10)
+  if (!Number.isNaN(asCodigo) && String(asCodigo) === term.trim()) {
+    clauses.push(`codigo.eq.${asCodigo}`)
+  }
+
+  // Prefijo de código (ej. "12" → 120, 1205…) — requiere migración 014 (codigo_text)
+  if (/^\d+$/.test(safe)) {
+    clauses.push(`codigo_text.ilike.%${safe}%`)
+  }
+
+  return clauses
+}
+
 const PRODUCT_SELECT =
   "id, codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, proveedor_id, clave_sat, unidad_sat, proveedor:proveedores(id, nombre)"
 
@@ -27,32 +50,22 @@ export function applyProductSearchFilter(builder, query, userId) {
   const q = query?.trim()
   if (!q) return request
 
-  const codigoNum = Number.parseInt(q, 10)
-  const porCodigoExacto = !Number.isNaN(codigoNum) && String(codigoNum) === q
-
-  if (porCodigoExacto) {
-    return request.or(`nombre.ilike.%${escapeFilterValue(q)}%,codigo.eq.${codigoNum}`)
-  }
-
   const terms = q.split(/\s+/).filter(Boolean)
   for (const term of terms) {
-    const safe = escapeFilterValue(term)
-    if (!safe) continue
-
-    const asCodigo = Number.parseInt(term, 10)
-    if (!Number.isNaN(asCodigo) && String(asCodigo) === term) {
-      request = request.or(`nombre.ilike.%${safe}%,codigo.eq.${asCodigo}`)
-    } else {
-      const variants = termVariants(safe)
-      const orClause = variants.map((v) => `nombre.ilike.%${v}%`).join(",")
-      request = request.or(`${orClause},codigo.ilike.%${safe}%`)
+    const clauses = orClausesForTerm(term)
+    if (clauses.length) {
+      request = request.or(clauses.join(","))
     }
   }
 
   return request
 }
 
-export async function searchProductos(supabase, userId, { query = "", limit = 12, offset = 0 } = {}) {
+export async function searchProductos(
+  supabase,
+  userId,
+  { query = "", limit = 12, offset = 0 } = {}
+) {
   const q = query?.trim()
 
   let request = supabase

@@ -38,7 +38,7 @@ function parseProductoForm(formData) {
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
-  const codigo = codigoRaw ?? ""
+  const codigoNum = Number.parseInt(codigoRaw ?? "", 10)
   const precio_compra = parseOptionalNumber(precioCompraRaw)
   const precio_mayoreo = parseOptionalNumber(precioMayoreoRaw)
   const precio_publico = precioPublicoRaw
@@ -48,7 +48,8 @@ function parseProductoForm(formData) {
 
   if (
     !nombre ||
-    !codigo ||
+    !Number.isInteger(codigoNum) ||
+    codigoNum < 0 ||
     Number.isNaN(precio_publico) ||
     Number.isNaN(stock)
   ) {
@@ -65,7 +66,7 @@ function parseProductoForm(formData) {
 
   return {
     nombre,
-    codigo,
+    codigo: codigoNum,
     precio: precio_publico,
     precio_compra,
     precio_mayoreo,

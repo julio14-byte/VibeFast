@@ -105,6 +105,14 @@ export function mapCsvRowToProducto(row, lineNumber) {
     }
   }
 
+  const codigoNum = Number.parseInt(codigo, 10)
+  if (!Number.isInteger(codigoNum) || codigoNum < 0) {
+    return {
+      ok: false,
+      error: `Línea ${lineNumber}: el código debe ser un número entero.`,
+    }
+  }
+
   const precio_publico =
     parseNumber(row.precio_publico) ?? parseNumber(row.precio) ?? 0
   const stock = parseNumber(row.stock, { integer: true }) ?? 0
@@ -123,7 +131,7 @@ export function mapCsvRowToProducto(row, lineNumber) {
     ok: true,
     data: {
       nombre,
-      codigo,
+      codigo: codigoNum,
       precio: precio_publico,
       precio_publico,
       precio_compra: precio_compra >= 0 ? precio_compra : 0,

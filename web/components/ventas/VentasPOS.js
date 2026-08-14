@@ -119,7 +119,7 @@ export default function VentasPOS({ clientes }) {
         <ProductSearch
           serverSearch
           onSelect={addToCart}
-          placeholder="Buscar producto para vender…"
+          placeholder="Buscar por código o nombre…"
         />
 
         <div className="flex flex-wrap gap-2">

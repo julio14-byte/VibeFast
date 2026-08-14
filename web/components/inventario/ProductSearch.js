@@ -14,7 +14,7 @@ const DEBOUNCE_MS = 280
 export default function ProductSearch({
   productos,
   onSelect,
-  placeholder = "Buscar por nombre, código o proveedor…",
+  placeholder = "Buscar por código o nombre…",
   showResults = true,
   className = "",
   serverSearch = !productos,
