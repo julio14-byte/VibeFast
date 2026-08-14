@@ -30,6 +30,9 @@ export async function getOrganizationForUser(userId) {
     .limit(1)
     .maybeSingle()
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error("[stripe] getOrganizationForUser:", error.message)
+    return null
+  }
   return data?.organization ?? null
 }

@@ -11,9 +11,14 @@ export async function getPaywallRedirect(userId, pathname = "") {
   const isAccountRoute = pathname.startsWith("/account")
   if (isAccountRoute) return null
 
-  const organization = await getOrganizationForUser(userId)
-  if (organization && !isSubscriptionActive(organization)) {
-    return "/account/billing?reason=subscription"
+  try {
+    const organization = await getOrganizationForUser(userId)
+    if (organization && !isSubscriptionActive(organization)) {
+      return "/account/billing?reason=subscription"
+    }
+  } catch (err) {
+    // No tumbar la app si falta migración 013 o hay error temporal de Supabase.
+    console.error("[stripe] paywall check failed:", err?.message)
   }
 
   return null

@@ -32,6 +32,15 @@ const PROTECTED_PREFIXES = [
 ]
 
 export async function updateSession(request) {
+  try {
+    return await runUpdateSession(request)
+  } catch (err) {
+    console.error("[middleware] updateSession failed:", err?.message)
+    return NextResponse.next({ request })
+  }
+}
+
+async function runUpdateSession(request) {
   let response = NextResponse.next({ request })
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL

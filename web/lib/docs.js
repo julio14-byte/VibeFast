@@ -1,10 +1,12 @@
 import fs from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import matter from "gray-matter"
 import GithubSlugger from "github-slugger"
 
-// docs-content vive en la raíz del monorepo, no dentro de /web
-const DOCS_DIR = path.join(process.cwd(), "..", "docs-content")
+// docs-content vive en la raíz del monorepo (../docs-content desde web/)
+const MONOREPO_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..")
+const DOCS_DIR = path.join(MONOREPO_ROOT, "docs-content")
 
 // Nombres bonitos para las secciones top-level
 const SECTION_LABELS = {

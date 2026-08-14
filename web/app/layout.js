@@ -2,6 +2,22 @@ import "./globals.css"
 import { Space_Grotesk, DM_Sans } from "next/font/google"
 import config from "@/config"
 
+function resolveMetadataBase() {
+  const raw = (process.env.NEXT_PUBLIC_APP_URL || config.app.defaultUrl || "").trim()
+  const candidates = [raw]
+  if (raw && !/^https?:\/\//i.test(raw)) {
+    candidates.push(`https://${raw.replace(/^\/+/, "")}`)
+  }
+  for (const value of candidates) {
+    try {
+      return new URL(value)
+    } catch {
+      // siguiente candidato
+    }
+  }
+  return new URL("http://localhost:3000")
+}
+
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
@@ -17,9 +33,7 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || config.app.defaultUrl
-  ),
+  metadataBase: resolveMetadataBase(),
   title: {
     default: config.app.name,
     template: `%s · ${config.app.name}`,

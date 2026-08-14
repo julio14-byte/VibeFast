@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
+
 const nextConfig = {
   reactStrictMode: true,
+  // Incluye docs-content (fuera de web/) en el bundle serverless de Vercel.
+  outputFileTracingRoot: monorepoRoot,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "lh3.googleusercontent.com" }, // avatares Google
