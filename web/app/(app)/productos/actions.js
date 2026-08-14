@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
-import { normalizeSearch } from "@/lib/productos"
 import { getOrganizationForUser } from "@/lib/billing/organization"
 
 const BASE = "/productos"
