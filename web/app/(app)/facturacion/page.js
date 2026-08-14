@@ -1,11 +1,9 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { formatPrecio, SAT_REGIMENES } from "@/lib/productos"
-import { PAC_PROVIDERS } from "@/lib/pac/sandbox"
 import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
 import {
   guardarEmpresaFiscal,
-  guardarPacConfig,
   generarFactura,
   timbrarFactura,
 } from "./actions"
@@ -56,12 +54,16 @@ export default async function FacturacionPage({ searchParams }) {
             Facturación electrónica
           </h1>
           <p className="mt-1 text-sm text-base-content/70">
-            CFDI 4.0 SAT, conexión PAC sandbox y clientes vinculados.
+            CFDI 4.0 SAT y clientes vinculados. PAC sandbox en{" "}
+            <Link href="/settings" className="link link-primary">Configuración</Link>.
           </p>
         </div>
         <div className="flex gap-2">
           <Link href="/clientes" className="btn btn-outline btn-sm">
             Clientes
+          </Link>
+          <Link href="/settings" className="btn btn-outline btn-sm">
+            Configuración
           </Link>
           <Link href="/ventas" className="btn btn-outline btn-sm">
             Ventas
@@ -77,11 +79,6 @@ export default async function FacturacionPage({ searchParams }) {
       {ok === "fiscal" && (
         <div role="alert" className="alert alert-success">
           <span>Datos fiscales guardados.</span>
-        </div>
-      )}
-      {ok === "pac" && (
-        <div role="alert" className="alert alert-success">
-          <span>Configuración PAC guardada.</span>
         </div>
       )}
       {ok === "factura" && (
@@ -175,62 +172,6 @@ export default async function FacturacionPage({ searchParams }) {
           />
           <button type="submit" className="btn btn-primary btn-sm">
             Guardar emisor
-          </button>
-        </form>
-      </section>
-
-      <section className="rounded-box border border-base-200 bg-base-100 p-4">
-        <h2 className="font-semibold mb-1">Conexión PAC (sandbox)</h2>
-        <p className="text-xs text-base-content/60 mb-3">
-          Configura el proveedor PAC para timbrar. En sandbox se simula el
-          timbrado; con credenciales Facturama se prueba el sandbox real.
-        </p>
-        <form action={guardarPacConfig} className="grid gap-2 sm:grid-cols-2">
-          <select
-            name="pac_provider"
-            defaultValue={empresa?.pac_provider ?? "sandbox"}
-            className="select select-bordered select-sm"
-            aria-label="Proveedor PAC"
-          >
-            {PAC_PROVIDERS.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
-            ))}
-          </select>
-          <select
-            name="pac_mode"
-            defaultValue={empresa?.pac_mode ?? "sandbox"}
-            className="select select-bordered select-sm"
-            aria-label="Modo PAC"
-          >
-            <option value="sandbox">Sandbox (pruebas)</option>
-            <option value="production">Producción</option>
-          </select>
-          <input
-            name="pac_sandbox_url"
-            placeholder="URL sandbox PAC"
-            defaultValue={
-              empresa?.pac_sandbox_url ?? "https://sandbox.facturama.mx"
-            }
-            className="input input-bordered input-sm sm:col-span-2"
-            aria-label="URL sandbox"
-          />
-          <input
-            name="pac_api_key"
-            placeholder="API Key (usuario)"
-            defaultValue={empresa?.pac_api_key ?? ""}
-            className="input input-bordered input-sm"
-            aria-label="API Key"
-          />
-          <input
-            name="pac_api_secret"
-            type="password"
-            placeholder="API Secret"
-            defaultValue={empresa?.pac_api_secret ?? ""}
-            className="input input-bordered input-sm"
-            aria-label="API Secret"
-          />
-          <button type="submit" className="btn btn-outline btn-sm">
-            Guardar PAC
           </button>
         </form>
       </section>

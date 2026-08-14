@@ -36,6 +36,9 @@ export default function UserMenu({ user }) {
           <Link href="/account/billing">Facturación y plan</Link>
         </li>
         <li>
+          <Link href="/settings">Configuración</Link>
+        </li>
+        <li>
           <Link href="/productos">Productos</Link>
         </li>
         <li>

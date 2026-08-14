@@ -13,6 +13,7 @@ import {
   Users,
   FileText,
   Bot,
+  Settings,
   X,
 } from "lucide-react"
 
@@ -27,6 +28,7 @@ const MORE = [
   { href: "/productos", label: "Productos", icon: PackageSearch },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/facturacion", label: "Facturación", icon: FileText },
+  { href: "/settings", label: "Configuración", icon: Settings },
   { href: "/agent", label: "Agente", icon: Bot },
 ]
 

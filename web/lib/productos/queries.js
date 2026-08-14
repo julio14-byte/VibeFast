@@ -28,7 +28,7 @@ export async function getProductosPage(
     page: safePage,
     perPage: safePerPage,
     totalPages: Math.max(1, Math.ceil((count ?? 0) / safePerPage)),
-    error,
+    error: error?.message ?? null,
   }
 }
 
@@ -160,5 +160,5 @@ export async function getAlertasStockCount(supabase, userId) {
     .eq("user_id", userId)
     .lt("stock", 2)
 
-  return { count: count ?? 0, error }
+  return { count: count ?? 0, error: error?.message ?? null }
 }

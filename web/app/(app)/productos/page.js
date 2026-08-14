@@ -2,7 +2,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getProductosPage } from "@/lib/productos/queries"
-import ProductCsvImport from "@/components/productos/ProductCsvImport"
+import { formatError } from "@/lib/errors"
 import ProductosCrud from "@/components/productos/ProductosCrud"
 
 export const metadata = { title: "Productos · SmartPOS" }
@@ -14,16 +14,13 @@ export default async function ProductosPage({ searchParams }) {
   const query = typeof params?.q === "string" ? params.q.trim() : ""
   const formError = params?.error?.toString()
   const ok = params?.ok?.toString()
-  const importCreados = params?.creados?.toString()
-  const importActualizados = params?.actualizados?.toString()
-  const importErrores = params?.errores?.toString()
 
   let productos = []
   let pagination = { page: 1, totalPages: 1, total: 0 }
   let error = null
 
   if (!isSupabaseConfigured()) {
-    error = { message: "Supabase no está configurado." }
+    error = "Supabase no está configurado."
   } else {
     try {
       const supabase = await createClient()
@@ -32,7 +29,7 @@ export default async function ProductosPage({ searchParams }) {
       } = await supabase.auth.getUser()
 
       if (!user) {
-        error = { message: "No autenticado." }
+        error = "No autenticado."
       } else {
         const pageRes = await getProductosPage(supabase, user.id, { page, query })
 
@@ -45,7 +42,7 @@ export default async function ProductosPage({ searchParams }) {
         error = pageRes.error
       }
     } catch (err) {
-      error = { message: err.message }
+      error = formatError(err)
     }
   }
 
@@ -61,6 +58,12 @@ export default async function ProductosPage({ searchParams }) {
         </div>
         <div className="flex shrink-0 gap-2">
           <Link
+            href="/settings"
+            className="btn btn-outline btn-sm touch-manipulation"
+          >
+            Importar CSV
+          </Link>
+          <Link
             href="/inventario"
             className="btn btn-outline btn-sm touch-manipulation"
           >
@@ -74,19 +77,7 @@ export default async function ProductosPage({ searchParams }) {
           <span>{formError}</span>
         </div>
       )}
-      {ok === "importado" && (
-        <div role="alert" className="alert alert-success">
-          <span>
-            Importación completada: {importCreados ?? 0} creados,{" "}
-            {importActualizados ?? 0} actualizados
-            {importErrores && Number(importErrores) > 0
-              ? `, ${importErrores} filas omitidas`
-              : ""}
-            .
-          </span>
-        </div>
-      )}
-      {ok && ok !== "importado" && !formError && (
+      {ok && !formError && (
         <div role="alert" className="alert alert-success">
           <span>
             {ok === "creado" && "Producto agregado."}
@@ -96,19 +87,20 @@ export default async function ProductosPage({ searchParams }) {
         </div>
       )}
 
-      <ProductCsvImport />
-
       {error && (
         <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
-          {error.message}
+          {error}
         </div>
       )}
 
       {!pagination.total && !query ? (
         <div className="space-y-4">
           <div className="rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-12 text-center text-base-content/60">
-            Sin productos. Usa <strong>Nuevo producto</strong>, importa un CSV o el{" "}
-            <Link href="/chat" className="link link-primary">chat</Link>.
+            Sin productos. Usa <strong>Nuevo producto</strong>,{" "}
+            <Link href="/settings" className="link link-primary">
+              importa un CSV
+            </Link>{" "}
+            o el <Link href="/chat" className="link link-primary">chat</Link>.
           </div>
           <ProductosCrud
             productos={[]}

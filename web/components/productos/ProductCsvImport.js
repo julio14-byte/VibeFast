@@ -35,7 +35,7 @@ export default function ProductCsvImport() {
         return
       }
       form.reset()
-      window.location.href = `/productos?ok=importado&creados=${result.creados}&actualizados=${result.actualizados}&errores=${result.errores}`
+      window.location.href = `/settings?ok=importado&creados=${result.creados}&actualizados=${result.actualizados}&errores=${result.errores}`
     } catch (err) {
       setError(err?.message ?? "Error al importar.")
       setLoading(false)

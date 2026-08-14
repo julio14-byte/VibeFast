@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import InventarioClient from "@/components/inventario/InventarioClient"
+import { formatError } from "@/lib/errors"
 import { getAlertasStockCount, getProductosPage } from "@/lib/productos/queries"
 
 export const metadata = { title: "Inventario · SmartPOS" }
@@ -31,7 +32,7 @@ export default async function InventarioPage({ searchParams }) {
   if (pageRes.error) {
     return (
       <div role="alert" className="alert alert-error">
-        <span>No pudimos cargar el inventario: {pageRes.error}</span>
+        <span>No pudimos cargar el inventario: {formatError(pageRes.error)}</span>
       </div>
     )
   }
