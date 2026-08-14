@@ -55,7 +55,7 @@ const config = {
     aiChat: true, // Chat AI en /chat — Sem 3
     toolUse: true, // Tool use registry — Sem 4
     agents: true, // LangGraph agents — Sem 5
-    mcp: true, // Servidor MCP en /api/mcp — Sem 5
+    mcp: true, // Servidor MCP en /api/mcp y /api/mcp/productos — Sem 5
     rag: false, // RAG con pgvector — opcional
     posthog: true, // Tracking — opcional
     resend: true, // Email — Sem 1+

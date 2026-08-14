@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { applyProductSearchFilter } from "@/lib/productos/search"
+import { mapProductoRows } from "@/lib/productos/format"
 
 export const buscarItems = {
   name: "buscar_productos",
@@ -38,15 +39,7 @@ export const buscarItems = {
     const { data, error } = await request.order("nombre", { ascending: true })
     if (error) throw new Error(error.message)
 
-    const productos = (data ?? []).map((p) => ({
-      codigo: p.codigo,
-      descripcion: p.nombre,
-      stock: p.stock,
-      precio_compra: p.precio_compra,
-      precio_mayoreo: p.precio_mayoreo,
-      precio_publico: p.precio_publico ?? p.precio,
-      margen_ganancia: p.margen_ganancia,
-    }))
+    const productos = mapProductoRows(data)
 
     return { ok: true, total: productos.length, productos }
   },
