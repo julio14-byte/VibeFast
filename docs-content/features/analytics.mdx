@@ -1,18 +1,43 @@
 ---
-title: Analytics (PostHog)
-description: Tracking de eventos con un toggle.
+title: Analytics (PostHog + métricas Supabase)
+description: PostHog opcional y métricas reales en el dashboard.
 order: 9
 ---
 
 <StackBadge tech={["posthog"]} />
 
-<Callout type="info">
-Feature opcional — actívala cuando quieras medir uso real (útil desde la **Semana 6** para customer development).
-</Callout>
+## Métricas en Inicio (SmartPOS)
 
-Activación: `features.posthog: true` en `web/config.js` + dos variables en `web/.env.local`:
+Sin PostHog, SmartPOS ya muestra **métricas reales** en `/dashboard`:
 
-- `NEXT_PUBLIC_POSTHOG_KEY` — tu key del proyecto (la copias del dashboard de PostHog → Settings → Project API key).
-- `NEXT_PUBLIC_POSTHOG_HOST` — la URL de PostHog (ya viene con el default `https://us.i.posthog.com` en `web/.env.example`; solo cámbiala si tu proyecto está en la región EU).
+| KPI | Fuente |
+|---|---|
+| Waitlist | tabla `waitlist` |
+| Signups MVP | tabla `profiles` |
+| Sesiones chat IA | tabla `ai_conversations` |
 
-Eventos críticos cubiertos por default: `signup`, `core_action`, `ai_call`, `tool_executed`.
+Requiere `SUPABASE_SERVICE_ROLE_KEY` en el servidor. Config en `web/config.js`:
+
+```js
+productMetrics: {
+  enabled: true,
+  founderEmails: [], // o ["tu@email.com"]
+}
+```
+
+→ Detalle: [Inicio y métricas](/docs/smartpos/inicio-y-metricas)
+
+## PostHog (opcional)
+
+Activación: `features.posthog: true` + en `web/.env.local`:
+
+- `NEXT_PUBLIC_POSTHOG_KEY`
+- `NEXT_PUBLIC_POSTHOG_HOST` (default `https://us.i.posthog.com`)
+
+Eventos críticos del boilerplate: `signup`, `core_action`, `ai_call`, `tool_executed`.
+
+Útil desde Sem 6 para customer development → [Analytics para decidir](/docs/deploy/analytics-para-decidir).
+
+## Fallback `events`
+
+Tabla `events` en Supabase si no usas PostHog — insert desde el cliente con RLS (solo ves tus eventos).

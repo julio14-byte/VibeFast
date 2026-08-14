@@ -1,0 +1,36 @@
+---
+title: Facturación SAT
+description: CFDI, PAC sandbox y notas electrónicas.
+order: 5
+---
+
+## Facturas (`/facturacion`)
+
+Genera **CFDI** (factura electrónica México) desde ventas registradas.
+
+### Antes de facturar
+
+1. **Datos fiscales del emisor** — RFC, razón social, régimen, CP (tabla `empresa_fiscal`).
+2. **Cliente** con RFC y uso CFDI en `/clientes`.
+3. **Productos** con clave SAT y unidad SAT correctas.
+
+### PAC (Proveedor Autorizado de Certificación)
+
+El timbrado se hace vía un PAC. En **Configuración** (`/settings`) configuras:
+
+- Modo **sandbox** (pruebas) o producción.
+- URL y credenciales del PAC.
+
+<Callout type="warning">
+En sandbox los XML no son facturas reales ante el SAT — solo para probar el flujo.
+</Callout>
+
+### Flujo
+
+1. Registra la venta en **Cobrar venta**.
+2. En **Facturas**, selecciona la venta y genera el CFDI.
+3. Descarga XML / envía por correo si está configurado.
+
+API interna: `POST /api/pac/timbrar` (requiere PAC configurado).
+
+→ Siguiente: [Chat y asistente IA](/docs/smartpos/chat-asistente)

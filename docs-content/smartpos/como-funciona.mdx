@@ -1,0 +1,79 @@
+---
+title: Cómo funciona SmartPOS
+description: Mapa de la app, menú y flujo de trabajo en la ferretería.
+order: 1
+---
+
+<StackBadge tech={["next", "supabase", "openai", "langgraph"]} />
+
+**SmartPOS** es el punto de venta e inventario que construiste sobre VibeFast: cobrar en mostrador, controlar existencias, facturar (SAT) y preguntarle al chat con IA.
+
+Esta sección explica **cómo usar la app** — no el código. Si quieres el stack técnico, ve a [Features](/docs/features/auth).
+
+## ¿Para quién es?
+
+Dueños y empleados de **ferreterías y tiendas de barrio** que necesitan:
+
+- Cobrar rápido sin perder el control del stock.
+- Saber qué hay en bodega sin abrir Excel.
+- Opcional: notas electrónicas (CFDI) y asistente por chat.
+
+## Mapa del menú
+
+| Menú | Ruta | Qué haces ahí |
+| --- | --- | --- |
+| **Inicio** | `/dashboard` | Resumen de ventas, existencias, alertas y métricas de tu producto |
+| **Cobrar venta** | `/ventas` | POS: buscar producto, cobrar, imprimir ticket |
+| **Productos** | `/productos` | Catálogo: agregar, editar precios y códigos |
+| **Existencias** | `/inventario` | Ver stock y buscar por nombre o código |
+| **Clientes** | `/clientes` | Datos para vender y facturar |
+| **Facturas** | `/facturacion` | CFDI timbrados |
+| **Pregúntale al chat** | `/chat` | Asistente IA: buscar, vender y actualizar inventario |
+| **Configuración** | `/settings` | Importar CSV y modo prueba de facturas |
+
+En el celular, los accesos rápidos abajo son: Inicio, Cobrar venta, Chat y Configuración. El resto está en **Más opciones**.
+
+## Flujo típico del día
+
+1. **Abrir Inicio** — revisar alertas de stock bajo y ventas de la semana.
+2. **Cobrar ventas** en `/ventas` — cada venta descuenta stock automáticamente.
+3. **Agregar o corregir productos** en `/productos` cuando llega mercancía nueva.
+4. **Facturar** en `/facturacion` si el cliente pide nota (requiere datos fiscales).
+5. **Preguntar al chat** si no recuerdas un código: «¿Cuánto hay del 1001?».
+
+<Callout type="info" title="Precios e IVA">
+**Precio de compra** = sin IVA. **Precio público y mayoreo** = con IVA incluido (16 % México). Las ventas y el CFDI desglosan el IVA automáticamente.
+</Callout>
+
+## Cómo se conectan las piezas
+
+```
+Landing (waitlist)  →  Login  →  App autenticada
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+              Supabase          OpenAI          Vercel
+           (productos,         (chat +          (hosting)
+            ventas,             agente)
+            clientes)
+```
+
+- **Supabase** guarda todo lo de tu tienda (solo ves tus datos — RLS).
+- **OpenAI** responde en el chat y ejecuta herramientas (buscar, vender, etc.).
+- **Vercel** publica la app con tu dominio.
+
+## Guías por módulo
+
+- [Inicio y métricas](/docs/smartpos/inicio-y-metricas)
+- [Productos e inventario](/docs/smartpos/productos-inventario)
+- [Ventas y clientes](/docs/smartpos/ventas-y-clientes)
+- [Facturación SAT](/docs/smartpos/facturacion)
+- [Chat y asistente IA](/docs/smartpos/chat-asistente)
+- [Configuración (CSV, PAC)](/docs/smartpos/configuracion)
+- [MCP consultas de productos](/docs/smartpos/mcp-productos)
+
+<Checkpoint>
+✅ Sabes qué hace cada sección del menú.
+✅ Entiendes el flujo: cobrar → descuenta stock → opcional facturar.
+✅ Distingues precio compra (sin IVA) vs público/mayoreo (con IVA).
+</Checkpoint>

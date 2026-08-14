@@ -1,0 +1,48 @@
+---
+title: Ventas y clientes
+description: Cobrar en mostrador, precios mayoreo/menudeo y tickets.
+order: 4
+---
+
+## Cobrar venta (`/ventas`)
+
+El **POS** de SmartPOS: pantalla pensada para el mostrador.
+
+### Pasos
+
+1. **Busca** el producto por nombre o código (misma lógica que inventario).
+2. Agrega cantidad con **+** / **−**.
+3. Opcional: elige **cliente** y forma de pago.
+4. **Cobrar** — registra la venta, descuenta stock y puede abrir el ticket.
+
+### Precio mayoreo vs menudeo
+
+- Por defecto se usa **precio público** (menudeo).
+- Si eliges un **cliente** con «usa precio mayoreo» o marcas el checkbox, el carrito cambia a **precio mayoreo**.
+- No hay botones separados de mayoreo/menudeo: el precio depende del cliente y el checkbox.
+
+### Totales e IVA
+
+Los precios en catálogo **ya incluyen IVA**. El ticket y la base de datos guardan:
+
+- Subtotal (base sin IVA)
+- IVA 16 %
+- Total
+
+### Ticket
+
+Tras cobrar puedes imprimir o ver el ticket en `/ventas/ticket/[id]`.
+
+## Clientes (`/clientes`)
+
+Datos para ventas y facturación:
+
+- Nombre, RFC, email, teléfono.
+- **Usa precio mayoreo** — al seleccionarlo en ventas, aplica precio mayoreo.
+- Uso de CFDI y domicilio fiscal (para facturas).
+
+## Chat: vender por voz escrita
+
+En `/chat` puedes decir: *«Vende 2 unidades del código 1001»* y el asistente usa la herramienta `registrar_venta` con las mismas reglas de stock y precios.
+
+→ Siguiente: [Facturación SAT](/docs/smartpos/facturacion)

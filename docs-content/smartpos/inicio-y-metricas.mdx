@@ -1,0 +1,53 @@
+---
+title: Inicio y métricas
+description: Dashboard de la tienda y métricas para tu pitch.
+order: 2
+---
+
+## Pantalla Inicio (`/dashboard`)
+
+Al entrar ves tres bloques:
+
+### 1. Métricas de tu producto (tracción del MVP)
+
+Tres tarjetas con datos **reales de Supabase** — ideales para tu pitch pre-seed:
+
+| Métrica | Qué cuenta |
+| --- | --- |
+| **Waitlist** | Emails capturados en la landing |
+| **Signups del MVP** | Usuarios registrados (`profiles`) |
+| **Sesiones de chat IA** | Conversaciones en `ai_conversations` |
+
+Cada una muestra el total y **+X en los últimos 7 días**.
+
+<Callout type="warning" title="Requisito">
+Necesitas `SUPABASE_SERVICE_ROLE_KEY` en el servidor (Vercel / `.env.local`). Sin esa key verás un aviso en lugar de los números.
+</Callout>
+
+Para restringir quién ve estas métricas globales, en `web/config.js`:
+
+```js
+productMetrics: {
+  enabled: true,
+  founderEmails: ["tu@email.com"],
+}
+```
+
+### 2. KPIs de inventario
+
+- **Productos registrados** — ítems en catálogo.
+- **Valor del inventario** — precio público × stock.
+- **Alertas de stock** — agotados o con pocas unidades.
+
+### 3. Gráficas y tabla
+
+- Ventas de los últimos 7 días.
+- Distribución de stock (ok / bajo / crítico).
+- Top productos por valor.
+- Tabla resumida + panel de alertas a la derecha.
+
+## Acciones rápidas
+
+Desde el hero del dashboard: **Nueva venta** y **Agregar producto** sin buscar en el menú.
+
+→ Siguiente: [Productos e inventario](/docs/smartpos/productos-inventario)

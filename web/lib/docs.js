@@ -11,6 +11,7 @@ const DOCS_DIR = path.join(MONOREPO_ROOT, "docs-content")
 // Nombres bonitos para las secciones top-level
 const SECTION_LABELS = {
   intro: "Introducción",
+  smartpos: "SmartPOS · Tu app",
   fundamentos: "Fundamentos",
   setup: "Empieza aquí",
   configuracion: "Configuración",
@@ -25,6 +26,7 @@ const SECTION_LABELS = {
 // Icono lucide por sección (se resuelve dinámicamente en el Sidebar)
 const SECTION_ICONS = {
   intro: "BookOpen",
+  smartpos: "Store",
   fundamentos: "GraduationCap",
   setup: "Rocket",
   configuracion: "Settings",
@@ -39,6 +41,7 @@ const SECTION_ICONS = {
 // Descripción corta por sección (para las cards del índice de docs)
 const SECTION_DESC = {
   intro: "Qué es VibeFast y cómo usar estas docs.",
+  smartpos: "Cómo funciona SmartPOS en el mostrador.",
   fundamentos: "Lo básico para arrancar sin experiencia.",
   setup: "De cero a tu proyecto corriendo.",
   configuracion: "Conecta cada servicio cuando lo necesites — tus keys y variables.",
@@ -119,6 +122,7 @@ function getSectionOrder(slug) {
   // Orden canónico de las secciones top-level
   const ORDER = [
     "intro",
+    "smartpos",
     "setup",
     "fundamentos",
     "configuracion",

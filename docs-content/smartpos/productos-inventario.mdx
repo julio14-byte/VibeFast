@@ -1,0 +1,50 @@
+---
+title: Productos e inventario
+description: Catálogo, códigos, precios con IVA y búsqueda.
+order: 3
+---
+
+## Productos (`/productos`)
+
+Aquí administras el **catálogo** de la tienda.
+
+### Campos importantes
+
+| Campo | Descripción |
+| --- | --- |
+| **Código** | Número entero (SKU interno). Obligatorio y único por tienda. |
+| **Nombre** | Lo que ves en mostrador y en tickets. |
+| **Stock** | Unidades en bodega. |
+| **Precio compra** | Costo **sin IVA**. |
+| **Margen %** | Sobre compra; calcula mayoreo y público automáticamente. |
+| **Precio mayoreo / público** | **Con IVA incluido** (16 %). |
+| **Clave SAT / Unidad SAT** | Para facturación CFDI (búsqueda en catálogo SAT). |
+
+<Callout type="info">
+Ya no usamos proveedor en la interfaz principal: el foco es código, nombre y precios.
+</Callout>
+
+### Agregar o editar
+
+- Botón **Agregar producto** abre un modal con etiquetas claras.
+- Puedes buscar clave y unidad SAT desde el formulario (API SAT en la app).
+
+### Búsqueda
+
+En **Productos** y **Existencias** puedes buscar por:
+
+- **Nombre** (parcial, sin importar mayúsculas).
+- **Código exacto** (ej. `1001`).
+- **Prefijo de código** (ej. `12` encuentra 120, 1205…) — requiere migración `014_productos_codigo_text`.
+
+## Existencias (`/inventario`)
+
+Vista enfocada en **cuánto hay**, no en editar precios. Misma búsqueda que productos.
+
+Si ves error al cargar, suele ser Supabase sin migraciones o sesión expirada → [Errores comunes](/docs/troubleshooting/errores-comunes).
+
+## Importación masiva
+
+En **Configuración** puedes subir un CSV con tu lista completa → [Configuración](/docs/smartpos/configuracion).
+
+→ Siguiente: [Ventas y clientes](/docs/smartpos/ventas-y-clientes)

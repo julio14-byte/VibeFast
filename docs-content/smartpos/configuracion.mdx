@@ -1,0 +1,41 @@
+---
+title: Configuración
+description: Importar CSV, PAC sandbox y variables clave.
+order: 7
+---
+
+## Configuración (`/settings`)
+
+Opciones **avanzadas**. Si solo vendes en mostrador, no necesitas entrar aquí todos los días.
+
+### Importar productos (CSV)
+
+Sube una lista con columnas como:
+
+- `codigo`, `nombre`, `stock`
+- `precio_compra`, `precio_mayoreo`, `precio_publico` (o margen)
+- `clave_sat`, `unidad_sat` (opcional)
+
+El sistema crea o actualiza productos por **código**. Verás resumen: creados, actualizados, errores.
+
+### PAC sandbox (facturas de prueba)
+
+Formulario para conectar tu PAC en modo prueba:
+
+- Provider, URL sandbox, API key / secret
+- Se guarda en `empresa_fiscal`
+
+Tras guardar, prueba timbrar desde **Facturas**.
+
+### Variables que afectan la app
+
+| Variable | Uso |
+| --- | --- |
+| `OPENAI_API_KEY` | Chat y asistente |
+| `SUPABASE_SERVICE_ROLE_KEY` | Métricas waitlist/signups en Inicio |
+| `NEXT_PUBLIC_SUPABASE_URL` + `ANON_KEY` | Base de datos |
+| Stripe keys | Suscripción Pro (`features.payments`) |
+
+Lista completa → [Variables de entorno](/docs/configuracion/variables-de-entorno).
+
+→ Siguiente: [MCP productos](/docs/smartpos/mcp-productos)

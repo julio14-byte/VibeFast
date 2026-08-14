@@ -1,0 +1,49 @@
+---
+title: Chat y asistente IA
+description: LangGraph, herramientas y ejemplos de uso en mostrador.
+order: 6
+---
+
+<StackBadge tech={["openai", "langgraph"]} />
+
+## Pregúntale al chat (`/chat`)
+
+Asistente en español sencillo, como un empleado del mostrador. Usa **LangGraph** (recover → decide → act) y streamea la respuesta en vivo.
+
+### Requisitos
+
+- `OPENAI_API_KEY` en `web/.env.local`
+- `features.aiChat`, `features.agents` y `features.toolUse` en `true` en `config.js`
+- Usuario logueado
+
+### Herramientas que puede usar
+
+| Herramienta | Ejemplo de petición |
+| --- | --- |
+| `buscar_productos` | «Busca tornillos» |
+| `gestionar_inventario` | «Agrega código 2050 Tubo PVC precio 85 stock 20» |
+| `crear_producto` | Producto nuevo con precios compra/mayoreo/público |
+| `ajustar_inventario` | Cambiar precio o stock de un código |
+| `registrar_venta` | «Vende 2 del código 1001» |
+
+El asistente **ejecuta** la acción; no te da pasos manuales.
+
+### Sugerencias rápidas
+
+Al abrir el chat sin mensajes, aparecen botones de ejemplo. Toca uno o escribe con tus palabras.
+
+### Persistencia
+
+Cada sesión se guarda en `ai_conversations` / `ai_messages` (best-effort). Cuenta para la métrica **Sesiones de chat IA** en Inicio.
+
+### Endpoint técnico
+
+- UI: `POST /api/ai/agent` (SSE)
+- Grafo: `web/lib/agents/examples/recoverDecideAct.js`
+- Tools: `web/lib/tools/index.js`
+
+`/agent` redirige a `/chat` (misma experiencia).
+
+→ Más detalle técnico: [Agentes LangGraph](/docs/features/agentes-langgraph)
+
+→ Siguiente: [Configuración](/docs/smartpos/configuracion)
