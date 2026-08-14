@@ -142,6 +142,23 @@ export default async function ClientesPage({ searchParams }) {
             ))}
           </select>
         </div>
+        <label className="flex items-start gap-3 rounded-lg border border-base-200 bg-base-200/30 p-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="usa_precio_mayoreo"
+            value="1"
+            defaultChecked={Boolean(editCliente?.usa_precio_mayoreo)}
+            className="checkbox checkbox-sm checkbox-primary mt-0.5"
+          />
+          <span className="text-sm">
+            <span className="font-medium">Precio mayoreo en ventas</span>
+            <span className="block text-xs text-base-content/60 mt-0.5">
+              Si está marcado, al seleccionar este cliente en Ventas se aplicará
+              el precio mayoreo del catálogo. Desmarcado = precio público
+              (menudeo).
+            </span>
+          </span>
+        </label>
         <div className="flex gap-2">
           <button type="submit" className="btn btn-primary btn-sm">
             {editCliente ? "Guardar" : "Agregar cliente"}
@@ -171,6 +188,7 @@ export default async function ClientesPage({ searchParams }) {
               <tr>
                 <th>Razón social</th>
                 <th>RFC</th>
+                <th>Precio ventas</th>
                 <th>Email</th>
                 <th>CP</th>
                 <th>Dirección</th>

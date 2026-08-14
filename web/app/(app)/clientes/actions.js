@@ -29,6 +29,8 @@ function parseClienteForm(formData) {
   const codigo_postal = formData.get("codigo_postal")?.toString().trim() || null
   const regimen_fiscal = formData.get("regimen_fiscal")?.toString() || "616"
   const uso_cfdi = formData.get("uso_cfdi")?.toString() || "G03"
+  const usa_precio_mayoreo =
+    formData.get("usa_precio_mayoreo")?.toString() === "1"
 
   if (!razon_social) return null
 
@@ -42,6 +44,7 @@ function parseClienteForm(formData) {
     codigo_postal,
     regimen_fiscal,
     uso_cfdi,
+    usa_precio_mayoreo,
   }
 }
 

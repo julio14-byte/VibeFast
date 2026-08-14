@@ -7,16 +7,48 @@ import ProductSearch from "@/components/inventario/ProductSearch"
 import { formatPrecio, getPrecioVenta, SAT_FORMAS_PAGO } from "@/lib/productos"
 import { registrarVenta } from "@/app/(app)/ventas/actions"
 
+function unitPriceFromCartLine(line, isMayoreo) {
+  return isMayoreo
+    ? Number(line.precio_mayoreo ?? line.precio ?? 0)
+    : Number(line.precio_publico ?? line.precio ?? 0)
+}
+
+function applyMayoreoToCart(cart, isMayoreo) {
+  return cart.map((c) => ({
+    ...c,
+    precio: unitPriceFromCartLine(c, isMayoreo),
+  }))
+}
+
 export default function VentasPOS({ clientes }) {
   const [cart, setCart] = useState([])
-  const [tipoPrecio, setTipoPrecio] = useState("publico")
   const [formaPago, setFormaPago] = useState("01")
   const [clienteId, setClienteId] = useState("")
+  const [precioMayoreo, setPrecioMayoreo] = useState(false)
   const [notas, setNotas] = useState("")
   const [imprimirTicket, setImprimirTicket] = useState(true)
   const [loading, setLoading] = useState(false)
 
+  function handleClienteChange(id) {
+    setClienteId(id)
+    if (!id) {
+      setPrecioMayoreo(false)
+      setCart((prev) => applyMayoreoToCart(prev, false))
+      return
+    }
+    const cliente = clientes.find((c) => c.id === id)
+    const mayoreo = Boolean(cliente?.usa_precio_mayoreo)
+    setPrecioMayoreo(mayoreo)
+    setCart((prev) => applyMayoreoToCart(prev, mayoreo))
+  }
+
+  function handlePrecioMayoreoChange(checked) {
+    setPrecioMayoreo(checked)
+    setCart((prev) => applyMayoreoToCart(prev, checked))
+  }
+
   function addToCart(producto) {
+    const isMayoreo = precioMayoreo
     const existing = cart.find((c) => c.producto_id === producto.id)
     if (existing) {
       if (existing.cantidad >= producto.stock) return
@@ -37,7 +69,7 @@ export default function VentasPOS({ clientes }) {
           nombre: producto.nombre,
           stock: producto.stock,
           cantidad: 1,
-          precio: getPrecioVenta(producto, tipoPrecio),
+          precio: getPrecioVenta(producto, isMayoreo ? "mayoreo" : "publico"),
           precio_publico: Number(
             producto.precio_publico ?? producto.precio ?? 0
           ),
@@ -71,18 +103,7 @@ export default function VentasPOS({ clientes }) {
     return { subtotal, iva, total: subtotal + iva }
   }, [cart])
 
-  function handleTipoPrecioChange(tipo) {
-    setTipoPrecio(tipo)
-    setCart(
-      cart.map((c) => ({
-        ...c,
-        precio:
-          tipo === "mayoreo"
-            ? c.precio_mayoreo ?? c.precio
-            : c.precio_publico ?? c.precio,
-      }))
-    )
-  }
+  const tipoPrecioLabel = precioMayoreo ? "Mayoreo" : "Público (menudeo)"
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -99,7 +120,7 @@ export default function VentasPOS({ clientes }) {
         }))
       )
     )
-    formData.set("tipo_precio", tipoPrecio)
+    formData.set("tipo_precio", precioMayoreo ? "mayoreo" : "publico")
     formData.set("forma_pago", formaPago)
     formData.set("metodo_pago", "PUE")
     if (clienteId) formData.set("cliente_id", clienteId)
@@ -122,23 +143,6 @@ export default function VentasPOS({ clientes }) {
           placeholder="Buscar por código o nombre…"
         />
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`btn btn-sm ${tipoPrecio === "publico" ? "btn-primary" : "btn-outline"}`}
-            onClick={() => handleTipoPrecioChange("publico")}
-          >
-            Precio público
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${tipoPrecio === "mayoreo" ? "btn-primary" : "btn-outline"}`}
-            onClick={() => handleTipoPrecioChange("mayoreo")}
-          >
-            Precio mayoreo
-          </button>
-        </div>
-
         <p className="text-xs text-base-content/60">
           También puedes registrar ventas desde el{" "}
           <Link href="/chat" className="link link-primary">chat</Link>:
@@ -150,6 +154,11 @@ export default function VentasPOS({ clientes }) {
         <div className="flex items-center gap-2 mb-4">
           <ShoppingCart className="size-5" />
           <h2 className="font-semibold">Venta actual</h2>
+          {cart.length > 0 && (
+            <span className="badge badge-sm badge-outline ml-auto">
+              {tipoPrecioLabel}
+            </span>
+          )}
         </div>
 
         {cart.length === 0 ? (
@@ -219,19 +228,52 @@ export default function VentasPOS({ clientes }) {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3" id="venta-form">
-          <select
-            value={clienteId}
-            onChange={(e) => setClienteId(e.target.value)}
-            className="select select-bordered select-sm w-full"
-            aria-label="Cliente"
-          >
-            <option value="">Sin cliente (público general)</option>
-            {clientes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.razon_social ?? c.nombre}
-              </option>
-            ))}
-          </select>
+          <div className="rounded-lg border border-base-200 bg-base-200/30 p-3 space-y-3">
+            <div className="form-control w-full">
+              <label className="label py-0" htmlFor="venta-cliente">
+                <span className="label-text font-medium">Cliente</span>
+              </label>
+              <select
+                id="venta-cliente"
+                value={clienteId}
+                onChange={(e) => handleClienteChange(e.target.value)}
+                className="select select-bordered select-sm w-full"
+              >
+                <option value="">Sin cliente (público general)</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.razon_social ?? c.nombre}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-base-content/55">
+                Selecciona un cliente para elegir precio mayoreo o menudeo.
+              </p>
+            </div>
+
+            {clienteId ? (
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={precioMayoreo}
+                  onChange={(e) => handlePrecioMayoreoChange(e.target.checked)}
+                  className="checkbox checkbox-sm checkbox-primary mt-0.5"
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Precio mayoreo</span>
+                  <span className="block text-xs text-base-content/60 mt-0.5">
+                    Marcado: precio mayoreo del catálogo. Desmarcado: precio
+                    público (menudeo).
+                  </span>
+                </span>
+              </label>
+            ) : (
+              <p className="text-xs text-base-content/55">
+                Sin cliente se usa siempre{" "}
+                <strong>precio público (menudeo)</strong>.
+              </p>
+            )}
+          </div>
 
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -243,26 +285,37 @@ export default function VentasPOS({ clientes }) {
             Imprimir ticket (80mm) al cobrar
           </label>
 
-          <select
-            value={formaPago}
-            onChange={(e) => setFormaPago(e.target.value)}
-            className="select select-bordered select-sm w-full"
-            aria-label="Forma de pago"
-          >
-            {SAT_FORMAS_PAGO.map((f) => (
-              <option key={f.clave} value={f.clave}>
-                {f.nombre}
-              </option>
-            ))}
-          </select>
+          <div className="form-control w-full">
+            <label className="label py-0" htmlFor="venta-forma-pago">
+              <span className="label-text font-medium">Forma de pago</span>
+            </label>
+            <select
+              id="venta-forma-pago"
+              value={formaPago}
+              onChange={(e) => setFormaPago(e.target.value)}
+              className="select select-bordered select-sm w-full"
+            >
+              {SAT_FORMAS_PAGO.map((f) => (
+                <option key={f.clave} value={f.clave}>
+                  {f.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <textarea
-            value={notas}
-            onChange={(e) => setNotas(e.target.value)}
-            placeholder="Notas (opcional)"
-            className="textarea textarea-bordered textarea-sm w-full"
-            rows={2}
-          />
+          <div className="form-control w-full">
+            <label className="label py-0" htmlFor="venta-notas">
+              <span className="label-text font-medium">Notas</span>
+            </label>
+            <textarea
+              id="venta-notas"
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              placeholder="Opcional"
+              className="textarea textarea-bordered textarea-sm w-full"
+              rows={2}
+            />
+          </div>
 
           <button
             type="submit"
@@ -284,7 +337,8 @@ export default function VentasPOS({ clientes }) {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs text-base-content/60">
-                {cart.length} producto{cart.length === 1 ? "" : "s"}
+                {cart.length} producto{cart.length === 1 ? "" : "s"} ·{" "}
+                {tipoPrecioLabel}
               </p>
               <p className="text-lg font-bold tabular-nums">
                 {formatPrecio(totals.total)}

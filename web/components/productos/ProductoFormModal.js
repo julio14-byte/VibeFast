@@ -120,8 +120,8 @@ export default function ProductoFormModal({
             </h3>
             <div className="grid gap-3 sm:grid-cols-3">
               <Field
-                label="Precio de compra"
-                hint="Lo que te cuesta al proveedor."
+                label="Precio de compra (MXN)"
+                hint="Lo que te cuesta al proveedor (costo)."
               >
                 <input
                   name="precio_compra"
@@ -134,8 +134,8 @@ export default function ProductoFormModal({
                 />
               </Field>
               <Field
-                label="Precio mayoreo"
-                hint="Venta a clientes con precio de mayoreo."
+                label="Precio mayoreo (MXN)"
+                hint="Venta a clientes de mayoreo. Actívalo en el cliente con el checkbox correspondiente."
               >
                 <input
                   name="precio_mayoreo"
@@ -148,8 +148,8 @@ export default function ProductoFormModal({
                 />
               </Field>
               <Field
-                label="Precio público"
-                hint="Precio en mostrador (venta normal)."
+                label="Precio público / menudeo (MXN)"
+                hint="Precio en mostrador para venta normal (público general)."
                 required
               >
                 <input

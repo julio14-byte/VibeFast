@@ -11,7 +11,10 @@ export default async function VentasPage({ searchParams }) {
   const params = await searchParams
 
   const [clientesRes, ventasRes] = await Promise.all([
-    supabase.from("clientes").select("id, nombre, razon_social").order("nombre"),
+    supabase
+      .from("clientes")
+      .select("id, nombre, razon_social, usa_precio_mayoreo")
+      .order("nombre"),
     supabase
       .from("ventas")
       .select("id, folio, total, created_at, tipo_precio")
