@@ -1,21 +1,32 @@
 import config from "@/config"
-import Chat from "@/components/ai/Chat"
 import PageHeader from "@/components/ui/PageHeader"
+import LangGraphChat from "@/components/ai/LangGraphChat"
 
 export const metadata = { title: "Chat · SmartPOS" }
 
 export default function ChatPage() {
-  const langGraph = config.features.agents && config.features.toolUse
+  const agentsOn = config.features.agents && config.features.toolUse
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
       <PageHeader
         title="Pregúntale al chat"
-        lead="Escribe con palabras normales, como si le hablaras a un empleado. Ejemplo: «¿Cuánto stock hay del código 1001?»"
-        tip="No hace falta saber de computadoras: solo escribe lo que necesitas y espera la respuesta."
+        lead="Busca en tu inventario, agrega productos y registra ventas cuando le pides."
+        tip="Toca un ejemplo abajo o escribe con tus palabras. No necesitas saber de computadoras."
       />
 
-      <Chat langGraph={langGraph} />
+      {!agentsOn ? (
+        <div role="alert" className="alert alert-warning">
+          <span>
+            El chat con herramientas está desactivado. Activa{" "}
+            <code className="text-xs">features.agents</code> y{" "}
+            <code className="text-xs">features.toolUse</code> en config.js y
+            configura <code className="text-xs">OPENAI_API_KEY</code>.
+          </span>
+        </div>
+      ) : (
+        <LangGraphChat />
+      )}
     </div>
   )
 }

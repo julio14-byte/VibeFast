@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { calcularTotales } from "@/lib/cfdi"
+import { calcularTotalesDesdePreciosConIva } from "@/lib/cfdi"
 import { getPrecioVenta } from "@/lib/productos"
 
 // Registra una venta desde el chat: busca productos, descuenta stock.
@@ -66,9 +66,9 @@ export const registrarVenta = {
     }
 
     const precioUnitario = getPrecioVenta(producto, tipo_precio)
-    const subtotal = round2(precioUnitario * cantidadNum)
-    const { iva, total } = calcularTotales([
-      { subtotal: subtotal },
+    const lineTotal = round2(precioUnitario * cantidadNum)
+    const { subtotal, iva, total } = calcularTotalesDesdePreciosConIva([
+      { cantidad: cantidadNum, precio_unitario: precioUnitario },
     ])
 
     const { data: lastVenta } = await supabase
@@ -105,7 +105,7 @@ export const registrarVenta = {
       nombre: producto.nombre,
       cantidad: cantidadNum,
       precio_unitario: precioUnitario,
-      subtotal,
+      subtotal: lineTotal,
     })
 
     if (itemErr) throw new Error(itemErr.message)

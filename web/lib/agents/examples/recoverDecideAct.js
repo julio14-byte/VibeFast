@@ -1,34 +1,29 @@
 // ============================================================
-// Agente de ejemplo · recover → decide → act
+// Agente SmartPOS · recover → decide → act (LangGraph)
 // ------------------------------------------------------------
-// Instancia concreta del wrapper genérico (../graph.js) con:
-//   - las 3 tools del registry (crear_item, buscar_items, enviar_email)
-//   - un system prompt en español
-//   - auditoría best-effort de cada tool call vía logToolCall
-//
-// El Route Handler importa runRecoverDecideAct() y streamea sus
-// eventos como SSE.
+// Tools del registry + prompt en español para mostrador.
 // ============================================================
 
 import { getOpenAITools, executeTool } from "@/lib/tools/index.js"
 import { runAgent } from "@/lib/agents/graph.js"
 
-const SYSTEM_PROMPT = `Eres el asistente de SmartPOS (ferretería) con acceso REAL al inventario del usuario autenticado.
+const SYSTEM_PROMPT = `Eres el asistente de SmartPOS para una ferretería o tienda. Hablas en español sencillo, como un empleado amable del mostrador.
 
-Herramientas disponibles:
-- buscar_productos: consultar existencias
-- gestionar_inventario: dar de alta o actualizar producto (nombre, codigo, precio, stock) — preferida para inventario
-- crear_producto: registrar productos nuevos con precios múltiples y proveedor
-- ajustar_inventario: actualizar nombre, precio y stock de un producto existente por código
+Herramientas (úsalas de verdad, no des instrucciones genéricas):
+- buscar_productos: ver existencias por nombre o código
+- gestionar_inventario: crear o actualizar producto (nombre, código numérico, precio, stock)
+- crear_producto: producto nuevo con precio compra, mayoreo y público (precios de venta incluyen IVA; compra sin IVA)
+- ajustar_inventario: cambiar nombre, precios o stock de un producto existente por código
+- registrar_venta: cobrar venta (código + cantidad). Precios ya incluyen IVA.
 
-Reglas obligatorias:
-- Si el usuario da nombre, código, precio y stock, DEBES llamar gestionar_inventario (crea o actualiza según el código).
-- Si pregunta por stock o busca productos, DEBES llamar buscar_productos.
-- Si pide actualizar solo algunos campos de un producto existente, usa ajustar_inventario.
-- Si necesita proveedor o precios de compra/mayoreo al crear, usa crear_producto.
-- NUNCA digas "ingresa estos datos en el sistema" ni des pasos genéricos: tú ejecutas las acciones con tus herramientas.
-
-Antes de usar una herramienta, explica brevemente qué vas a hacer. Responde en español, claro y conciso.`
+Reglas:
+- Si piden stock o buscan algo → buscar_productos
+- Si dan nombre, código, precio y stock para guardar → gestionar_inventario (código siempre número)
+- Si piden vender/cobrar X del código Y → registrar_venta
+- Si piden cambiar precio o stock de algo que ya existe → ajustar_inventario
+- NUNCA digas "ingresa en el sistema" ni des pasos manuales: tú ejecutas con las herramientas
+- Respuestas cortas, claras, sin tecnicismos (no menciones LangGraph ni APIs)
+- Antes de usar una herramienta, una frase breve de lo que harás`
 
 // Registra cada tool call en la bitácora de auditoría (Session A).
 // El import es dinámico y tolerante a fallos: si web/lib/audit.js

@@ -32,8 +32,8 @@ export function parseGestionarInventarioArgs(text) {
   const normalized = normalizeProductText(text)
 
   const codigo =
-    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*["'""]?([A-Za-z0-9_-]+)["'""]?/i)?.[1] ??
-    normalized.match(/\bc[oó]digo\s+["'""]?([A-Za-z0-9_-]+)["'""]?/i)?.[1]
+    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*["'""]?(\d+)["'""]?/i)?.[1] ??
+    normalized.match(/\bc[oó]digo\s+["'""]?(\d+)["'""]?/i)?.[1]
 
   const nombre =
     normalized.match(/producto\s+["'""]([^"'""]+)["'""]/i)?.[1] ??
@@ -52,9 +52,12 @@ export function parseGestionarInventarioArgs(text) {
 
   if (!codigo || !nombre || !precio || !stock) return null
 
+  const codigoNum = Number(codigo)
+  if (!Number.isInteger(codigoNum) || codigoNum <= 0) return null
+
   return {
     nombre: nombre.trim(),
-    codigo: codigo.trim(),
+    codigo: codigoNum,
     precio: Number.parseFloat(precio),
     stock: Number(stock),
   }

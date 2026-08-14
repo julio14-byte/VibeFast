@@ -53,12 +53,7 @@ export const NAV_SECTIONS = [
       {
         href: "/chat",
         label: "Pregúntale al chat",
-        hint: "Escribe como si hablaras con alguien",
-      },
-      {
-        href: "/agent",
-        label: "Asistente",
-        hint: "Te ayuda paso a paso",
+        hint: "Busca productos, vende y actualiza inventario",
       },
       {
         href: "/settings",
@@ -74,7 +69,6 @@ export const MOBILE_PRIMARY_HREFS = [
   "/dashboard",
   "/ventas",
   "/chat",
-  "/agent",
   "/settings",
 ]
 
