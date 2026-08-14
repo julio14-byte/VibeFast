@@ -1,34 +1,14 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
-import {
-  LayoutDashboard,
-  MessageSquare,
-  Bot,
-  PackageSearch,
-  ShoppingCart,
-  FileText,
-  Users,
-  Boxes,
-} from "lucide-react"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getPaywallRedirect } from "@/plugins/stripe"
 import UserMenu from "@/components/auth/UserMenu"
 import Logo from "@/components/Logo"
+import AppSidebar from "@/components/layout/AppSidebar"
 import MobileNav from "@/components/layout/MobileNav"
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/ventas", label: "Ventas", icon: ShoppingCart },
-  { href: "/productos", label: "Productos", icon: PackageSearch },
-  { href: "/inventario", label: "Inventario", icon: Boxes },
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/facturacion", label: "Facturación", icon: FileText },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/agent", label: "Agente", icon: Bot },
-]
 
 export const dynamic = "force-dynamic"
 
@@ -63,19 +43,8 @@ export default async function AppLayout({ children }) {
       </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-1 gap-6 px-3 py-4 sm:px-4 sm:py-6">
-        <aside className="hidden w-52 shrink-0 md:block">
-          <nav className="menu rounded-box bg-base-100 p-2 shadow-sm">
-            {NAV.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-base-200 touch-manipulation"
-              >
-                <Icon className="size-4 shrink-0" />
-                {label}
-              </Link>
-            ))}
-          </nav>
+        <aside className="hidden w-60 shrink-0 md:block">
+          <AppSidebar />
         </aside>
 
         <main className="min-w-0 flex-1 pb-safe-nav md:pb-0">{children}</main>

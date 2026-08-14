@@ -34,14 +34,14 @@ export default function DashboardView({
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              Panel de control
+              Tu tienda
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-base-content sm:text-3xl">
-              {appName}
+              Hola, ¿qué vamos a hacer hoy?
             </h1>
             <p className="mt-2 max-w-xl text-sm text-base-content/65 sm:text-base">
-              Inventario, ventas y alertas en un solo lugar — optimizado para
-              mostrador de ferretería.
+              Aquí ves ventas, existencias y alertas. Toca un botón abajo para
+              cobrar, revisar productos o pedir ayuda.
             </p>
           </div>
           <div className="hidden sm:block">

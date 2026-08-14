@@ -1,17 +1,16 @@
-import config from "@/config"
+import PageHeader from "@/components/ui/PageHeader"
 import AgentRun from "@/components/ai/AgentRun"
 
-export const metadata = { title: "Agente" }
+export const metadata = { title: "Asistente · SmartPOS" }
 
 export default function AgentPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="page-title">Agente de {config.app.name}</h1>
-        <p className="page-lead">
-          LangGraph decide qué herramientas usar y muestra su razonamiento.
-        </p>
-      </div>
+      <PageHeader
+        title="Asistente"
+        lead="Te ayuda a hacer tareas paso a paso: buscar productos, registrar ventas o revisar inventario."
+        tip="Describe lo que quieres lograr. El asistente te dirá qué va haciendo en cada paso."
+      />
 
       <AgentRun />
     </div>

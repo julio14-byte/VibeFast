@@ -149,6 +149,19 @@ body {
   @apply mt-1 text-sm text-base-content/70 leading-relaxed;
 }
 
+/* Botones más grandes y fáciles de tocar (usuarios sin experiencia) */
+.btn-touch {
+  @apply min-h-11 touch-manipulation;
+}
+
+.app-sidebar .menu li > a {
+  min-height: 44px;
+}
+
+.help-tip {
+  @apply text-base sm:text-sm;
+}
+
 .scrollbar-none {
   scrollbar-width: none;
 }

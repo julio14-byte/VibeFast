@@ -54,17 +54,17 @@ export default function InventarioClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="page-title">Inventario</h1>
+          <h1 className="page-title">Existencias</h1>
           <p className="page-lead">
-            Búsqueda en servidor (escala a miles de productos). Lista paginada
-            de {total} en catálogo.
+            Aquí ves cuántas piezas tienes de cada producto. Usa el cuadro de
+            búsqueda para encontrar algo rápido.
           </p>
         </div>
         <Link
           href="/chat"
-          className="btn btn-primary btn-sm shrink-0 touch-manipulation"
+          className="btn btn-primary btn-sm shrink-0 touch-manipulation min-h-11"
         >
-          Buscar con chat
+          Pedir ayuda
         </Link>
       </div>
 

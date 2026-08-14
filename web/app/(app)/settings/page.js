@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import PageHeader from "@/components/ui/PageHeader"
 import ProductCsvImport from "@/components/productos/ProductCsvImport"
 import PacSandboxForm from "@/components/settings/PacSandboxForm"
 
@@ -25,12 +26,11 @@ export default async function SettingsPage({ searchParams }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="page-title">Configuración</h1>
-        <p className="page-lead">
-          PAC sandbox para timbrado y importación masiva de productos (CSV).
-        </p>
-      </div>
+      <PageHeader
+        title="Configuración"
+        lead="Opciones avanzadas: importar tu lista de productos y modo de prueba para facturas electrónicas."
+        tip="Si solo quieres vender, no necesitas tocar esto. Usa Cobrar venta en el menú principal."
+      />
 
       {formError && (
         <div role="alert" className="alert alert-error">
@@ -39,30 +39,30 @@ export default async function SettingsPage({ searchParams }) {
       )}
       {ok === "pac" && (
         <div role="alert" className="alert alert-success">
-          <span>Configuración PAC guardada.</span>
+          <span>Ajustes de facturación en prueba guardados.</span>
         </div>
       )}
       {ok === "importado" && (
         <div role="alert" className="alert alert-success">
           <span>
-            Importación completada: {importCreados ?? 0} creados,{" "}
+            Lista importada: {importCreados ?? 0} nuevos,{" "}
             {importActualizados ?? 0} actualizados
             {importErrores && Number(importErrores) > 0
-              ? `, ${importErrores} filas omitidas`
+              ? `, ${importErrores} filas con error`
               : ""}
             .
           </span>
         </div>
       )}
 
-      <PacSandboxForm empresa={empresa} />
-
       <ProductCsvImport />
 
-      <p className="text-xs text-base-content/55">
-        Datos fiscales del emisor y generación de CFDI en{" "}
+      <PacSandboxForm empresa={empresa} />
+
+      <p className="text-sm text-base-content/55">
+        Datos de tu negocio para facturas en{" "}
         <Link href="/facturacion" className="link link-primary">
-          Facturación
+          Facturas
         </Link>
         .
       </p>

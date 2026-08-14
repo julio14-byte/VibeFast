@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getProductosPage } from "@/lib/productos/queries"
 import { formatError } from "@/lib/errors"
+import PageHeader from "@/components/ui/PageHeader"
 import ProductosCrud from "@/components/productos/ProductosCrud"
 
 export const metadata = { title: "Productos · SmartPOS" }
@@ -48,29 +49,27 @@ export default async function ProductosPage({ searchParams }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="page-title">Productos</h1>
-          <p className="page-lead">
-            Catálogo con búsqueda SAT, margen de ganancia y precios con IVA en
-            venta. Compra sin IVA.
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <Link
-            href="/settings"
-            className="btn btn-outline btn-sm touch-manipulation"
-          >
-            Importar CSV
-          </Link>
-          <Link
-            href="/inventario"
-            className="btn btn-outline btn-sm touch-manipulation"
-          >
-            Inventario
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Productos"
+        lead="Lista de todo lo que vendes. Usa «Nuevo producto» para agregar uno o el lápiz para cambiar precios."
+        tip="Para cargar muchos productos de una vez, ve a Configuración en el menú e importa tu archivo Excel/CSV."
+        actions={
+          <>
+            <Link
+              href="/settings"
+              className="btn btn-outline btn-sm touch-manipulation min-h-11"
+            >
+              Importar lista
+            </Link>
+            <Link
+              href="/inventario"
+              className="btn btn-outline btn-sm touch-manipulation min-h-11"
+            >
+              Ver existencias
+            </Link>
+          </>
+        }
+      />
 
       {formError && (
         <div role="alert" className="alert alert-error">
@@ -80,8 +79,8 @@ export default async function ProductosPage({ searchParams }) {
       {ok && !formError && (
         <div role="alert" className="alert alert-success">
           <span>
-            {ok === "creado" && "Producto agregado."}
-            {ok === "actualizado" && "Producto actualizado."}
+            {ok === "creado" && "Producto guardado correctamente."}
+            {ok === "actualizado" && "Cambios guardados."}
             {ok === "eliminado" && "Producto eliminado."}
           </span>
         </div>
@@ -96,11 +95,12 @@ export default async function ProductosPage({ searchParams }) {
       {!pagination.total && !query ? (
         <div className="space-y-4">
           <div className="rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-12 text-center text-base-content/60">
-            Sin productos. Usa <strong>Nuevo producto</strong>,{" "}
+            Aún no hay productos. Pulsa <strong>Nuevo producto</strong> abajo,
+            importa en{" "}
             <Link href="/settings" className="link link-primary">
-              importa un CSV
+              Configuración
             </Link>{" "}
-            o el <Link href="/chat" className="link link-primary">chat</Link>.
+            o pide ayuda en el <Link href="/chat" className="link link-primary">Chat</Link>.
           </div>
           <ProductosCrud
             productos={[]}

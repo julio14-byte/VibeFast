@@ -66,10 +66,10 @@ export default function ProductosCrud({
         <button
           type="button"
           onClick={openCreate}
-          className="btn btn-primary btn-sm gap-2 touch-manipulation"
+          className="btn btn-primary btn-sm gap-2 touch-manipulation min-h-11"
         >
           <Plus className="size-4" />
-          Nuevo producto
+          Agregar producto
         </button>
       </div>
 

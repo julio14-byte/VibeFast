@@ -1,8 +1,6 @@
 import Link from "next/link"
 import { signOut } from "@/lib/auth/actions"
 
-// Menú de usuario con avatar de Google y botón de cerrar sesión.
-// Server Component: el logout es un Server Action (form action).
 export default function UserMenu({ user }) {
   const meta = user.user_metadata || {}
   const name = meta.full_name || meta.name || user.email
@@ -11,11 +9,16 @@ export default function UserMenu({ user }) {
 
   return (
     <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-2">
+      <div
+        tabIndex={0}
+        role="button"
+        className="btn btn-ghost btn-sm gap-2 min-h-11 touch-manipulation"
+        aria-label="Menú de tu cuenta"
+      >
         {avatar ? (
           <img
             src={avatar}
-            alt={name}
+            alt=""
             referrerPolicy="no-referrer"
             className="size-7 rounded-full"
           />
@@ -33,21 +36,12 @@ export default function UserMenu({ user }) {
       >
         <li className="menu-title truncate">{user.email}</li>
         <li>
-          <Link href="/account/billing">Facturación y plan</Link>
-        </li>
-        <li>
-          <Link href="/settings">Configuración</Link>
-        </li>
-        <li>
-          <Link href="/productos">Productos</Link>
-        </li>
-        <li>
-          <Link href="/clientes">Clientes</Link>
+          <Link href="/account/billing">Tu plan y pagos</Link>
         </li>
         <li>
           <form action={signOut}>
             <button type="submit" className="w-full text-left text-error">
-              Cerrar sesión
+              Salir de la cuenta
             </button>
           </form>
         </li>

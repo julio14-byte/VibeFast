@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { formatPrecio } from "@/lib/productos"
+import PageHeader from "@/components/ui/PageHeader"
 import VentasPOS from "@/components/ventas/VentasPOS"
 
-export const metadata = { title: "Ventas · SmartPOS" }
+export const metadata = { title: "Cobrar venta · SmartPOS" }
 export const dynamic = "force-dynamic"
 
 export default async function VentasPage({ searchParams }) {
@@ -32,20 +33,19 @@ export default async function VentasPage({ searchParams }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="page-title">Ventas</h1>
-          <p className="page-lead">
-            Punto de venta con búsqueda en servidor (miles de productos).
-          </p>
-        </div>
-        <Link
-          href="/facturacion"
-          className="btn btn-outline btn-sm shrink-0 touch-manipulation"
-        >
-          Facturación
-        </Link>
-      </div>
+      <PageHeader
+        title="Cobrar venta"
+        lead="1) Busca el producto. 2) Toca para agregarlo. 3) Pulsa «Cobrar venta» cuando termines."
+        tip="Si no sabes el nombre, escribe parte del código o pregunta en el Chat del menú."
+        actions={
+          <Link
+            href="/facturacion"
+            className="btn btn-outline btn-sm shrink-0 touch-manipulation min-h-11"
+          >
+            Facturas
+          </Link>
+        }
+      />
 
       {formError && (
         <div role="alert" className="alert alert-error">
@@ -56,12 +56,12 @@ export default async function VentasPage({ searchParams }) {
         <div role="alert" className="alert alert-success">
           <div className="flex flex-wrap items-center gap-3">
             <span>
-              Venta #{folioOk} registrada por {formatPrecio(totalOk)}.
+              Listo: venta #{folioOk} por {formatPrecio(totalOk)}.
             </span>
             {ventaId && (
               <Link
                 href={`/ventas/ticket/${ventaId}?print=1`}
-                className="btn btn-sm btn-outline touch-manipulation"
+                className="btn btn-sm btn-outline touch-manipulation min-h-10"
               >
                 Imprimir ticket
               </Link>
@@ -74,14 +74,17 @@ export default async function VentasPage({ searchParams }) {
 
       {ventas.length > 0 && (
         <div className="rounded-box border border-base-200 bg-base-100 p-4">
-          <h2 className="font-semibold mb-3">Últimas ventas</h2>
+          <h2 className="font-semibold mb-1">Ventas recientes</h2>
+          <p className="text-xs text-base-content/55 mb-3">
+            Lo que cobraste hace poco
+          </p>
           <div className="overflow-x-auto">
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Folio</th>
+                  <th>Número</th>
                   <th>Fecha</th>
-                  <th>Tipo</th>
+                  <th>Tipo precio</th>
                   <th className="text-right">Total</th>
                   <th />
                 </tr>
@@ -102,7 +105,7 @@ export default async function VentasPage({ searchParams }) {
                         href={`/ventas/ticket/${v.id}`}
                         className="btn btn-ghost btn-xs touch-manipulation"
                       >
-                        Ticket
+                        Ver ticket
                       </Link>
                     </td>
                   </tr>
