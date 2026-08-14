@@ -15,10 +15,11 @@
 // persiste vía logToolCall (Session A), best-effort dentro del agente.
 // ============================================================
 
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import { getUser } from "@/lib/supabase/server"
 import config from "@/config"
 import { runRecoverDecideAct } from "@/lib/agents/examples/recoverDecideAct.js"
+import { persistChatExchange } from "@/lib/ai/persistConversation"
 
 export async function POST(request) {
   try {
@@ -46,6 +47,9 @@ export async function POST(request) {
       )
     }
 
+    const lastUserMessage = messages[messages.length - 1]
+    let assistantText = ""
+
     const encoder = new TextEncoder()
     const events = runRecoverDecideAct({ messages, conversationId })
 
@@ -55,14 +59,26 @@ export async function POST(request) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
         try {
           for await (const event of events) {
+            if (event.type === "token" && event.text) {
+              assistantText += event.text
+            }
             send(event)
           }
         } catch (err) {
-          // El agente ya emite sus errores como eventos; esto es una
-          // red de seguridad si el propio generador se rompe.
           send({ type: "error", message: err?.message ?? "fallo del agente" })
         } finally {
           controller.close()
+          after(async () => {
+            try {
+              await persistChatExchange({
+                conversationId,
+                userMessage: lastUserMessage,
+                assistantText,
+              })
+            } catch (err) {
+              console.error("[ai/agent] persistencia omitida:", err?.message)
+            }
+          })
         }
       },
     })

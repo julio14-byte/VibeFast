@@ -7,10 +7,15 @@ import {
   stockDistributionFromCounts,
 } from "@/lib/dashboard/chartData"
 import {
+  canViewProductMetrics,
+  getProductMetrics,
+} from "@/lib/dashboard/productMetrics"
+import {
   getDashboardChartProductData,
   getDashboardProductStats,
   getProductosPage,
 } from "@/lib/productos/queries"
+
 import DashboardView from "@/components/dashboard/DashboardView"
 
 export const metadata = { title: "Dashboard · SmartPOS" }
@@ -22,6 +27,9 @@ export default async function DashboardPage() {
   let metrics = null
   let chartData = null
   let totalProductos = 0
+  let productMetrics = null
+  let productMetricsError = null
+  let showProductMetrics = false
   let error = null
 
   if (!isSupabaseConfigured()) {
@@ -36,19 +44,23 @@ export default async function DashboardPage() {
       if (!user) {
         error = "No autenticado."
       } else {
+        showProductMetrics = canViewProductMetrics(user)
+
         const desde = new Date()
         desde.setDate(desde.getDate() - 7)
 
-        const [stats, chartProducts, tablePage, ventasRes] = await Promise.all([
-          getDashboardProductStats(supabase, user.id),
-          getDashboardChartProductData(supabase, user.id),
-          getProductosPage(supabase, user.id, { page: 1, perPage: 50 }),
-          supabase
-            .from("ventas")
-            .select("total, created_at")
-            .gte("created_at", desde.toISOString())
-            .order("created_at", { ascending: true }),
-        ])
+        const [stats, chartProducts, tablePage, ventasRes, metricsRes] =
+          await Promise.all([
+            getDashboardProductStats(supabase, user.id),
+            getDashboardChartProductData(supabase, user.id),
+            getProductosPage(supabase, user.id, { page: 1, perPage: 50 }),
+            supabase
+              .from("ventas")
+              .select("total, created_at")
+              .gte("created_at", desde.toISOString())
+              .order("created_at", { ascending: true }),
+            showProductMetrics ? getProductMetrics() : Promise.resolve(null),
+          ])
 
         error =
           stats.error ||
@@ -69,6 +81,14 @@ export default async function DashboardPage() {
             ),
             topValor: chartProducts.topValor,
           }
+
+          if (showProductMetrics && metricsRes) {
+            if (metricsRes.error) {
+              productMetricsError = metricsRes.error
+            } else {
+              productMetrics = metricsRes
+            }
+          }
         }
       }
     } catch (err) {
@@ -87,6 +107,9 @@ export default async function DashboardPage() {
   return (
     <DashboardView
       metrics={metrics}
+      productMetrics={productMetrics}
+      productMetricsError={productMetricsError}
+      showProductMetrics={showProductMetrics}
       productos={productos}
       totalProductos={totalProductos}
       appName={config.app.name}

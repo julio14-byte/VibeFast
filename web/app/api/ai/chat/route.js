@@ -13,7 +13,8 @@
 // ============================================================
 
 import { NextResponse, after } from "next/server"
-import { createClient, getUser } from "@/lib/supabase/server"
+import { getUser } from "@/lib/supabase/server"
+import { persistChatExchange } from "@/lib/ai/persistConversation"
 import { streamChat } from "@/lib/openai/chat"
 
 export async function POST(request) {
@@ -51,31 +52,12 @@ export async function POST(request) {
     // nunca lo rompe: cualquier fallo de persistencia se ignora.
     after(async () => {
       try {
-        const user = await getUser()
-        if (!user) return
-
-        const supabase = await createClient()
-
-        let convId = conversationId
-        if (!convId) {
-          const { data, error } = await supabase
-            .from("ai_conversations")
-            .insert({ user_id: user.id })
-            .select("id")
-            .single()
-          if (error || !data) return
-          convId = data.id
-        }
-
         const lastUserMessage = messages[messages.length - 1]
-        await supabase.from("ai_messages").insert([
-          {
-            conversation_id: convId,
-            role: lastUserMessage.role,
-            content: lastUserMessage.content,
-          },
-          { conversation_id: convId, role: "assistant", content: assistantText },
-        ])
+        await persistChatExchange({
+          conversationId,
+          userMessage: lastUserMessage,
+          assistantText,
+        })
       } catch (err) {
         console.error("[ai/chat] persistencia omitida:", err?.message)
       }

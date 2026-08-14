@@ -64,6 +64,14 @@ const config = {
     hardware: false, // ESP-Claw bridge — Sem 8
   },
 
+  // Métricas globales del producto (waitlist, signups, chat) en el dashboard.
+  // Requiere SUPABASE_SERVICE_ROLE_KEY en el servidor.
+  productMetrics: {
+    enabled: true,
+    // Vacío = cualquier usuario autenticado (MVP single-founder).
+    founderEmails: [],
+  },
+
   // -----------------------------------------------------------
   // OpenAI
   // -----------------------------------------------------------

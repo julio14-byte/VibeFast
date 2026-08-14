@@ -1,4 +1,5 @@
 import DashboardKpis from "@/components/dashboard/DashboardKpis"
+import ProductMetricsKpis from "@/components/dashboard/ProductMetricsKpis"
 import InventoryTable from "@/components/dashboard/InventoryTable"
 import StockAlertsPanel from "@/components/dashboard/StockAlertsPanel"
 import DashboardCharts from "@/components/dashboard/DashboardCharts"
@@ -6,6 +7,9 @@ import QuickActionsBar from "@/components/dashboard/QuickActionsBar"
 
 export default function DashboardView({
   metrics,
+  productMetrics,
+  productMetricsError,
+  showProductMetrics = false,
   productos = [],
   totalProductos = 0,
   appName,
@@ -53,6 +57,13 @@ export default function DashboardView({
       <div className="sm:hidden">
         <QuickActionsBar />
       </div>
+
+      {showProductMetrics ? (
+        <ProductMetricsKpis
+          productMetrics={productMetrics}
+          error={productMetricsError}
+        />
+      ) : null}
 
       <DashboardKpis metrics={safeMetrics} />
 
