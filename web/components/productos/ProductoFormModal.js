@@ -1,10 +1,13 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { X } from "lucide-react"
 import {
   createProducto,
   updateProducto,
 } from "@/app/(app)/productos/actions"
+import { IVA_RATE, precioVentaConIva, round2 } from "@/lib/precios"
+import SatCatalogSearch from "./SatCatalogSearch"
 
 function Field({ label, hint, required, children }) {
   return (
@@ -23,13 +26,71 @@ function Field({ label, hint, required, children }) {
   )
 }
 
-export default function ProductoFormModal({
-  open,
-  onClose,
-  producto,
-  proveedores = [],
-}) {
+const DEFAULT_MARGEN = 30
+
+export default function ProductoFormModal({ open, onClose, producto }) {
   const isEdit = Boolean(producto?.id)
+
+  const initialCompra = producto?.precio_compra ?? ""
+  const initialMargen = producto?.margen_ganancia ?? DEFAULT_MARGEN
+  const initialPublico =
+    producto?.precio_publico ?? producto?.precio ?? ""
+  const initialMayoreo = producto?.precio_mayoreo ?? ""
+
+  const [claveSat, setClaveSat] = useState(producto?.clave_sat ?? "01010101")
+  const [unidadSat, setUnidadSat] = useState(producto?.unidad_sat ?? "H87")
+  const [precioCompra, setPrecioCompra] = useState(
+    initialCompra === "" ? "" : String(initialCompra)
+  )
+  const [margen, setMargen] = useState(String(initialMargen))
+  const [precioPublico, setPrecioPublico] = useState(
+    initialPublico === "" ? "" : String(initialPublico)
+  )
+  const [precioMayoreo, setPrecioMayoreo] = useState(
+    initialMayoreo === "" ? "" : String(initialMayoreo)
+  )
+  const [publicoManual, setPublicoManual] = useState(false)
+  const [mayoreoManual, setMayoreoManual] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setClaveSat(producto?.clave_sat ?? "01010101")
+    setUnidadSat(producto?.unidad_sat ?? "H87")
+    setPrecioCompra(
+      producto?.precio_compra != null ? String(producto.precio_compra) : ""
+    )
+    setMargen(String(producto?.margen_ganancia ?? DEFAULT_MARGEN))
+    setPrecioPublico(
+      producto?.precio_publico != null || producto?.precio != null
+        ? String(producto?.precio_publico ?? producto?.precio)
+        : ""
+    )
+    setPrecioMayoreo(
+      producto?.precio_mayoreo != null ? String(producto.precio_mayoreo) : ""
+    )
+    setPublicoManual(false)
+    setMayoreoManual(false)
+  }, [open, producto])
+
+  const compraNum = Number.parseFloat(precioCompra) || 0
+  const margenNum = Number.parseFloat(margen) || 0
+
+  const previewSinIva = useMemo(() => {
+    if (!compraNum) return 0
+    return round2(compraNum * (1 + margenNum / 100))
+  }, [compraNum, margenNum])
+
+  useEffect(() => {
+    if (!compraNum || publicoManual) return
+    const conIva = precioVentaConIva(compraNum, margenNum)
+    setPrecioPublico(String(conIva))
+  }, [compraNum, margenNum, publicoManual])
+
+  useEffect(() => {
+    if (!compraNum || mayoreoManual) return
+    const conIva = precioVentaConIva(compraNum, margenNum * 0.85)
+    setPrecioMayoreo(String(conIva))
+  }, [compraNum, margenNum, mayoreoManual])
 
   if (!open) return null
 
@@ -42,7 +103,7 @@ export default function ProductoFormModal({
               {isEdit ? "Editar producto" : "Nuevo producto"}
             </h2>
             <p className="text-sm text-base-content/60">
-              Completa los campos del catálogo. Los marcados con * son obligatorios.
+              Compra sin IVA · venta con IVA incluido ({Math.round(IVA_RATE * 100)}%).
             </p>
           </div>
           <button
@@ -84,7 +145,7 @@ export default function ProductoFormModal({
               </Field>
               <Field
                 label="Nombre del producto"
-                hint="Descripción que verás en ventas e inventario."
+                hint="Descripción en ventas, inventario y factura."
                 required
               >
                 <input
@@ -96,60 +157,63 @@ export default function ProductoFormModal({
                   placeholder="Ej. Tubo PVC 1/2"
                 />
               </Field>
-              <Field
-                label="Proveedor"
-                hint="Opcional. Quién te surte este artículo."
-              >
-                <select
-                  name="proveedor_id"
-                  className="select select-bordered w-full"
-                  defaultValue={producto?.proveedor_id ?? ""}
-                >
-                  <option value="">Sin proveedor</option>
-                  {proveedores.map((p) => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
-                  ))}
-                </select>
-              </Field>
             </div>
           </section>
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Precios (MXN)
+              Costo y margen
             </h3>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field
-                label="Precio de compra (MXN)"
-                hint="Lo que te cuesta al proveedor (costo)."
+                label="Precio de compra (sin IVA)"
+                hint="Costo neto del proveedor, antes de IVA."
               >
                 <input
                   name="precio_compra"
                   type="number"
                   min="0"
                   step="0.01"
-                  defaultValue={producto?.precio_compra ?? ""}
+                  value={precioCompra}
+                  onChange={(e) => setPrecioCompra(e.target.value)}
                   className="input input-bordered w-full"
                   placeholder="0.00"
                 />
               </Field>
               <Field
-                label="Precio mayoreo (MXN)"
-                hint="Venta a clientes de mayoreo. Actívalo en el cliente con el checkbox correspondiente."
+                label="Margen de ganancia (%)"
+                hint="Sobre compra sin IVA. Ajusta manualmente; recalcula precios de venta."
               >
                 <input
-                  name="precio_mayoreo"
+                  name="margen_ganancia"
                   type="number"
                   min="0"
-                  step="0.01"
-                  defaultValue={producto?.precio_mayoreo ?? ""}
+                  max="1000"
+                  step="0.1"
+                  value={margen}
+                  onChange={(e) => setMargen(e.target.value)}
                   className="input input-bordered w-full"
-                  placeholder="0.00"
+                  placeholder="30"
                 />
               </Field>
+            </div>
+            {compraNum > 0 && (
+              <p className="text-xs text-base-content/55 rounded-lg bg-base-200/50 px-3 py-2">
+                Base sin IVA con margen {margenNum}%:{" "}
+                <strong>${previewSinIva.toFixed(2)}</strong> → con IVA:{" "}
+                <strong>${precioVentaConIva(compraNum, margenNum).toFixed(2)}</strong>
+              </p>
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
+              Precios de venta (con IVA incluido)
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field
-                label="Precio público / menudeo (MXN)"
-                hint="Precio en mostrador para venta normal (público general)."
+                label="Precio público / menudeo (con IVA)"
+                hint="Precio en mostrador. Editable; se calcula desde compra + margen."
                 required
               >
                 <input
@@ -158,9 +222,29 @@ export default function ProductoFormModal({
                   required
                   min="0"
                   step="0.01"
-                  defaultValue={
-                    producto?.precio_publico ?? producto?.precio ?? ""
-                  }
+                  value={precioPublico}
+                  onChange={(e) => {
+                    setPublicoManual(true)
+                    setPrecioPublico(e.target.value)
+                  }}
+                  className="input input-bordered w-full"
+                  placeholder="0.00"
+                />
+              </Field>
+              <Field
+                label="Precio mayoreo (con IVA)"
+                hint="Para clientes de mayoreo. Editable; por defecto ~85% del margen público."
+              >
+                <input
+                  name="precio_mayoreo"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={precioMayoreo}
+                  onChange={(e) => {
+                    setMayoreoManual(true)
+                    setPrecioMayoreo(e.target.value)
+                  }}
                   className="input input-bordered w-full"
                   placeholder="0.00"
                 />
@@ -172,57 +256,43 @@ export default function ProductoFormModal({
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
               Inventario
             </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field
-                label="Stock (unidades)"
-                hint="Cantidad disponible en anaquel."
+            <Field
+              label="Stock (unidades)"
+              hint="Cantidad disponible en anaquel."
+              required
+            >
+              <input
+                name="stock"
+                type="number"
                 required
-              >
-                <input
-                  name="stock"
-                  type="number"
-                  required
-                  min="0"
-                  step="1"
-                  defaultValue={producto?.stock ?? ""}
-                  className="input input-bordered w-full"
-                  placeholder="0"
-                />
-              </Field>
-            </div>
+                min="0"
+                step="1"
+                defaultValue={producto?.stock ?? ""}
+                className="input input-bordered w-full"
+                placeholder="0"
+              />
+            </Field>
           </section>
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Facturación (SAT)
+              Facturación (catálogo SAT)
             </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field
-                label="Clave SAT del producto"
-                hint="Catálogo SAT. Por defecto 01010101 (no identificado)."
-              >
-                <input
-                  name="clave_sat"
-                  type="text"
-                  maxLength={8}
-                  defaultValue={producto?.clave_sat ?? "01010101"}
-                  className="input input-bordered w-full"
-                  placeholder="01010101"
-                />
-              </Field>
-              <Field
-                label="Unidad SAT"
-                hint="Por defecto H87 (pieza)."
-              >
-                <input
-                  name="unidad_sat"
-                  type="text"
-                  maxLength={4}
-                  defaultValue={producto?.unidad_sat ?? "H87"}
-                  className="input input-bordered w-full"
-                  placeholder="H87"
-                />
-              </Field>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <SatCatalogSearch
+                type="clave-prodserv"
+                value={claveSat}
+                onChange={(clave) => setClaveSat(clave || "01010101")}
+                label="Clave producto / servicio (SAT)"
+                hint="Busca en el catálogo oficial del SAT por código o descripción."
+              />
+              <SatCatalogSearch
+                type="unidad"
+                value={unidadSat}
+                onChange={(clave) => setUnidadSat(clave || "H87")}
+                label="Unidad de medida (SAT)"
+                hint="Ej. H87 = pieza, MTR = metro, KGM = kilogramo."
+              />
             </div>
           </section>
 

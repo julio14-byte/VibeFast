@@ -19,7 +19,6 @@ export default async function ProductosPage({ searchParams }) {
   const importErrores = params?.errores?.toString()
 
   let productos = []
-  let proveedores = []
   let pagination = { page: 1, totalPages: 1, total: 0 }
   let error = null
 
@@ -35,10 +34,7 @@ export default async function ProductosPage({ searchParams }) {
       if (!user) {
         error = { message: "No autenticado." }
       } else {
-        const [pageRes, proveedoresRes] = await Promise.all([
-          getProductosPage(supabase, user.id, { page, query }),
-          supabase.from("proveedores").select("id, nombre").order("nombre"),
-        ])
+        const pageRes = await getProductosPage(supabase, user.id, { page, query })
 
         productos = pageRes.productos
         pagination = {
@@ -47,7 +43,6 @@ export default async function ProductosPage({ searchParams }) {
           total: pageRes.total,
         }
         error = pageRes.error
-        proveedores = proveedoresRes.data ?? []
       }
     } catch (err) {
       error = { message: err.message }
@@ -60,17 +55,11 @@ export default async function ProductosPage({ searchParams }) {
         <div className="min-w-0">
           <h1 className="page-title">Productos</h1>
           <p className="page-lead">
-            Catálogo con búsqueda por código o nombre, popup para crear/editar e
-            importación CSV.
+            Catálogo con búsqueda SAT, margen de ganancia y precios con IVA en
+            venta. Compra sin IVA.
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Link
-            href="/proveedores"
-            className="btn btn-outline btn-sm touch-manipulation"
-          >
-            Proveedores
-          </Link>
           <Link
             href="/inventario"
             className="btn btn-outline btn-sm touch-manipulation"
@@ -123,7 +112,6 @@ export default async function ProductosPage({ searchParams }) {
           </div>
           <ProductosCrud
             productos={[]}
-            proveedores={proveedores}
             pagination={pagination}
             query={query}
           />
@@ -131,7 +119,6 @@ export default async function ProductosPage({ searchParams }) {
       ) : (
         <ProductosCrud
           productos={productos}
-          proveedores={proveedores}
           pagination={pagination}
           query={query}
         />

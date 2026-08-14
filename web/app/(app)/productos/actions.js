@@ -34,7 +34,7 @@ function parseProductoForm(formData) {
   const precioMayoreoRaw = formData.get("precio_mayoreo")?.toString().trim()
   const precioPublicoRaw = formData.get("precio_publico")?.toString().trim()
   const stockRaw = formData.get("stock")?.toString().trim()
-  const proveedorId = formData.get("proveedor_id")?.toString().trim() || null
+  const margenRaw = formData.get("margen_ganancia")?.toString().trim()
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
@@ -45,13 +45,17 @@ function parseProductoForm(formData) {
     ? Number.parseFloat(precioPublicoRaw)
     : NaN
   const stock = stockRaw ? Number.parseInt(stockRaw, 10) : NaN
+  const margen_ganancia = margenRaw
+    ? Number.parseFloat(margenRaw)
+    : 30
 
   if (
     !nombre ||
     !Number.isInteger(codigoNum) ||
     codigoNum < 0 ||
     Number.isNaN(precio_publico) ||
-    Number.isNaN(stock)
+    Number.isNaN(stock) ||
+    Number.isNaN(margen_ganancia)
   ) {
     return null
   }
@@ -59,7 +63,9 @@ function parseProductoForm(formData) {
     precio_compra < 0 ||
     precio_mayoreo < 0 ||
     precio_publico < 0 ||
-    stock < 0
+    stock < 0 ||
+    margen_ganancia < 0 ||
+    margen_ganancia > 1000
   ) {
     return null
   }
@@ -71,8 +77,9 @@ function parseProductoForm(formData) {
     precio_compra,
     precio_mayoreo,
     precio_publico,
+    margen_ganancia,
     stock,
-    proveedor_id: proveedorId || null,
+    proveedor_id: null,
     clave_sat: claveSat,
     unidad_sat: unidadSat,
   }
@@ -80,12 +87,6 @@ function parseProductoForm(formData) {
 
 function fail(message) {
   redirect(`${BASE}?error=${encodeURIComponent(message)}`)
-}
-
-function resolveProveedorId(proveedorNombre, proveedorMap) {
-  if (!proveedorNombre) return null
-  const key = normalizeSearch(proveedorNombre)
-  return proveedorMap.get(key) ?? null
 }
 
 export async function importProductosCsv(formData) {
@@ -115,15 +116,6 @@ export async function importProductosCsv(formData) {
       }
     }
 
-    const { data: proveedores } = await supabase
-      .from("proveedores")
-      .select("id, nombre")
-      .eq("user_id", user.id)
-
-    const proveedorMap = new Map(
-      (proveedores ?? []).map((p) => [normalizeSearch(p.nombre), p.id])
-    )
-
     const payloads = []
     const rowErrors = []
 
@@ -145,7 +137,8 @@ export async function importProductosCsv(formData) {
         precio_compra: d.precio_compra,
         precio_mayoreo: d.precio_mayoreo,
         stock: d.stock,
-        proveedor_id: resolveProveedorId(d.proveedor_nombre, proveedorMap),
+        proveedor_id: null,
+        margen_ganancia: d.margen_ganancia ?? 30,
         clave_sat: d.clave_sat,
         unidad_sat: d.unidad_sat,
       })

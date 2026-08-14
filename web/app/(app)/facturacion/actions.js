@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { calcularTotales, generarCfdiXml } from "@/lib/cfdi"
+import { calcularTotalesDesdePreciosConIva, generarCfdiXml } from "@/lib/cfdi"
 import { timbrarCfdi } from "@/lib/pac/sandbox"
 import { formatPrecio } from "@/lib/productos"
 import { sendCfdiEmail } from "@/lib/resend/send"
@@ -193,7 +193,7 @@ export async function generarFactura(formData) {
       usoCfdi: cliente.uso_cfdi,
     })
 
-    const { subtotal, iva, total } = calcularTotales(conceptos)
+    const { subtotal, iva, total } = calcularTotalesDesdePreciosConIva(conceptos)
 
     let estado = "pendiente"
     let uuid_cfdi = null

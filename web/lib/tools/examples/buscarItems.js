@@ -4,7 +4,7 @@ import { applyProductSearchFilter } from "@/lib/productos/search"
 export const buscarItems = {
   name: "buscar_productos",
   description:
-    "Busca productos en el inventario de la ferretería por descripción, código o proveedor.",
+    "Busca productos en el inventario por descripción o código.",
   parameters: {
     type: "object",
     properties: {
@@ -30,7 +30,7 @@ export const buscarItems = {
     let request = supabase
       .from("productos")
       .select(
-        "codigo, nombre, stock, precio_compra, precio_mayoreo, precio_publico, precio, proveedor:proveedores(nombre)"
+        "codigo, nombre, stock, precio_compra, precio_mayoreo, precio_publico, precio, margen_ganancia"
       )
 
     request = applyProductSearchFilter(request, q, user.id)
@@ -45,7 +45,7 @@ export const buscarItems = {
       precio_compra: p.precio_compra,
       precio_mayoreo: p.precio_mayoreo,
       precio_publico: p.precio_publico ?? p.precio,
-      proveedor: p.proveedor?.nombre ?? null,
+      margen_ganancia: p.margen_ganancia,
     }))
 
     return { ok: true, total: productos.length, productos }

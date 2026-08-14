@@ -23,12 +23,10 @@ export function filterProductos(productos, query) {
   return (productos ?? []).filter((p) => {
     const nombre = normalizeSearch(p.nombre)
     const codigo = String(p.codigo)
-    const proveedor = normalizeSearch(p.proveedor?.nombre ?? "")
 
     return terms.every((term) => {
       if (codigo.includes(term)) return true
       if (nombre.includes(term)) return true
-      if (proveedor.includes(term)) return true
       return false
     })
   })

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { calcularTotales } from "@/lib/cfdi"
+import { calcularTotalesDesdePreciosConIva, desglosarPrecioConIva } from "@/lib/cfdi"
 
 async function requireUser() {
   const supabase = await createClient()
@@ -76,20 +76,22 @@ export async function registrarVenta(formData) {
         fail(`Stock insuficiente de "${producto.nombre}" (hay ${producto.stock}).`)
       }
 
-      const precioUnitario =
+      const precioConIva =
         tipoPrecio === "mayoreo"
           ? Number(producto.precio_mayoreo ?? producto.precio)
           : Number(producto.precio_publico ?? producto.precio)
 
-      const subtotal = round2(precioUnitario * cantidad)
+      const subtotalLinea = round2(precioConIva * cantidad)
+      const { base: precioUnitarioBase } = desglosarPrecioConIva(precioConIva)
 
       lineas.push({
         producto_id: producto.id,
         codigo: producto.codigo,
         nombre: producto.nombre,
         cantidad,
-        precio_unitario: precioUnitario,
-        subtotal,
+        precio_unitario: precioConIva,
+        subtotal: subtotalLinea,
+        precio_unitario_base: precioUnitarioBase,
       })
 
       const { error: stockErr } = await supabase
@@ -101,7 +103,7 @@ export async function registrarVenta(formData) {
       if (stockErr) fail(stockErr.message)
     }
 
-    const { subtotal, iva, total } = calcularTotales(lineas)
+    const { subtotal, iva, total } = calcularTotalesDesdePreciosConIva(lineas)
 
     const { data: venta, error: ventaErr } = await supabase
       .from("ventas")

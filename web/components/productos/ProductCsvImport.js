@@ -52,7 +52,8 @@ export default function ProductCsvImport() {
           <h2 className="text-sm font-bold">Importación masiva (CSV)</h2>
           <p className="mt-1 text-xs text-base-content/60">
             Columnas: nombre, codigo, precio_publico, stock (mínimo). Opcional:
-            precio_compra, precio_mayoreo, proveedor, clave_sat, unidad_sat.
+            precio_compra (sin IVA), precio_mayoreo (con IVA), margen_ganancia,
+            clave_sat, unidad_sat. Precios de venta incluyen IVA.
           </p>
         </div>
         <button

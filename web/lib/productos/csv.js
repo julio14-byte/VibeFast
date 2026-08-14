@@ -18,8 +18,8 @@ const HEADER_ALIASES = {
   stock: "stock",
   existencia: "stock",
   inventario: "stock",
-  proveedor: "proveedor",
-  proveedor_nombre: "proveedor",
+  margen_ganancia: "margen_ganancia",
+  margen: "margen_ganancia",
   clave_sat: "clave_sat",
   unidad_sat: "unidad_sat",
 }
@@ -126,6 +126,7 @@ export function mapCsvRowToProducto(row, lineNumber) {
 
   const precio_compra = parseNumber(row.precio_compra) ?? 0
   const precio_mayoreo = parseNumber(row.precio_mayoreo) ?? 0
+  const margen_ganancia = parseNumber(row.margen_ganancia) ?? 30
 
   return {
     ok: true,
@@ -136,15 +137,15 @@ export function mapCsvRowToProducto(row, lineNumber) {
       precio_publico,
       precio_compra: precio_compra >= 0 ? precio_compra : 0,
       precio_mayoreo: precio_mayoreo >= 0 ? precio_mayoreo : 0,
+      margen_ganancia: margen_ganancia >= 0 ? margen_ganancia : 30,
       stock,
-      proveedor_nombre: row.proveedor?.trim() || null,
       clave_sat: row.clave_sat?.trim() || "01010101",
       unidad_sat: row.unidad_sat?.trim() || "H87",
     },
   }
 }
 
-export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,stock,proveedor,clave_sat,unidad_sat
-Llave Stillson 20",SKU-2053,110.50,85.00,95.00,30,Truper,01010101,H87
-Tornillo hexagonal 1/4,TOR-001,2.50,1.20,1.80,500,Importools,01010101,H87
+export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,stock,clave_sat,unidad_sat
+Llave Stillson 20",2053,110.50,85.00,95.00,30,30,01010101,H87
+Tornillo hexagonal 1/4,1001,2.50,1.20,1.80,30,500,01010101,H87
 `

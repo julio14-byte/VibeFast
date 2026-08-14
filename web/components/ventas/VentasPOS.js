@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
 import ProductSearch from "@/components/inventario/ProductSearch"
 import { formatPrecio, getPrecioVenta, SAT_FORMAS_PAGO } from "@/lib/productos"
+import { calcularTotalesPreciosConIva } from "@/lib/precios"
 import { registrarVenta } from "@/app/(app)/ventas/actions"
 
 function unitPriceFromCartLine(line, isMayoreo) {
@@ -98,9 +99,11 @@ export default function VentasPOS({ clientes }) {
   }
 
   const totals = useMemo(() => {
-    const subtotal = cart.reduce((s, c) => s + c.precio * c.cantidad, 0)
-    const iva = subtotal * 0.16
-    return { subtotal, iva, total: subtotal + iva }
+    const lines = cart.map((c) => ({
+      cantidad: c.cantidad,
+      precio_unitario: c.precio,
+    }))
+    return calcularTotalesPreciosConIva(lines)
   }, [cart])
 
   const tipoPrecioLabel = precioMayoreo ? "Mayoreo" : "Público (menudeo)"
@@ -214,11 +217,11 @@ export default function VentasPOS({ clientes }) {
 
         <div className="space-y-2 border-t border-base-200 pt-4 text-sm">
           <div className="flex justify-between">
-            <span>Subtotal</span>
+            <span>Subtotal (sin IVA)</span>
             <span className="tabular-nums">{formatPrecio(totals.subtotal)}</span>
           </div>
           <div className="flex justify-between text-base-content/70">
-            <span>IVA (16%)</span>
+            <span>IVA incluido (16%)</span>
             <span className="tabular-nums">{formatPrecio(totals.iva)}</span>
           </div>
           <div className="flex justify-between text-lg font-bold">

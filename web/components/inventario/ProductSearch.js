@@ -142,7 +142,6 @@ export default function ProductSearch({
                       <p className="font-medium truncate">{p.nombre}</p>
                       <p className="text-xs text-base-content/60">
                         Código {p.codigo}
-                        {p.proveedor?.nombre && ` · ${p.proveedor.nombre}`}
                       </p>
                     </div>
                     <div className="text-right shrink-0">

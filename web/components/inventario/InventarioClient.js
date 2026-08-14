@@ -152,9 +152,11 @@ export default function InventarioClient({
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
-                  <span>Público {formatPrecio(p.precio_publico ?? p.precio)}</span>
-                  <span>Mayoreo {formatPrecio(p.precio_mayoreo)}</span>
-                  {p.proveedor?.nombre && <span>{p.proveedor.nombre}</span>}
+                  <span>Público c/IVA {formatPrecio(p.precio_publico ?? p.precio)}</span>
+                  <span>Mayoreo c/IVA {formatPrecio(p.precio_mayoreo)}</span>
+                  {p.margen_ganancia != null && (
+                    <span>Margen {Number(p.margen_ganancia)}%</span>
+                  )}
                 </div>
               </article>
             ))}
@@ -167,11 +169,11 @@ export default function InventarioClient({
                   <tr>
                     <th>Código</th>
                     <th>Producto</th>
-                    <th>Proveedor</th>
+                    <th className="text-right">Margen</th>
                     <th className="text-right">Stock</th>
-                    <th className="text-right">Compra</th>
-                    <th className="text-right">Mayoreo</th>
-                    <th className="text-right">Público</th>
+                    <th className="text-right">Compra s/IVA</th>
+                    <th className="text-right">Mayoreo c/IVA</th>
+                    <th className="text-right">Público c/IVA</th>
                     <th>Estado</th>
                   </tr>
                 </thead>
@@ -180,8 +182,10 @@ export default function InventarioClient({
                     <tr key={p.id}>
                       <td className="font-mono tabular-nums text-sm">{p.codigo}</td>
                       <td className="font-medium">{p.nombre}</td>
-                      <td className="text-sm text-base-content/70">
-                        {p.proveedor?.nombre ?? "—"}
+                      <td className="text-right text-sm tabular-nums">
+                        {p.margen_ganancia != null
+                          ? `${Number(p.margen_ganancia)}%`
+                          : "—"}
                       </td>
                       <td className="text-right">
                         <span

@@ -39,7 +39,7 @@ function orClausesForTerm(term) {
 }
 
 const PRODUCT_SELECT =
-  "id, codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, proveedor_id, clave_sat, unidad_sat, proveedor:proveedores(id, nombre)"
+  "id, codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, margen_ganancia, clave_sat, unidad_sat"
 
 /**
  * Aplica filtros de texto a un query builder de productos.

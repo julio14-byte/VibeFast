@@ -202,6 +202,15 @@ export default async function ClientesPage({ searchParams }) {
                     {c.razon_social ?? c.nombre}
                   </td>
                   <td className="font-mono text-sm">{c.rfc}</td>
+                  <td>
+                    <span
+                      className={`badge badge-sm ${
+                        c.usa_precio_mayoreo ? "badge-primary" : "badge-ghost"
+                      }`}
+                    >
+                      {c.usa_precio_mayoreo ? "Mayoreo" : "Menudeo"}
+                    </span>
+                  </td>
                   <td className="text-sm">{c.email ?? "—"}</td>
                   <td className="text-sm">{c.codigo_postal ?? "—"}</td>
                   <td className="text-sm max-w-[200px] truncate">

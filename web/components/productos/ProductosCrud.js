@@ -10,7 +10,6 @@ import ProductosPagination from "./ProductosList"
 
 export default function ProductosCrud({
   productos,
-  proveedores,
   pagination,
   query,
 }) {
@@ -83,10 +82,10 @@ export default function ProductosCrud({
                   <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    <th>Proveedor</th>
-                    <th className="text-right">Compra</th>
-                    <th className="text-right">Mayoreo</th>
-                    <th className="text-right">Público</th>
+                    <th className="text-right">Compra s/IVA</th>
+                    <th className="text-right">Margen</th>
+                    <th className="text-right">Mayoreo c/IVA</th>
+                    <th className="text-right">Público c/IVA</th>
                     <th className="text-right">Stock</th>
                     <th className="w-24 text-right">Acciones</th>
                   </tr>
@@ -100,11 +99,13 @@ export default function ProductosCrud({
                       <td className="font-medium max-w-[200px] truncate sm:max-w-xs">
                         {producto.nombre}
                       </td>
-                      <td className="text-sm text-base-content/70">
-                        {producto.proveedor?.nombre ?? "—"}
-                      </td>
                       <td className="text-right text-sm">
                         {formatPrecio(producto.precio_compra)}
+                      </td>
+                      <td className="text-right text-sm tabular-nums">
+                        {producto.margen_ganancia != null
+                          ? `${Number(producto.margen_ganancia)}%`
+                          : "—"}
                       </td>
                       <td className="text-right text-sm">
                         {formatPrecio(producto.precio_mayoreo)}
@@ -170,7 +171,6 @@ export default function ProductosCrud({
         open={modalOpen}
         onClose={closeModal}
         producto={editing}
-        proveedores={proveedores}
       />
     </>
   )
