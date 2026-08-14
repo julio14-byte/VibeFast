@@ -6,9 +6,7 @@ order: 1
 
 <StackBadge tech={["next", "supabase", "openai", "langgraph"]} />
 
-**SmartPOS** es el punto de venta e inventario que construiste sobre VibeFast: cobrar en mostrador, controlar existencias, facturar (SAT) y preguntarle al chat con IA.
-
-Esta sección explica **cómo usar la app** — no el código. Si quieres el stack técnico, ve a [Features](/docs/features/auth).
+**SmartPOS** es punto de venta e inventario para ferreterías: cobrar en mostrador, controlar existencias, facturar (SAT) y preguntarle al chat con IA.
 
 ## ¿Para quién es?
 
@@ -47,20 +45,9 @@ En el celular, los accesos rápidos abajo son: Inicio, Cobrar venta, Chat y Conf
 
 ## Cómo se conectan las piezas
 
-```
-Landing (waitlist)  →  Login  →  App autenticada
-                                    │
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-              Supabase          OpenAI          Vercel
-           (productos,         (chat +          (hosting)
-            ventas,             agente)
-            clientes)
-```
-
-- **Supabase** guarda todo lo de tu tienda (solo ves tus datos — RLS).
-- **OpenAI** responde en el chat y ejecuta herramientas (buscar, vender, etc.).
-- **Vercel** publica la app con tu dominio.
+- **Supabase** guarda productos, ventas y clientes (solo ves tus datos).
+- **OpenAI** responde en el chat y puede buscar, vender y actualizar inventario.
+- **Vercel** publica la app en internet (tras [instalar](/docs/instalacion/instalacion)).
 
 ## Guías por módulo
 
@@ -70,7 +57,6 @@ Landing (waitlist)  →  Login  →  App autenticada
 - [Facturación SAT](/docs/smartpos/facturacion)
 - [Chat y asistente IA](/docs/smartpos/chat-asistente)
 - [Configuración (CSV, PAC)](/docs/smartpos/configuracion)
-- [MCP consultas de productos](/docs/smartpos/mcp-productos)
 
 <Checkpoint>
 ✅ Sabes qué hace cada sección del menú.

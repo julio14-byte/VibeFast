@@ -19,7 +19,7 @@ const stripePlugin = {
     webhook: "/api/webhooks/stripe",
     billing: "/account/billing",
   },
-  docs: "/docs/configuracion/stripe",
+  docs: "/docs/instalacion/instalacion",
 }
 
 export default stripePlugin

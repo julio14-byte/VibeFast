@@ -251,8 +251,8 @@ const config = {
           title: "Recursos",
           links: [
             { label: "Docs", href: "/docs" },
-            { label: "Quick start", href: "/docs/setup/quick-start" },
-            { label: "Troubleshooting", href: "/docs/troubleshooting/errores-comunes" },
+            { label: "Instalación", href: "/docs/instalacion/instalacion" },
+            { label: "Cómo usar la app", href: "/docs/smartpos/como-funciona" },
           ],
         },
         {

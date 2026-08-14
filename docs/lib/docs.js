@@ -3,56 +3,24 @@ import path from "node:path"
 import matter from "gray-matter"
 import GithubSlugger from "github-slugger"
 
-// docs-content vive en la raíz del monorepo, no dentro de /web
 const DOCS_DIR = path.join(process.cwd(), "..", "docs-content")
 
-// Nombres bonitos para las secciones top-level
 const SECTION_LABELS = {
-  intro: "Introducción",
-  smartpos: "SmartPOS · Tu app",
-  fundamentos: "Fundamentos",
-  setup: "Empieza aquí",
-  configuracion: "Configuración",
-  tutoriales: "Tutoriales por semana",
-  features: "Features",
-  componentes: "Componentes",
-  recetas: "Recetas",
-  deploy: "Deploy",
-  troubleshooting: "Troubleshooting",
+  instalacion: "Instalación",
+  smartpos: "Cómo usar la app",
 }
 
-// Icono lucide por sección (se resuelve dinámicamente en el Sidebar)
 const SECTION_ICONS = {
-  intro: "BookOpen",
+  instalacion: "Rocket",
   smartpos: "Store",
-  fundamentos: "GraduationCap",
-  setup: "Rocket",
-  configuracion: "Settings",
-  tutoriales: "CalendarDays",
-  features: "Boxes",
-  componentes: "Component",
-  recetas: "ChefHat",
-  deploy: "CloudUpload",
-  troubleshooting: "LifeBuoy",
 }
 
-// Descripción corta por sección (para las cards del índice de docs)
 const SECTION_DESC = {
-  intro: "Qué es VibeFast y cómo usar estas docs.",
-  smartpos: "Cómo funciona SmartPOS en el mostrador.",
-  fundamentos: "Lo básico para arrancar sin experiencia.",
-  setup: "De cero a tu proyecto corriendo.",
-  configuracion: "Conecta cada servicio cuando lo necesites — tus keys y variables.",
-  tutoriales: "Qué construir cada semana del curso.",
-  features: "Cómo funciona cada pieza del stack.",
-  componentes: "Componentes y design system.",
-  recetas: "Playbooks completos para casos comunes.",
-  deploy: "Publica tu producto en producción.",
-  troubleshooting: "Cuando algo falla, empieza aquí.",
+  instalacion: "Instala y publica SmartPOS.",
+  smartpos: "Uso día a día en el mostrador.",
 }
 
 function stripOrderPrefix(name) {
-  // "01-intro" → "intro", "semana-1-landing" se queda como está
   return name.replace(/^(\d+)[-_]/, "")
 }
 
@@ -68,10 +36,6 @@ function readFrontmatter(filepath) {
   return { data, content }
 }
 
-/**
- * Devuelve el árbol de navegación para la sidebar de /docs.
- * Estructura: [{ slug, label, order, pages: [{ slug, label, order, href }] }]
- */
 export function getDocsTree() {
   if (!fs.existsSync(DOCS_DIR)) return []
 
@@ -117,28 +81,11 @@ export function getDocsTree() {
 }
 
 function getSectionOrder(slug) {
-  // Orden canónico de las secciones top-level
-  const ORDER = [
-    "intro",
-    "smartpos",
-    "setup",
-    "fundamentos",
-    "configuracion",
-    "tutoriales",
-    "features",
-    "componentes",
-    "recetas",
-    "deploy",
-    "troubleshooting",
-  ]
+  const ORDER = ["instalacion", "smartpos"]
   const idx = ORDER.indexOf(slug)
   return idx === -1 ? 999 : idx
 }
 
-/**
- * Devuelve { data, content } para un slug array ["seccion", "pagina"].
- * Si la página no existe, devuelve null.
- */
 export function getDocBySlug(slugArray) {
   if (!slugArray || slugArray.length === 0) return null
 
@@ -148,7 +95,6 @@ export function getDocBySlug(slugArray) {
   const section = tree.find((s) => s.slug === sectionSlug)
   if (!section) return null
 
-  // Encuentra el archivo real en disco (puede tener prefijo de orden)
   const dirEntries = fs
     .readdirSync(DOCS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory())
@@ -163,7 +109,6 @@ export function getDocBySlug(slugArray) {
   const filepath = path.join(sectionPath, realFile)
   const { data, content } = readFrontmatter(filepath)
 
-  // Encuentra prev/next para navegación
   const allPages = tree.flatMap((s) => s.pages)
   const currentIdx = allPages.findIndex((p) => p.href === `/docs/${sectionSlug}/${pageSlug}`)
   const prev = currentIdx > 0 ? allPages[currentIdx - 1] : null
@@ -179,9 +124,6 @@ export function getDocBySlug(slugArray) {
   }
 }
 
-/**
- * Para generateStaticParams: devuelve todos los slugs como arrays [seccion, pagina]
- */
 export function getAllDocSlugs() {
   return getDocsTree().flatMap((section) =>
     section.pages.map((page) => ({
@@ -190,11 +132,6 @@ export function getAllDocSlugs() {
   )
 }
 
-/**
- * Extrae los headings h2/h3 del MDX crudo para la tabla de contenidos.
- * Usa GithubSlugger para generar los mismos ids que rehype-slug renderiza.
- * Ignora las líneas dentro de bloques de código (```).
- */
 export function getHeadings(content) {
   const slugger = new GithubSlugger()
   const headings = []
@@ -211,7 +148,6 @@ export function getHeadings(content) {
     if (!match) continue
 
     const level = match[1].length
-    // Limpia markdown inline básico (**, *, `, [texto](url))
     const text = match[2]
       .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
       .replace(/[*_`]/g, "")
@@ -224,9 +160,6 @@ export function getHeadings(content) {
   return headings
 }
 
-/**
- * Índice de búsqueda para el modal cmd-K: un registro por página.
- */
 export function getSearchIndex() {
   const tree = getDocsTree()
   return tree.flatMap((section) =>

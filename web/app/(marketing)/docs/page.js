@@ -1,14 +1,13 @@
 import Link from "next/link"
 import * as LucideIcons from "lucide-react"
-import { Rocket, CalendarDays, ChevronRight } from "lucide-react"
+import { Rocket, Store, ChevronRight } from "lucide-react"
 import { getDocsTree } from "@/lib/docs"
 
 export const metadata = {
-  title: "Documentación",
-  description: "Guía completa del boilerplate VibeFast — mapeada al curso semana a semana.",
+  title: "Documentación · SmartPOS",
+  description: "Instala SmartPOS y aprende a usarlo en el mostrador.",
 }
 
-// Paleta ciclada para el chip de icono de cada sección.
 const CHIP_COLORS = [
   "bg-primary/10 text-primary",
   "bg-accent/10 text-accent",
@@ -27,30 +26,29 @@ export default function DocsIndexPage() {
 
   return (
     <div className="min-w-0">
-      <h1 className="font-heading text-4xl font-bold tracking-tight md:text-5xl">Documentación</h1>
+      <h1 className="font-heading text-4xl font-bold tracking-tight md:text-5xl">
+        Documentación SmartPOS
+      </h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-base-content/60 md:text-xl">
-        Todo lo que necesitas para llevar tu idea a producto con VibeFast, mapeado semana a semana
-        del curso.
+        Cómo instalar la app y usarla día a día en tu ferretería o tienda.
       </p>
 
-      {/* Empieza aquí */}
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
-          href="/docs/setup/quick-start"
+          href="/docs/instalacion/instalacion"
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content transition hover:opacity-90"
         >
-          <Rocket className="size-4" /> Quick start
+          <Rocket className="size-4" /> Instalación
         </Link>
         <Link
-          href="/docs/tutoriales/semana-1-landing"
+          href="/docs/smartpos/como-funciona"
           className="inline-flex items-center gap-2 rounded-lg border border-base-300 px-4 py-2 text-sm font-medium transition hover:border-primary/40 hover:text-primary"
         >
-          <CalendarDays className="size-4" /> Semana 1
+          <Store className="size-4" /> Cómo usar la app
         </Link>
       </div>
 
-      {/* Cards de sección */}
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid gap-5 sm:grid-cols-2">
         {tree.map((section, i) => (
           <div
             key={section.slug}
@@ -73,7 +71,7 @@ export default function DocsIndexPage() {
             )}
 
             <ul className="mt-4 space-y-1">
-              {section.pages.slice(0, 4).map((page) => (
+              {section.pages.map((page) => (
                 <li key={page.href}>
                   <Link
                     href={page.href}
@@ -84,11 +82,6 @@ export default function DocsIndexPage() {
                   </Link>
                 </li>
               ))}
-              {section.pages.length > 4 && (
-                <li className="pl-5 pt-1 text-xs font-medium text-primary/70">
-                  +{section.pages.length - 4} más
-                </li>
-              )}
             </ul>
           </div>
         ))}

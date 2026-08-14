@@ -1,0 +1,135 @@
+---
+title: Instalación
+description: Instala SmartPOS en tu computadora y publícalo en internet.
+order: 1
+---
+
+<StackBadge tech={["github", "yarn", "supabase", "vercel"]} />
+
+Guía para tener SmartPOS corriendo en **local** y en **producción** (Vercel).
+
+**Tiempo estimado:** 30–60 minutos.
+
+## Requisitos
+
+- **Node.js** 20+ (`node --version`)
+- **Yarn** (`yarn --version`)
+- **Git** (`git --version`)
+- Cuentas en [GitHub](https://github.com), [Supabase](https://supabase.com) y [Vercel](https://vercel.com)
+- **Supabase CLI** para subir las tablas (`supabase --version`)
+
+## Paso 1 · Clonar el proyecto
+
+```bash
+cd ~/Documents
+git clone https://github.com/julio14-byte/VibeFast.git
+cd VibeFast
+```
+
+Abre el proyecto en Cursor:
+
+```bash
+cursor .
+```
+
+## Paso 2 · Instalar dependencias
+
+```bash
+yarn install
+```
+
+## Paso 3 · Crear proyecto en Supabase
+
+1. En [supabase.com](https://supabase.com) crea un proyecto nuevo.
+2. Guarda la **contraseña de la base de datos**.
+3. En **Project Settings → API** copia:
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (secreta, solo servidor)
+
+El `project-ref` está en la URL del dashboard: `supabase.com/dashboard/project/TU-REF`.
+
+## Paso 4 · Variables de entorno
+
+Copia la plantilla y edita `web/.env.local`:
+
+```bash
+cp web/.env.example web/.env.local
+```
+
+Mínimo para arrancar:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+Para el **chat IA** (opcional pero recomendado):
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+<Callout type="warning">
+Nunca subas `.env.local` a GitHub. La `service_role` es la llave maestra de tu base.
+</Callout>
+
+Cada vez que cambies `.env.local`, reinicia el servidor (`Ctrl+C` y `yarn dev` otra vez).
+
+## Paso 5 · Subir tablas a Supabase
+
+Desde la raíz del repo:
+
+```bash
+supabase login
+supabase link --project-ref TU-PROJECT-REF
+supabase db push --include-all
+```
+
+Verifica en Supabase → **Table Editor**: deben aparecer `profiles`, `waitlist`, `productos`, `ventas`, etc.
+
+<Callout type="info">
+Si `db push` falla por migraciones pendientes, usa `--include-all` como arriba.
+</Callout>
+
+## Paso 6 · Correr en local
+
+```bash
+yarn dev
+```
+
+Abre **http://localhost:3000**.
+
+1. Regístrate o inicia sesión (Google o email).
+2. Entra a **Inicio** (`/dashboard`).
+3. Agrega productos y prueba **Cobrar venta**.
+
+→ Guía de uso: [Cómo funciona SmartPOS](/docs/smartpos/como-funciona)
+
+## Paso 7 · Publicar en Vercel
+
+1. [vercel.com/new](https://vercel.com/new) → Import tu repo.
+2. **Root Directory:** `web` (obligatorio).
+3. **Environment Variables:** copia todo de `web/.env.local`.
+4. En Vercel, `NEXT_PUBLIC_APP_URL` debe ser tu URL pública (ej. `https://tu-app.vercel.app`), no `localhost`.
+5. Deploy.
+
+Si el build falla con *Module not found*, casi siempre falta **Root Directory = web**.
+
+## Problemas frecuentes
+
+| Problema | Solución |
+| --- | --- |
+| Waitlist no guarda emails | Completa Paso 5 (`supabase db push`) |
+| Chat no responde | `OPENAI_API_KEY` en `.env.local` |
+| Métricas en Inicio vacías | `SUPABASE_SERVICE_ROLE_KEY` en Vercel |
+| Error al buscar productos por código | Migración 014 (`codigo_text`) — incluida en `db push --include-all` |
+| Login no funciona | Revisa URL de callback en Supabase Auth → Google redirect |
+
+<Checkpoint>
+✅ `localhost:3000` abre la app.
+✅ Puedes iniciar sesión y ver Inicio.
+✅ Tablas visibles en Supabase Table Editor.
+</Checkpoint>

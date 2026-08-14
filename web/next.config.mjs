@@ -6,46 +6,28 @@ const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..
 
 const nextConfig = {
   reactStrictMode: true,
-  // Incluye docs-content (fuera de web/) en el bundle serverless de Vercel.
   outputFileTracingRoot: monorepoRoot,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "lh3.googleusercontent.com" }, // avatares Google
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
   },
   async redirects() {
-    // Páginas de docs que se movieron de sección (reorg de la IA)
     return [
-      {
-        source: "/docs/fundamentos/prepara-tu-compu",
-        destination: "/docs/setup/prepara-tu-compu",
-        permanent: true,
-      },
-      // github-ssh se eliminó: el flujo con HTTPS + Cursor no necesita SSH
-      {
-        source: "/docs/fundamentos/github-ssh",
-        destination: "/docs/setup/quick-start",
-        permanent: true,
-      },
-      {
-        source: "/docs/setup/github-ssh",
-        destination: "/docs/setup/quick-start",
-        permanent: true,
-      },
-      {
-        source: "/docs/setup/instalacion",
-        destination: "/docs/setup/prepara-tu-compu",
-        permanent: true,
-      },
-      // Páginas movidas a la sección Configuración
-      ...["variables-de-entorno", "google-oauth", "openai", "resend", "posthog", "stripe"].map(
-        (slug) => ({
-          source: `/docs/setup/${slug}`,
-          destination: `/docs/configuracion/${slug}`,
-          permanent: true,
-        })
-      ),
+      // Docs simplificadas: solo instalación + uso
+      { source: "/docs/setup/quick-start", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/setup/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/intro/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
+      { source: "/docs/tutoriales/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
+      { source: "/docs/features/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
+      { source: "/docs/componentes/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
+      { source: "/docs/recetas/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
+      { source: "/docs/deploy/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/configuracion/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/fundamentos/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/troubleshooting/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/smartpos/mcp-productos", destination: "/docs/smartpos/configuracion", permanent: true },
     ]
   },
 }
