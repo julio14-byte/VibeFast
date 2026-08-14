@@ -6,11 +6,21 @@ import QuickActionsBar from "@/components/dashboard/QuickActionsBar"
 
 export default function DashboardView({
   metrics,
-  productos,
-  totalProductos,
+  productos = [],
+  totalProductos = 0,
   appName,
   chartData,
 }) {
+  const safeMetrics = metrics ?? {
+    alertasList: [],
+    alertasCriticas: 0,
+  }
+  const safeChart = chartData ?? {
+    ventasChart: { series: [], maxTotal: 0 },
+    stockDist: { total: 0, segments: [] },
+    topValor: [],
+  }
+
   return (
     <div className="dashboard-pos space-y-6">
       <header className="dashboard-hero relative overflow-hidden rounded-2xl border border-base-300/60 bg-gradient-to-br from-neutral via-base-200 to-base-100 px-5 py-6 sm:px-8 sm:py-8">
@@ -44,12 +54,12 @@ export default function DashboardView({
         <QuickActionsBar />
       </div>
 
-      <DashboardKpis metrics={metrics} />
+      <DashboardKpis metrics={safeMetrics} />
 
       <DashboardCharts
-        ventasChart={chartData.ventasChart}
-        stockDist={chartData.stockDist}
-        topValor={chartData.topValor}
+        ventasChart={safeChart.ventasChart}
+        stockDist={safeChart.stockDist}
+        topValor={safeChart.topValor}
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
@@ -65,8 +75,8 @@ export default function DashboardView({
           <InventoryTable productos={productos} />
         </div>
         <StockAlertsPanel
-          alertasList={metrics.alertasList}
-          totalCriticas={metrics.alertasCriticas}
+          alertasList={safeMetrics.alertasList}
+          totalCriticas={safeMetrics.alertasCriticas}
         />
       </div>
     </div>

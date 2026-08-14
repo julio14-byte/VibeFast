@@ -9,6 +9,8 @@ import {
 import KpiCard from "./KpiCard"
 
 export default function DashboardKpis({ metrics }) {
+  if (!metrics) return null
+
   const {
     totalProductos,
     valorInventarioFmt,

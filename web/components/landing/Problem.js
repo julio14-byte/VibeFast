@@ -1,8 +1,12 @@
-import * as LucideIcons from "lucide-react"
+"use client"
+
+import { Timer, Puzzle, PlugZap, Square } from "lucide-react"
 import config from "@/config"
 
+const ICONS = { Timer, Puzzle, PlugZap, Square }
+
 function Icon({ name, className }) {
-  const Cmp = LucideIcons[name] || LucideIcons.Square
+  const Cmp = ICONS[name] || Square
   return <Cmp className={className} />
 }
 

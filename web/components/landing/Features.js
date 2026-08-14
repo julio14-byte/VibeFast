@@ -1,8 +1,10 @@
-import * as LucideIcons from "lucide-react"
+import { Search, Package, Mic, Square } from "lucide-react"
 import config from "@/config"
 
+const ICONS = { Search, Package, Mic, Square }
+
 function Icon({ name, className }) {
-  const Cmp = LucideIcons[name] || LucideIcons.Square
+  const Cmp = ICONS[name] || Square
   return <Cmp className={className} />
 }
 

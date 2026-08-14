@@ -14,10 +14,15 @@ function BarChart({ title, subtitle, children }) {
 }
 
 export default function DashboardCharts({
-  ventasChart,
-  stockDist,
-  topValor,
+  ventasChart = { series: [], maxTotal: 0 },
+  stockDist = { total: 0, segments: [] },
+  topValor = [],
 }) {
+  const series = ventasChart?.series ?? []
+  const maxTotal = ventasChart?.maxTotal ?? 0
+  const segments = stockDist?.segments ?? []
+  const stockTotal = stockDist?.total ?? 0
+
   return (
     <section
       className="grid gap-4 lg:grid-cols-3"
@@ -28,10 +33,10 @@ export default function DashboardCharts({
         subtitle="Total cobrado por día"
       >
         <div className="flex items-end justify-between gap-1 h-36 pt-2">
-          {ventasChart.series.map((day) => {
+          {series.map((day) => {
             const height =
-              ventasChart.maxTotal > 0
-                ? Math.max(4, (day.total / ventasChart.maxTotal) * 100)
+              maxTotal > 0
+                ? Math.max(4, (day.total / maxTotal) * 100)
                 : 4
             return (
               <div
@@ -53,34 +58,34 @@ export default function DashboardCharts({
             )
           })}
         </div>
-        {ventasChart.series.every((d) => d.count === 0) && (
+        {series.every((d) => d.count === 0) && (
           <p className="text-center text-xs text-base-content/45 mt-2">
             Sin ventas en este periodo
           </p>
         )}
       </BarChart>
 
-      <BarChart title="Estado del stock" subtitle={`${stockDist.total} productos`}>
-        {stockDist.total === 0 ? (
+      <BarChart title="Estado del stock" subtitle={`${stockTotal} productos`}>
+        {stockTotal === 0 ? (
           <p className="text-sm text-base-content/50 py-8 text-center">
             Sin productos
           </p>
         ) : (
           <>
             <div className="flex h-3 overflow-hidden rounded-full bg-base-200">
-              {stockDist.segments.map((s) => (
+              {segments.map((s) => (
                 <div
                   key={s.key}
                   className={`${s.color} transition-all`}
                   style={{
-                    width: `${(s.count / stockDist.total) * 100}%`,
+                    width: `${(s.count / stockTotal) * 100}%`,
                   }}
                   title={`${s.label}: ${s.count}`}
                 />
               ))}
             </div>
             <ul className="mt-4 space-y-2">
-              {stockDist.segments.map((s) => (
+              {segments.map((s) => (
                 <li
                   key={s.key}
                   className="flex items-center justify-between text-sm"
@@ -92,7 +97,7 @@ export default function DashboardCharts({
                   <span className="font-semibold tabular-nums">
                     {s.count}
                     <span className="text-base-content/45 font-normal text-xs ml-1">
-                      ({Math.round((s.count / stockDist.total) * 100)}%)
+                      ({Math.round((s.count / stockTotal) * 100)}%)
                     </span>
                   </span>
                 </li>
