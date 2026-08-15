@@ -1,0 +1,134 @@
+---
+title: Configurar Stripe
+description: Suscripciones mensuales, checkout, webhook y portal de cliente.
+order: 2
+---
+
+<StackBadge tech={["stripe"]} />
+
+SmartPOS cobra el plan **Ferretería Pro** con Stripe: 14 días de prueba en Starter, luego suscripción mensual. La página de cobro es `/account/billing`.
+
+## Requisitos previos
+
+- App instalada → [Instalación](/docs/instalacion/instalacion)
+- Migración **013** aplicada (`organizations`) — incluida en `supabase db push --include-all`
+- Cuenta en [Stripe](https://dashboard.stripe.com/register)
+
+## Paso 1 · Activar cobros en config
+
+En `web/config.js`:
+
+```js
+features: {
+  pricing: true,   // muestra precios en la landing
+  payments: true,  // checkout y paywall real
+}
+```
+
+## Paso 2 · Crear producto y precio en Stripe
+
+1. Stripe Dashboard → **Product catalog** → **Add product**.
+2. Nombre: `Ferretería Pro` (o el de tu plan).
+3. Precio: **recurring**, mensual, en **MXN** (ej. $599).
+4. Guarda y copia el **Price ID** (empieza con `price_...`) → `STRIPE_PRICE_ID_PRO`.
+
+Opcional: en `web/config.js` → `pricing.plans` → plan `pro` → `stripePriceId: "price_..."`.
+
+## Paso 3 · Variables de entorno
+
+En `web/.env.local`:
+
+```bash
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_PRICE_ID_PRO=price_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+| Variable | Dónde obtenerla |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Developers → API keys → Secret key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Developers → API keys → Publishable key |
+| `STRIPE_PRICE_ID_PRO` | Products → tu plan → Pricing → Price ID |
+| `STRIPE_WEBHOOK_SECRET` | Paso 4 (webhook) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Ya la tienes — el webhook actualiza la base |
+
+<Callout type="warning">
+Usa **test keys** (`sk_test_`, `pk_test_`) hasta validar todo. En producción cambia a `sk_live_` y `pk_live_`.
+</Callout>
+
+Reinicia `yarn dev` tras editar `.env.local`.
+
+## Paso 4 · Webhook (obligatorio)
+
+Stripe avisa a tu app cuando alguien paga o cancela. Sin webhook el checkout “funciona” pero el plan **no se actualiza** en Supabase.
+
+### En producción (Vercel)
+
+1. Stripe → **Developers → Webhooks** → **Add endpoint**.
+2. URL: `https://TU-DOMINIO.com/api/webhooks/stripe`
+3. Eventos a escuchar:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+4. Copia **Signing secret** → `STRIPE_WEBHOOK_SECRET` en Vercel.
+5. Redeploy.
+
+### En local (Stripe CLI)
+
+```bash
+stripe login
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+El CLI muestra un `whsec_...` — úsalo como `STRIPE_WEBHOOK_SECRET` en `.env.local` mientras desarrollas.
+
+## Paso 5 · Probar el flujo
+
+1. Inicia sesión en `http://localhost:3000`.
+2. Abre **Facturación y plan**: `/account/billing`.
+3. Clic en **Suscribirse a Pro** → checkout de Stripe.
+4. Tarjeta de prueba: `4242 4242 4242 4242`, fecha futura, CVC cualquiera.
+5. Tras pagar, vuelves a `/account/billing?checkout=success`.
+6. En unos segundos el estado debe ser **Activo** y plan **Pro**.
+
+Verifica en Supabase → tabla `organizations`: `plan_id`, `subscription_status`, `stripe_customer_id`.
+
+## Cómo funciona por dentro
+
+| Ruta | Uso |
+| --- | --- |
+| `/account/billing` | Ver plan, suscribirse, portal Stripe |
+| `POST /api/stripe/checkout` | Crea sesión de checkout |
+| `POST /api/stripe/portal` | Portal para cancelar o cambiar tarjeta |
+| `POST /api/webhooks/stripe` | Stripe notifica cambios de suscripción |
+
+**Paywall:** si la prueba de 14 días termina o la suscripción no está activa, la app redirige a `/account/billing` (excepto rutas `/account/*`).
+
+**Planes (config.js):**
+
+- **Starter** — prueba 14 días, hasta 200 productos.
+- **Pro** — hasta 5.000 productos, facturación CFDI, chat IA (según tu `pricing.plans`).
+
+## Landing y precios
+
+Con `features.pricing: true` la landing muestra la sección **Precios**. El plan Pro enlaza a login → billing cuando `payments` está activo.
+
+## Problemas frecuentes
+
+| Problema | Solución |
+| --- | --- |
+| «Falta STRIPE_PRICE_ID_PRO» | Price ID en `.env.local` o `config.pricing.plans` |
+| Pago ok pero plan no cambia | Webhook mal configurado o `STRIPE_WEBHOOK_SECRET` incorrecto |
+| «No se encontró tu negocio» | Migración 013; vuelve a registrarte o revisa `organization_members` |
+| Checkout en localhost falla | `NEXT_PUBLIC_APP_URL=http://localhost:3000` |
+| Portal no abre | Primero debe existir `stripe_customer_id` (un checkout exitoso) |
+
+<Checkpoint>
+✅ Checkout de prueba completa con `4242...`.
+✅ `organizations.subscription_status` = `active` y `plan_id` = `pro`.
+✅ Webhook en Stripe muestra eventos entregados (200).
+</Checkpoint>
+
+→ Volver a [Instalación](/docs/instalacion/instalacion)

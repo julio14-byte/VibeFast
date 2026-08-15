@@ -252,6 +252,7 @@ const config = {
           links: [
             { label: "Docs", href: "/docs" },
             { label: "Instalación", href: "/docs/instalacion/instalacion" },
+            { label: "Stripe", href: "/docs/instalacion/stripe" },
             { label: "Cómo usar la app", href: "/docs/smartpos/como-funciona" },
           ],
         },

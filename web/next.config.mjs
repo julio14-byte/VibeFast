@@ -24,6 +24,7 @@ const nextConfig = {
       { source: "/docs/componentes/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
       { source: "/docs/recetas/:path*", destination: "/docs/smartpos/como-funciona", permanent: true },
       { source: "/docs/deploy/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
+      { source: "/docs/configuracion/stripe", destination: "/docs/instalacion/stripe", permanent: true },
       { source: "/docs/configuracion/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
       { source: "/docs/fundamentos/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
       { source: "/docs/troubleshooting/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
