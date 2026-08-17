@@ -79,7 +79,8 @@ body {
    ============================================================ */
 :root {
   --app-header-height: 3.25rem;
-  --mobile-nav-height: 3.625rem;
+  --mobile-nav-height: 3.5rem;
+  --mobile-action-bar-height: 4.25rem;
 }
 
 .safe-area-top {
@@ -104,6 +105,45 @@ body {
 
 .pb-safe-nav {
   padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.pb-safe-nav-bar {
+  padding-bottom: calc(
+    var(--mobile-nav-height) + var(--mobile-action-bar-height) +
+      env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.mobile-menu-sheet {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-main {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+  .app-main .space-y-6 > * + * {
+    margin-top: 1.25rem;
+  }
+
+  .app-main .space-y-8 > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .page-header .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .table {
+    font-size: 0.8125rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.35rem;
+  }
 }
 
 .mobile-chat-panel {

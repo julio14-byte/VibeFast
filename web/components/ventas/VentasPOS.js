@@ -138,7 +138,7 @@ export default function VentasPOS({ clientes }) {
   }
 
   return (
-    <div className="grid gap-6 pb-20 lg:pb-0 lg:grid-cols-2">
+    <div className="grid gap-6 pb-safe-nav-bar lg:pb-0 lg:grid-cols-2">
       <div className="space-y-4">
         <ProductSearch
           serverSearch

@@ -9,6 +9,7 @@ import UserMenu from "@/components/auth/UserMenu"
 import Logo from "@/components/Logo"
 import AppSidebar from "@/components/layout/AppSidebar"
 import MobileNav from "@/components/layout/MobileNav"
+import MobileHeaderMenu from "@/components/layout/MobileHeaderMenu"
 
 export const dynamic = "force-dynamic"
 
@@ -30,24 +31,31 @@ export default async function AppLayout({ children }) {
   return (
     <div className="app-shell flex min-h-dvh min-h-screen flex-col bg-base-200">
       <header className="app-header sticky top-0 z-40 border-b border-base-200 bg-base-100/95 backdrop-blur-md">
-        <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 items-center gap-2 font-bold touch-manipulation"
-          >
-            <Logo className="size-7 shrink-0" />
-            <span className="truncate text-sm sm:text-base">{config.brand.logoText}</span>
-          </Link>
+        <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
+          <div className="flex min-w-0 flex-1 items-center gap-1">
+            <MobileHeaderMenu />
+            <Link
+              href="/dashboard"
+              className="flex min-w-0 flex-1 items-center gap-2 font-bold touch-manipulation"
+            >
+              <Logo className="size-7 shrink-0" />
+              <span className="truncate text-sm sm:text-base">
+                {config.brand.logoText}
+              </span>
+            </Link>
+          </div>
           <UserMenu user={user} />
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-6 px-3 py-4 sm:px-4 sm:py-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-6 px-3 py-3 sm:px-4 sm:py-6">
         <aside className="hidden w-60 shrink-0 md:block">
           <AppSidebar />
         </aside>
 
-        <main className="min-w-0 flex-1 pb-safe-nav md:pb-0">{children}</main>
+        <main className="app-main min-w-0 flex-1 overflow-x-hidden pb-safe-nav md:pb-0">
+          {children}
+        </main>
       </div>
 
       <MobileNav />

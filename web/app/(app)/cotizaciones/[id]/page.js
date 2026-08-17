@@ -160,7 +160,7 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="order-2 space-y-4 lg:order-1 lg:col-span-2">
           <div className="rounded-box border border-base-200 bg-base-100 p-4">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span
@@ -267,7 +267,7 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="order-1 space-y-4 lg:order-2">
           <div className="rounded-box border border-base-200 bg-base-100 p-4 space-y-2 text-sm">
             <p>
               <span className="text-base-content/60">Forma de pago:</span>{" "}

@@ -48,28 +48,26 @@ export default async function FacturacionPage({ searchParams }) {
   const preselectVentaId = params?.venta_id?.toString()
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Facturación electrónica
-          </h1>
-          <p className="mt-1 text-sm text-base-content/70">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="page-title">Facturación electrónica</h1>
+          <p className="page-lead">
             CFDI 4.0 SAT y clientes vinculados. PAC sandbox en{" "}
             <Link href="/settings" className="link link-primary">Configuración</Link>.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/clientes" className="btn btn-outline btn-sm">
+        <div className="flex flex-wrap gap-2">
+          <Link href="/clientes" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Clientes
           </Link>
-          <Link href="/settings" className="btn btn-outline btn-sm">
+          <Link href="/settings" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Configuración
           </Link>
-          <Link href="/ventas" className="btn btn-outline btn-sm">
+          <Link href="/ventas" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Ventas
           </Link>
-          <Link href="/cotizaciones" className="btn btn-outline btn-sm">
+          <Link href="/cotizaciones" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Cotizaciones
           </Link>
         </div>

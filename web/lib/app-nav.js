@@ -73,18 +73,12 @@ export const NAV_SECTIONS = [
 export const MOBILE_PRIMARY_HREFS = [
   "/dashboard",
   "/ventas",
+  "/cotizaciones",
   "/chat",
-  "/settings",
 ]
 
-/** Todo lo demás va en «Más opciones». */
-export const MOBILE_MORE_HREFS = [
-  "/productos",
-  "/inventario",
-  "/cotizaciones",
-  "/clientes",
-  "/facturacion",
-]
+/** @deprecated Usar menú completo (MobileMenuSheet). Mantener vacío. */
+export const MOBILE_MORE_HREFS = []
 
 export function flattenNavItems() {
   return NAV_SECTIONS.flatMap((s) => s.items)

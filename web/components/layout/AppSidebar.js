@@ -2,30 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  ShoppingCart,
-  PackageSearch,
-  Boxes,
-  Users,
-  FileText,
-  MessageSquare,
-  Bot,
-  Settings,
-} from "lucide-react"
+import { LayoutDashboard } from "lucide-react"
 import { NAV_SECTIONS } from "@/lib/app-nav"
-
-const ICONS = {
-  "/dashboard": LayoutDashboard,
-  "/ventas": ShoppingCart,
-  "/productos": PackageSearch,
-  "/inventario": Boxes,
-  "/clientes": Users,
-  "/facturacion": FileText,
-  "/chat": MessageSquare,
-  "/agent": Bot,
-  "/settings": Settings,
-}
+import { NAV_ICONS } from "@/lib/nav-icons"
 
 function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -43,7 +22,7 @@ export default function AppSidebar() {
           </p>
           <ul className="menu menu-sm gap-0.5 rounded-box bg-base-100 p-2 shadow-sm">
             {section.items.map((item) => {
-              const Icon = ICONS[item.href] ?? LayoutDashboard
+              const Icon = NAV_ICONS[item.href] ?? LayoutDashboard
               const active = isActive(pathname, item.href)
               return (
                 <li key={item.href}>
