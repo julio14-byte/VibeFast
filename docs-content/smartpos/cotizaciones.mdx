@@ -11,7 +11,7 @@ Arma **presupuestos** sin descontar existencias. Cuando el cliente aprueba, conv
 ### Flujo típico
 
 1. **Nueva cotización** — agrega productos como en el POS.
-2. **Enviar por WhatsApp** — el cliente recibe el detalle con totales e IVA.
+2. **Enviar por WhatsApp o correo** — el cliente recibe el detalle con totales e IVA.
 3. Si aprueba:
    - **Aprobar → registrar venta** — descuenta stock y crea la venta.
    - **Aprobar y generar factura** — venta + CFDI (opcional timbrar con PAC).
@@ -22,7 +22,7 @@ Arma **presupuestos** sin descontar existencias. Cuando el cliente aprueba, conv
 | | Cotización | Venta |
 |---|---|---|
 | Descuenta stock | No | Sí |
-| Envío WhatsApp | Presupuesto | Ticket / CFDI |
+| Envío al cliente | WhatsApp o correo | Ticket / CFDI |
 | Vencimiento | Sí (días) | — |
 
 ### Facturación

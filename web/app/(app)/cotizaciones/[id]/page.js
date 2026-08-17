@@ -10,6 +10,7 @@ import {
 } from "@/lib/cotizaciones/labels"
 import {
   enviarCotizacionWhatsApp,
+  enviarCotizacionEmail,
   rechazarCotizacion,
   convertirCotizacionAVenta,
   convertirCotizacionYFacturar,
@@ -30,7 +31,7 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
   const { data: cotizacion } = await supabase
     .from("cotizaciones")
     .select(
-      "*, items:cotizacion_items(*), cliente:clientes(id, nombre, razon_social, telefono, rfc), venta:ventas(id, folio, total)"
+      "*, items:cotizacion_items(*), cliente:clientes(id, nombre, razon_social, telefono, email, rfc), venta:ventas(id, folio, total)"
     )
     .eq("id", id)
     .single()
@@ -90,6 +91,11 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
       {ok === "whatsapp" && (
         <div role="alert" className="alert alert-success">
           <span>Presupuesto enviado por WhatsApp.</span>
+        </div>
+      )}
+      {ok === "email" && (
+        <div role="alert" className="alert alert-success">
+          <span>Cotización enviada por correo electrónico.</span>
         </div>
       )}
       {ok === "whatsapp_link" && waLink && (
@@ -279,8 +285,14 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
             )}
             {cotizacion.whatsapp_enviado_at && (
               <p className="text-xs text-base-content/55">
-                Enviada{" "}
+                WhatsApp{" "}
                 {new Date(cotizacion.whatsapp_enviado_at).toLocaleString("es-MX")}
+              </p>
+            )}
+            {cotizacion.email_enviado_at && (
+              <p className="text-xs text-base-content/55">
+                Correo a {cotizacion.email_destino ?? "cliente"}{" "}
+                {new Date(cotizacion.email_enviado_at).toLocaleString("es-MX")}
               </p>
             )}
           </div>
@@ -309,6 +321,25 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
                 </label>
                 <button type="submit" className="btn btn-success btn-sm w-full">
                   Enviar presupuesto
+                </button>
+              </form>
+
+              <form action={enviarCotizacionEmail} className="space-y-2">
+                <input type="hidden" name="cotizacion_id" value={cotizacion.id} />
+                <label className="form-control w-full">
+                  <span className="label-text text-xs font-medium">
+                    Enviar por correo
+                  </span>
+                  <input
+                    name="email"
+                    type="email"
+                    defaultValue={cotizacion.cliente?.email ?? ""}
+                    placeholder="cliente@correo.com"
+                    className="input input-bordered input-sm w-full"
+                  />
+                </label>
+                <button type="submit" className="btn btn-outline btn-sm w-full">
+                  Enviar por email
                 </button>
               </form>
 

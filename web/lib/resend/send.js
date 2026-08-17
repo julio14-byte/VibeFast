@@ -13,6 +13,7 @@ import { getResend } from "@/lib/resend/client"
 import WaitlistConfirm from "@/lib/resend/templates/WaitlistConfirm"
 import Welcome from "@/lib/resend/templates/Welcome"
 import CfdiFactura from "@/lib/resend/templates/CfdiFactura"
+import CotizacionPresupuesto from "@/lib/resend/templates/CotizacionPresupuesto"
 
 // Email genérico de texto plano. Lo usa la tool `enviar_email` del
 // registry (lib/tools) para que un agente pueda mandar correos.
@@ -119,6 +120,52 @@ export async function sendCfdiEmail({
 
   if (error) {
     console.error("[resend] cfdi:", error.message)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
+
+export async function sendCotizacionEmail({
+  to,
+  emisorNombre,
+  receptorNombre,
+  folio,
+  items = [],
+  subtotalFmt,
+  ivaFmt,
+  totalFmt,
+  validezDias,
+  venceFmt,
+  notas,
+}) {
+  const resend = getResend()
+  if (!resend) {
+    return { ok: false, skipped: true, error: "Resend no configurado." }
+  }
+
+  const { error } = await resend.emails.send({
+    from: config.email.from,
+    replyTo: config.email.replyTo,
+    to,
+    subject: `Cotización #${folio} · ${emisorNombre || config.app.name}`,
+    react: (
+      <CotizacionPresupuesto
+        emisorNombre={emisorNombre}
+        receptorNombre={receptorNombre}
+        folio={folio}
+        items={items}
+        subtotalFmt={subtotalFmt}
+        ivaFmt={ivaFmt}
+        totalFmt={totalFmt}
+        validezDias={validezDias}
+        venceFmt={venceFmt}
+        notas={notas}
+      />
+    ),
+  })
+
+  if (error) {
+    console.error("[resend] cotizacion:", error.message)
     return { ok: false, error: error.message }
   }
   return { ok: true }

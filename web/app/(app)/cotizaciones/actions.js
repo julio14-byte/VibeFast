@@ -8,6 +8,9 @@ import { buildCotizacionWhatsAppMessage } from "@/lib/cotizaciones/whatsapp"
 import { cotizacionPuedeConvertir } from "@/lib/cotizaciones/labels"
 import { buildWhatsAppLink, sendWhatsAppCloudMessage } from "@/lib/whatsapp"
 import { generarFacturaInterna } from "@/lib/facturacion/generarFacturaInterna"
+import { sendCotizacionEmail } from "@/lib/resend/send"
+import { formatPrecio } from "@/lib/productos"
+import config from "@/config"
 
 const BASE = "/cotizaciones"
 
@@ -53,7 +56,7 @@ async function getNextVentaFolio(supabase, userId) {
 async function loadCotizacion(supabase, userId, cotizacionId) {
   const { data, error } = await supabase
     .from("cotizaciones")
-    .select("*, items:cotizacion_items(*), cliente:clientes(id, nombre, razon_social, telefono)")
+    .select("*, items:cotizacion_items(*), cliente:clientes(id, nombre, razon_social, telefono, email)")
     .eq("id", cotizacionId)
     .eq("user_id", userId)
     .single()
@@ -235,6 +238,86 @@ export async function enviarCotizacionWhatsApp(formData) {
     }
 
     redirect(`${BASE}/${cotizacionId}?ok=whatsapp`)
+  } catch (err) {
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
+    fail(err?.message)
+  }
+}
+
+export async function enviarCotizacionEmail(formData) {
+  try {
+    const cotizacionId = formData.get("cotizacion_id")?.toString()
+    const emailOverride = formData.get("email")?.toString().trim() || null
+
+    if (!cotizacionId) fail("Falta la cotización.")
+
+    const { supabase, user } = await requireUser()
+    const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    if (!cotizacion) fail("Cotización no encontrada.")
+
+    const to =
+      emailOverride ||
+      cotizacion.cliente?.email ||
+      null
+
+    if (!to) {
+      fail(
+        "Indica el correo del cliente o regístralo en Clientes.",
+        `${BASE}/${cotizacionId}`
+      )
+    }
+
+    const { data: empresa } = await supabase
+      .from("empresa_fiscal")
+      .select("razon_social")
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    const emisorNombre = empresa?.razon_social ?? config.app.name
+    const receptorNombre =
+      cotizacion.cliente?.razon_social ?? cotizacion.cliente?.nombre ?? "Cliente"
+
+    const items = (cotizacion.items ?? []).map((item) => ({
+      nombre: item.nombre,
+      codigo: item.codigo,
+      cantidad: item.cantidad,
+      precioFmt: formatPrecio(item.precio_unitario),
+      subtotalFmt: formatPrecio(item.subtotal),
+    }))
+
+    const result = await sendCotizacionEmail({
+      to,
+      emisorNombre,
+      receptorNombre,
+      folio: cotizacion.folio,
+      items,
+      subtotalFmt: formatPrecio(cotizacion.subtotal),
+      ivaFmt: formatPrecio(cotizacion.iva),
+      totalFmt: formatPrecio(cotizacion.total),
+      validezDias: cotizacion.validez_dias,
+      venceFmt: new Date(cotizacion.vence_at).toLocaleDateString("es-MX"),
+      notas: cotizacion.notas,
+    })
+
+    if (!result.ok) {
+      fail(
+        result.error || "No se pudo enviar el correo.",
+        `${BASE}/${cotizacionId}`
+      )
+    }
+
+    const patch = {
+      email_destino: to,
+      email_enviado_at: new Date().toISOString(),
+      estado: cotizacion.estado === "borrador" ? "enviada" : cotizacion.estado,
+    }
+
+    await supabase.from("cotizaciones").update(patch).eq("id", cotizacionId)
+
+    revalidatePath(BASE)
+    revalidatePath(`${BASE}/${cotizacionId}`)
+
+    redirect(`${BASE}/${cotizacionId}?ok=email`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message)
