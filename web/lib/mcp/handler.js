@@ -5,8 +5,14 @@ import { getUser } from "@/lib/supabase/server"
 import {
   getUserFromBearer,
   parseBearerToken,
+  runWithMcpApiKey,
   runWithMcpBearer,
 } from "@/lib/supabase/requestContext"
+import {
+  isMcpApiKey,
+  touchMcpApiKey,
+  validateMcpApiKey,
+} from "@/lib/mcp/apiKeys"
 
 const MCP_CORS_HEADERS = {
   Allow: "GET, POST, DELETE, OPTIONS",
@@ -18,7 +24,7 @@ const MCP_CORS_HEADERS = {
 
 /**
  * Maneja una petición MCP Streamable HTTP (stateless).
- * Auth: cookie de sesión (navegador) o Authorization: Bearer <access_token>.
+ * Auth: cookie, Bearer JWT Supabase, o Bearer API key spos_...
  */
 export async function handleMcpHttpRequest(request, getServer) {
   if (!config.features.mcp) {
@@ -29,15 +35,30 @@ export async function handleMcpHttpRequest(request, getServer) {
   }
 
   const bearer = parseBearerToken(request)
-  const user = bearer
-    ? await getUserFromBearer(bearer)
-    : await getUser()
+  let user = null
+  let authMode = "cookie"
+
+  if (bearer && isMcpApiKey(bearer)) {
+    const keyRow = await validateMcpApiKey(bearer)
+    if (keyRow) {
+      user = { id: keyRow.user_id, email: keyRow.email }
+      authMode = "apiKey"
+      await touchMcpApiKey(keyRow.id)
+    }
+  } else if (bearer) {
+    user = await getUserFromBearer(bearer)
+    authMode = "jwt"
+  } else {
+    user = await getUser()
+  }
 
   if (!user) {
     return NextResponse.json(
       {
         error: bearer
-          ? "Token Bearer inválido o expirado."
+          ? isMcpApiKey(bearer)
+            ? "API key inválida, revocada o expirada."
+            : "Token Bearer inválido o expirado."
           : "Debes iniciar sesión o enviar Authorization: Bearer <token>.",
       },
       { status: 401 }
@@ -55,7 +76,11 @@ export async function handleMcpHttpRequest(request, getServer) {
     return transport.handleRequest(request)
   }
 
-  if (bearer) {
+  if (authMode === "apiKey") {
+    return runWithMcpApiKey({ id: user.id, email: user.email }, runTransport)
+  }
+
+  if (authMode === "jwt" && bearer) {
     return runWithMcpBearer(bearer, runTransport)
   }
 

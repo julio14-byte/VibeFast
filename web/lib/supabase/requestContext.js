@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { isSupabaseConfigured } from "./env"
 
-/** Contexto Bearer para peticiones MCP (Claude Desktop, etc.). */
+/** Contexto de auth para peticiones MCP (JWT Supabase o API key). */
 export const mcpAuthStore = new AsyncLocalStorage()
 
 export function parseBearerToken(request) {
@@ -54,6 +54,19 @@ export function runWithMcpBearer(accessToken, fn) {
   return mcpAuthStore.run({ accessToken }, fn)
 }
 
+/** Contexto para API key spos_... (service role + user_id en tools). */
+export function runWithMcpApiKey(apiKeyUser, fn) {
+  return mcpAuthStore.run({ apiKeyUser }, fn)
+}
+
+export function getMcpAuthStore() {
+  return mcpAuthStore.getStore() ?? null
+}
+
 export function getMcpBearerToken() {
   return mcpAuthStore.getStore()?.accessToken ?? null
+}
+
+export function getMcpApiKeyUser() {
+  return mcpAuthStore.getStore()?.apiKeyUser ?? null
 }

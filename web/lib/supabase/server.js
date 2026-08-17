@@ -14,12 +14,19 @@ import { cookies } from "next/headers"
 import { isSupabaseConfigured } from "./env"
 import {
   createBearerSupabaseClient,
+  getMcpApiKeyUser,
   getMcpBearerToken,
 } from "./requestContext"
+import { createAdminClient } from "./admin"
 
 export async function createClient() {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase no configurado: faltan variables de entorno.")
+  }
+
+  const apiKeyUser = getMcpApiKeyUser()
+  if (apiKeyUser) {
+    return createAdminClient()
   }
 
   const bearer = getMcpBearerToken()
@@ -56,6 +63,14 @@ export async function createClient() {
 // Usa getUser() (valida el JWT contra Supabase), no getSession().
 export async function getUser() {
   if (!isSupabaseConfigured()) return null
+
+  const apiKeyUser = getMcpApiKeyUser()
+  if (apiKeyUser) {
+    return {
+      id: apiKeyUser.id,
+      email: apiKeyUser.email ?? undefined,
+    }
+  }
 
   try {
     const supabase = await createClient()

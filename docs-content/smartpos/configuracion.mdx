@@ -27,6 +27,20 @@ Formulario para conectar tu PAC en modo prueba:
 
 Tras guardar, prueba timbrar desde **Facturas**.
 
+### Token MCP (Claude Desktop)
+
+En **Configuración** → **MCP · Claude Desktop**:
+
+1. **Crea una API key permanente** (`spos_...`) — recomendado para Claude Desktop
+2. Copia el JSON para `claude_desktop_config.json`
+3. Reinicia Claude Desktop por completo
+
+La API key **no expira** (revócala desde Configuración si la pierdes).
+
+Requiere migración `019_mcp_api_keys.sql` y `SUPABASE_SERVICE_ROLE_KEY` en el servidor.
+
+Alternativa: token JWT corto (~1 h) vía `GET /api/mcp/token`.
+
 ### Variables que afectan la app
 
 | Variable | Uso |
