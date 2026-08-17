@@ -4,8 +4,11 @@ import { useState } from "react"
 import { SendHorizontal } from "lucide-react"
 
 // Entrada del chat. Enter envía, Shift+Enter inserta salto de línea.
-// Se deshabilita mientras el assistant está respondiendo (disabled).
-export default function ChatInput({ onSubmit, disabled }) {
+export default function ChatInput({
+  onSubmit,
+  disabled,
+  placeholder = "Escribe tu mensaje…",
+}) {
   const [text, setText] = useState("")
 
   function send() {
@@ -23,22 +26,23 @@ export default function ChatInput({ onSubmit, disabled }) {
   }
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="chat-input-row flex items-end gap-2">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        rows={1}
-        placeholder="Escribe tu mensaje…"
-        className="textarea textarea-bordered max-h-32 min-h-11 flex-1 resize-none text-base sm:max-h-40 sm:min-h-12"
+        rows={2}
+        placeholder={placeholder}
+        aria-label="Mensaje para el chat"
+        className="textarea textarea-bordered chat-textarea max-h-32 min-h-[3.25rem] flex-1 resize-none bg-base-100 text-base leading-snug shadow-sm sm:max-h-40 sm:min-h-12"
       />
       <button
         type="button"
         onClick={send}
         disabled={disabled || !text.trim()}
-        className="btn btn-primary btn-square min-h-11 min-w-11 touch-manipulation"
-        aria-label="Enviar"
+        className="btn btn-primary btn-square min-h-[3.25rem] min-w-[3.25rem] touch-manipulation shrink-0"
+        aria-label="Enviar mensaje"
       >
         {disabled ? (
           <span className="loading loading-spinner loading-sm" />

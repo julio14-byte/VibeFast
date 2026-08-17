@@ -190,10 +190,10 @@ export default function LangGraphChat() {
         timeline[timeline.length - 1]?.text === ""))
 
   return (
-    <div className="mobile-chat-panel flex flex-col rounded-box border border-base-200 bg-base-100 shadow-sm min-h-[min(70vh,520px)]">
+    <div className="chat-panel mobile-chat-panel flex min-h-0 flex-1 flex-col rounded-box border border-base-200 bg-base-100 shadow-sm md:min-h-[min(70vh,520px)] md:flex-none">
       <div
         ref={scrollRef}
-        className="flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:p-4"
+        className="chat-messages min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:p-4"
       >
         {timeline.length === 0 ? (
           <div className="space-y-4 py-4">
@@ -264,11 +264,11 @@ export default function LangGraphChat() {
         )}
       </div>
 
-      <div className="shrink-0 border-t border-base-200 p-3 sm:p-4">
+      <div className="chat-composer shrink-0 border-t border-base-200 bg-base-100 p-3 sm:p-4">
         <ChatInput
           onSubmit={handleSubmit}
           disabled={streaming}
-          placeholder="Ej: ¿Cuánto hay del código 1001?"
+          placeholder="Escribe aquí… Ej: ¿Cuánto hay del código 1001?"
         />
       </div>
     </div>

@@ -157,6 +157,33 @@ body {
   min-height: 280px;
 }
 
+/* Chat: ocupa el alto disponible en móvil y mantiene el cuadro de texto visible */
+@media (max-width: 767px) {
+  .chat-page {
+    min-height: calc(
+      100dvh - var(--app-header-height) - var(--mobile-nav-height) -
+        env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 0.75rem
+    );
+  }
+
+  .chat-page .mobile-chat-panel {
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .chat-composer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -4px 12px rgb(15 23 42 / 0.06);
+  }
+
+  .chat-textarea {
+    border-width: 2px;
+  }
+}
+
 @media (min-width: 768px) {
   .mobile-chat-panel {
     height: min(70vh, 640px);
