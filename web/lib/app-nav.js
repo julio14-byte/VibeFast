@@ -19,6 +19,11 @@ export const NAV_SECTIONS = [
         hint: "Buscar productos y cobrar",
       },
       {
+        href: "/cotizaciones",
+        label: "Cotizaciones",
+        hint: "Presupuestos por WhatsApp",
+      },
+      {
         href: "/productos",
         label: "Productos",
         hint: "Agregar o cambiar precios",
@@ -76,6 +81,7 @@ export const MOBILE_PRIMARY_HREFS = [
 export const MOBILE_MORE_HREFS = [
   "/productos",
   "/inventario",
+  "/cotizaciones",
   "/clientes",
   "/facturacion",
 ]

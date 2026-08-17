@@ -1,0 +1,38 @@
+---
+title: Cotizaciones
+description: Presupuestos por WhatsApp, aprobación a venta y facturación.
+order: 5
+---
+
+## Cotizaciones (`/cotizaciones`)
+
+Arma **presupuestos** sin descontar existencias. Cuando el cliente aprueba, conviertes la cotización en **venta** o directamente en **factura**.
+
+### Flujo típico
+
+1. **Nueva cotización** — agrega productos como en el POS.
+2. **Enviar por WhatsApp** — el cliente recibe el detalle con totales e IVA.
+3. Si aprueba:
+   - **Aprobar → registrar venta** — descuenta stock y crea la venta.
+   - **Aprobar y generar factura** — venta + CFDI (opcional timbrar con PAC).
+4. Si no aprueba: **Marcar como rechazada**.
+
+### Diferencias con cobrar venta
+
+| | Cotización | Venta |
+|---|---|---|
+| Descuenta stock | No | Sí |
+| Envío WhatsApp | Presupuesto | Ticket / CFDI |
+| Vencimiento | Sí (días) | — |
+
+### Facturación
+
+Tras convertir en venta puedes ir a **Facturas** con la venta preseleccionada, o usar **Aprobar y generar factura** desde el detalle de la cotización.
+
+### Base de datos
+
+Requiere la migración `017_cotizaciones.sql`:
+
+```bash
+supabase db push --include-all
+```

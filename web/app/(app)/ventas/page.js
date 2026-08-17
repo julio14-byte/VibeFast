@@ -38,12 +38,20 @@ export default async function VentasPage({ searchParams }) {
         lead="1) Busca el producto. 2) Toca para agregarlo. 3) Pulsa «Cobrar venta» cuando termines."
         tip="Si no sabes el nombre, escribe parte del código o pregunta en el Chat del menú."
         actions={
-          <Link
-            href="/facturacion"
-            className="btn btn-outline btn-sm shrink-0 touch-manipulation min-h-11"
-          >
-            Facturas
-          </Link>
+          <>
+            <Link
+              href="/cotizaciones"
+              className="btn btn-outline btn-sm shrink-0 touch-manipulation min-h-11"
+            >
+              Cotizaciones
+            </Link>
+            <Link
+              href="/facturacion"
+              className="btn btn-outline btn-sm shrink-0 touch-manipulation min-h-11"
+            >
+              Facturas
+            </Link>
+          </>
         }
       />
 

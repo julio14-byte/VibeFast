@@ -45,6 +45,7 @@ export default async function FacturacionPage({ searchParams }) {
   const folioOk = params?.folio?.toString()
   const estadoOk = params?.estado?.toString()
   const waLink = params?.url?.toString()
+  const preselectVentaId = params?.venta_id?.toString()
 
   return (
     <div className="space-y-8">
@@ -67,6 +68,9 @@ export default async function FacturacionPage({ searchParams }) {
           </Link>
           <Link href="/ventas" className="btn btn-outline btn-sm">
             Ventas
+          </Link>
+          <Link href="/cotizaciones" className="btn btn-outline btn-sm">
+            Cotizaciones
           </Link>
         </div>
       </div>
@@ -193,6 +197,7 @@ export default async function FacturacionPage({ searchParams }) {
                 <select
                   name="venta_id"
                   required
+                  defaultValue={preselectVentaId ?? undefined}
                   className="select select-bordered select-sm w-full"
                 >
                   {ventas.map((v) => (
@@ -209,6 +214,12 @@ export default async function FacturacionPage({ searchParams }) {
                 </label>
                 <select
                   name="cliente_id"
+                  defaultValue={
+                    preselectVentaId
+                      ? ventas.find((v) => v.id === preselectVentaId)?.cliente_id ??
+                        ""
+                      : ""
+                  }
                   className="select select-bordered select-sm w-full"
                 >
                   <option value="">Público en general</option>
