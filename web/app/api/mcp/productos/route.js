@@ -9,11 +9,12 @@
 //   - listar_productos          → catálogo con paginación
 //   - productos_bajo_stock      → existencias bajas
 //
-// Requiere sesión Supabase (cookies) del usuario autenticado.
-// Activa config.features.mcp.
+// Requiere sesión Supabase (cookie) o Authorization: Bearer <access_token>.
+// Token: GET /api/mcp/token (logueado) o Configuración → Token MCP.
 //
-// Ejemplo Cursor (.cursor/mcp.json):
-//   { "url": "https://tu-dominio.com/api/mcp/productos" }
+// Claude Desktop (.cursor/mcp.json no aplica — usar claude_desktop_config.json):
+//   npx mcp-remote + --header "Authorization:${SMARTPOS_TOKEN}"
+//   env SMARTPOS_TOKEN=Bearer <access_token>
 // ============================================================
 
 import { getProductosMcpServer } from "@/lib/mcp/productosServer"

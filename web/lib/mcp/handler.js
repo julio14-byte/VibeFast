@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
+import {
+  getUserFromBearer,
+  parseBearerToken,
+  runWithMcpBearer,
+} from "@/lib/supabase/requestContext"
 
 const MCP_CORS_HEADERS = {
   Allow: "GET, POST, DELETE, OPTIONS",
@@ -13,28 +18,48 @@ const MCP_CORS_HEADERS = {
 
 /**
  * Maneja una petición MCP Streamable HTTP (stateless).
+ * Auth: cookie de sesión (navegador) o Authorization: Bearer <access_token>.
  */
 export async function handleMcpHttpRequest(request, getServer) {
   if (!config.features.mcp) {
-    return NextResponse.json({ error: "MCP deshabilitado en config.features.mcp." }, { status: 404 })
+    return NextResponse.json(
+      { error: "MCP deshabilitado en config.features.mcp." },
+      { status: 404 }
+    )
   }
 
-  const user = await getUser()
+  const bearer = parseBearerToken(request)
+  const user = bearer
+    ? await getUserFromBearer(bearer)
+    : await getUser()
+
   if (!user) {
     return NextResponse.json(
-      { error: "Debes iniciar sesión para usar el servidor MCP." },
+      {
+        error: bearer
+          ? "Token Bearer inválido o expirado."
+          : "Debes iniciar sesión o enviar Authorization: Bearer <token>.",
+      },
       { status: 401 }
     )
   }
 
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  })
+  const runTransport = async () => {
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    })
 
-  const server = getServer()
-  await server.connect(transport)
+    const server = getServer()
+    await server.connect(transport)
 
-  return transport.handleRequest(request)
+    return transport.handleRequest(request)
+  }
+
+  if (bearer) {
+    return runWithMcpBearer(bearer, runTransport)
+  }
+
+  return runTransport()
 }
 
 export function mcpOptionsResponse() {

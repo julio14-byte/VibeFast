@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import PageHeader from "@/components/ui/PageHeader"
 import ProductCsvImport from "@/components/productos/ProductCsvImport"
 import PacSandboxForm from "@/components/settings/PacSandboxForm"
+import McpTokenPanel from "@/components/settings/McpTokenPanel"
+import config from "@/config"
 
 export const metadata = { title: "Configuración · SmartPOS" }
 export const dynamic = "force-dynamic"
@@ -58,6 +60,8 @@ export default async function SettingsPage({ searchParams }) {
       <ProductCsvImport />
 
       <PacSandboxForm empresa={empresa} />
+
+      {config.features.mcp ? <McpTokenPanel /> : null}
 
       <p className="text-sm text-base-content/55">
         Datos de tu negocio para facturas en{" "}

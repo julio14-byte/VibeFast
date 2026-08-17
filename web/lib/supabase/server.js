@@ -12,10 +12,19 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { isSupabaseConfigured } from "./env"
+import {
+  createBearerSupabaseClient,
+  getMcpBearerToken,
+} from "./requestContext"
 
 export async function createClient() {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase no configurado: faltan variables de entorno.")
+  }
+
+  const bearer = getMcpBearerToken()
+  if (bearer) {
+    return createBearerSupabaseClient(bearer)
   }
 
   const cookieStore = await cookies()
