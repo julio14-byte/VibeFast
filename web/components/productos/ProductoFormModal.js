@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { X } from "lucide-react"
 import {
   createProducto,
   updateProducto,
 } from "@/app/(app)/productos/actions"
-import { formatMargenPct, margenesParaMostrar } from "@/lib/productos/margenes"
+import { margenDesdePrecioVenta, precioVentaConIva } from "@/lib/precios"
+import { margenesParaMostrar } from "@/lib/productos/margenes"
 import SatCatalogSearch from "./SatCatalogSearch"
 
 function Field({ label, hint, required, children }) {
@@ -26,6 +27,26 @@ function Field({ label, hint, required, children }) {
   )
 }
 
+const DEFAULT_MARGEN = 30
+
+function initialMargenMayoreo(producto, margenMenudeo) {
+  if (producto?.margen_mayoreo != null) {
+    return String(producto.margen_mayoreo)
+  }
+  const { margenMayoreo } = margenesParaMostrar(producto ?? {})
+  if (margenMayoreo != null) return String(margenMayoreo)
+  const base = Number(margenMenudeo ?? DEFAULT_MARGEN)
+  return String(Math.round(base * 0.85 * 10) / 10)
+}
+
+function initialMargenMenudeo(producto) {
+  if (producto?.margen_ganancia != null) {
+    return String(producto.margen_ganancia)
+  }
+  const { margenPublico } = margenesParaMostrar(producto ?? {})
+  return margenPublico != null ? String(margenPublico) : String(DEFAULT_MARGEN)
+}
+
 export default function ProductoFormModal({
   open,
   onClose,
@@ -37,16 +58,23 @@ export default function ProductoFormModal({
   const [claveSat, setClaveSat] = useState(producto?.clave_sat ?? "01010101")
   const [unidadSat, setUnidadSat] = useState(producto?.unidad_sat ?? "H87")
   const [precioCompra, setPrecioCompra] = useState("")
+  const [margenMayoreo, setMargenMayoreo] = useState("")
+  const [margenPublico, setMargenPublico] = useState("")
   const [precioPublico, setPrecioPublico] = useState("")
   const [precioMayoreo, setPrecioMayoreo] = useState("")
+  const [publicoManual, setPublicoManual] = useState(false)
+  const [mayoreoManual, setMayoreoManual] = useState(false)
 
   useEffect(() => {
     if (!open) return
+    const margenMen = initialMargenMenudeo(producto)
     setClaveSat(producto?.clave_sat ?? "01010101")
     setUnidadSat(producto?.unidad_sat ?? "H87")
     setPrecioCompra(
       producto?.precio_compra != null ? String(producto.precio_compra) : ""
     )
+    setMargenPublico(margenMen)
+    setMargenMayoreo(initialMargenMayoreo(producto, margenMen))
     setPrecioPublico(
       producto?.precio_publico != null || producto?.precio != null
         ? String(producto?.precio_publico ?? producto?.precio)
@@ -55,21 +83,37 @@ export default function ProductoFormModal({
     setPrecioMayoreo(
       producto?.precio_mayoreo != null ? String(producto.precio_mayoreo) : ""
     )
+    setPublicoManual(Boolean(producto?.id))
+    setMayoreoManual(Boolean(producto?.id))
   }, [open, producto])
 
   const compraNum = Number.parseFloat(precioCompra) || 0
+  const margenPublicoNum = Number.parseFloat(margenPublico) || 0
+  const margenMayoreoNum = Number.parseFloat(margenMayoreo) || 0
   const publicoNum = Number.parseFloat(precioPublico) || 0
   const mayoreoNum = Number.parseFloat(precioMayoreo) || 0
 
-  const { margenPublico, margenMayoreo } = useMemo(
-    () =>
-      margenesParaMostrar({
-        precio_compra: compraNum,
-        precio_publico: publicoNum,
-        precio_mayoreo: mayoreoNum,
-      }),
-    [compraNum, publicoNum, mayoreoNum]
-  )
+  useEffect(() => {
+    if (!compraNum || publicoManual) return
+    setPrecioPublico(String(precioVentaConIva(compraNum, margenPublicoNum)))
+  }, [compraNum, margenPublicoNum, publicoManual])
+
+  useEffect(() => {
+    if (!compraNum || mayoreoManual) return
+    setPrecioMayoreo(String(precioVentaConIva(compraNum, margenMayoreoNum)))
+  }, [compraNum, margenMayoreoNum, mayoreoManual])
+
+  useEffect(() => {
+    if (!compraNum || !publicoManual || !publicoNum) return
+    const m = margenDesdePrecioVenta(compraNum, publicoNum)
+    if (m != null) setMargenPublico(String(m))
+  }, [compraNum, publicoNum, publicoManual])
+
+  useEffect(() => {
+    if (!compraNum || !mayoreoManual || !mayoreoNum) return
+    const m = margenDesdePrecioVenta(compraNum, mayoreoNum)
+    if (m != null) setMargenMayoreo(String(m))
+  }, [compraNum, mayoreoNum, mayoreoManual])
 
   if (!open) return null
 
@@ -82,7 +126,7 @@ export default function ProductoFormModal({
               {isEdit ? "Editar producto" : "Nuevo producto"}
             </h2>
             <p className="text-sm text-base-content/60">
-              Define costo y precios con IVA; el margen se calcula automático.
+              Ajusta costo, márgenes o precios con IVA; se sincronizan solos.
             </p>
           </div>
           <button
@@ -144,9 +188,9 @@ export default function ProductoFormModal({
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Costo y precios de venta
+              Costo, márgenes y precios
             </h3>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Field
                 label="Precio de compra (sin IVA)"
                 hint="Costo neto del proveedor."
@@ -157,14 +201,74 @@ export default function ProductoFormModal({
                   min="0"
                   step="0.01"
                   value={precioCompra}
-                  onChange={(e) => setPrecioCompra(e.target.value)}
+                  onChange={(e) => {
+                    setPrecioCompra(e.target.value)
+                    setPublicoManual(false)
+                    setMayoreoManual(false)
+                  }}
+                  className="input input-bordered w-full"
+                  placeholder="0.00"
+                />
+              </Field>
+              <Field
+                label="Margen mayoreo (%)"
+                hint="Recalcula precio mayoreo al cambiar costo o margen."
+              >
+                <input
+                  name="margen_mayoreo"
+                  type="number"
+                  min="-100"
+                  max="99999999"
+                  step="0.1"
+                  value={margenMayoreo}
+                  onChange={(e) => {
+                    setMargenMayoreo(e.target.value)
+                    setMayoreoManual(false)
+                  }}
+                  className="input input-bordered w-full"
+                  placeholder="25"
+                />
+              </Field>
+              <Field
+                label="Margen menudeo (%)"
+                hint="Recalcula precio público al cambiar costo o margen."
+              >
+                <input
+                  name="margen_ganancia"
+                  type="number"
+                  min="-100"
+                  max="99999999"
+                  step="0.1"
+                  value={margenPublico}
+                  onChange={(e) => {
+                    setMargenPublico(e.target.value)
+                    setPublicoManual(false)
+                  }}
+                  className="input input-bordered w-full"
+                  placeholder="30"
+                />
+              </Field>
+              <Field
+                label="Precio mayoreo"
+                hint="Con IVA incluido. Editar aquí actualiza el margen."
+              >
+                <input
+                  name="precio_mayoreo"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={precioMayoreo}
+                  onChange={(e) => {
+                    setMayoreoManual(true)
+                    setPrecioMayoreo(e.target.value)
+                  }}
                   className="input input-bordered w-full"
                   placeholder="0.00"
                 />
               </Field>
               <Field
                 label="Precio público / menudeo"
-                hint="Precio al público con IVA incluido."
+                hint="Con IVA incluido. Editar aquí actualiza el margen."
                 required
               >
                 <input
@@ -174,56 +278,14 @@ export default function ProductoFormModal({
                   min="0"
                   step="0.01"
                   value={precioPublico}
-                  onChange={(e) => setPrecioPublico(e.target.value)}
+                  onChange={(e) => {
+                    setPublicoManual(true)
+                    setPrecioPublico(e.target.value)
+                  }}
                   className="input input-bordered w-full"
                   placeholder="0.00"
                 />
               </Field>
-              <Field
-                label="Precio mayoreo"
-                hint="Precio mayoreo con IVA incluido."
-              >
-                <input
-                  name="precio_mayoreo"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={precioMayoreo}
-                  onChange={(e) => setPrecioMayoreo(e.target.value)}
-                  className="input input-bordered w-full"
-                  placeholder="0.00"
-                />
-              </Field>
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Márgenes calculados
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-base-200 bg-base-200/30 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">
-                  Margen mayoreo
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-primary">
-                  {formatMargenPct(margenMayoreo)}
-                </p>
-                <p className="mt-1 text-xs text-base-content/55">
-                  Sobre costo sin IVA, según precio mayoreo.
-                </p>
-              </div>
-              <div className="rounded-xl border border-base-200 bg-base-200/30 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">
-                  Margen menudeo
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-primary">
-                  {formatMargenPct(margenPublico)}
-                </p>
-                <p className="mt-1 text-xs text-base-content/55">
-                  Sobre costo sin IVA, según precio público.
-                </p>
-              </div>
             </div>
           </section>
 

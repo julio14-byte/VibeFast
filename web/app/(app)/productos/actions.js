@@ -48,6 +48,8 @@ function parseProductoForm(formData) {
   const precioMayoreoRaw = formData.get("precio_mayoreo")?.toString().trim()
   const precioPublicoRaw = formData.get("precio_publico")?.toString().trim()
   const stockRaw = formData.get("stock")?.toString().trim()
+  const margenRaw = formData.get("margen_ganancia")?.toString().trim()
+  const margenMayoreoRaw = formData.get("margen_mayoreo")?.toString().trim()
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
@@ -58,6 +60,10 @@ function parseProductoForm(formData) {
     ? Number.parseFloat(precioPublicoRaw)
     : NaN
   const stock = stockRaw ? Number.parseInt(stockRaw, 10) : NaN
+  const margenFromForm = margenRaw ? Number.parseFloat(margenRaw) : NaN
+  const margenMayoreoFromForm = margenMayoreoRaw
+    ? Number.parseFloat(margenMayoreoRaw)
+    : NaN
 
   if (
     !nombre ||
@@ -76,11 +82,27 @@ function parseProductoForm(formData) {
     return null
   }
 
-  const { margen_ganancia, margen_mayoreo } = margenesParaPersistir({
+  const calculated = margenesParaPersistir({
     precio_compra,
     precio_publico,
     precio_mayoreo,
   })
+
+  const margen_ganancia = Number.isFinite(margenFromForm)
+    ? margenFromForm
+    : calculated.margen_ganancia
+  const margen_mayoreo = Number.isFinite(margenMayoreoFromForm)
+    ? margenMayoreoFromForm
+    : calculated.margen_mayoreo
+
+  if (
+    margen_ganancia < -100 ||
+    margen_ganancia > 99999999.99 ||
+    margen_mayoreo < -100 ||
+    margen_mayoreo > 99999999.99
+  ) {
+    return null
+  }
 
   return {
     nombre,

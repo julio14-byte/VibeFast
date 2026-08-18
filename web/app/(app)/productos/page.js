@@ -59,7 +59,6 @@ export default async function ProductosPage({ searchParams }) {
       <PageHeader
         title="Productos"
         lead="Lista de todo lo que vendes. Usa «Nuevo producto» para agregar uno o el lápiz para cambiar precios."
-        tip="Para cargar muchos productos de una vez, ve a Configuración en el menú e importa tu archivo Excel/CSV."
         actions={
           <Link
             href="/settings"
