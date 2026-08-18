@@ -1,6 +1,6 @@
 /**
  * Búsqueda de productos en Supabase (server-side).
- * Busca por nombre (ilike) o código (exacto / prefijo vía codigo_text).
+ * Busca por nombre (ilike) o código (exacto / prefijo).
  */
 
 function termVariants(term) {
@@ -15,7 +15,7 @@ function escapeFilterValue(value) {
   return value.replace(/[%_,.()]/g, "")
 }
 
-/** Cláusulas OR para un term: nombre + código (exacto o prefijo numérico). */
+/** Cláusulas OR para un term: nombre + código (exacto o prefijo). */
 function orClausesForTerm(term) {
   const safe = escapeFilterValue(term)
   if (!safe) return []
@@ -25,14 +25,10 @@ function orClausesForTerm(term) {
     clauses.push(`nombre.ilike.%${v}%`)
   }
 
-  const asCodigo = Number.parseInt(term, 10)
-  if (!Number.isNaN(asCodigo) && String(asCodigo) === term.trim()) {
-    clauses.push(`codigo.eq.${asCodigo}`)
-  }
-
-  // Prefijo de código (ej. "12" → 120, 1205…) — requiere migración 014 (codigo_text)
-  if (/^\d+$/.test(safe)) {
-    clauses.push(`codigo_text.ilike.%${safe}%`)
+  clauses.push(`codigo.eq.${safe}`)
+  clauses.push(`codigo.ilike.${safe}%`)
+  if (safe.length >= 2) {
+    clauses.push(`codigo.ilike.%${safe}%`)
   }
 
   return clauses

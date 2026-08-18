@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 
 export const crearItem = {
   name: "crear_producto",
@@ -12,8 +13,8 @@ export const crearItem = {
         description: "Nombre o título del producto.",
       },
       codigo: {
-        type: "number",
-        description: "Código numérico único del producto.",
+        type: "string",
+        description: "Código alfanumérico único del producto.",
       },
       precio_compra: {
         type: "number",
@@ -67,9 +68,9 @@ export const crearItem = {
     const nombreStr = nombre?.trim()
     if (!nombreStr) throw new Error("El nombre del producto es obligatorio.")
 
-    const codigoNum = Number(codigo)
-    if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
-      throw new Error("El código debe ser un número entero (ej. 1001).")
+    const codigoNorm = normalizeCodigo(String(codigo ?? ""))
+    if (!codigoNorm) {
+      throw new Error("El código debe ser alfanumérico (ej. BDLI018).")
     }
 
     const precioPublicoNum = Number(precio_publico ?? precio ?? 0)
@@ -86,13 +87,13 @@ export const crearItem = {
       .from("productos")
       .select("codigo")
       .eq("user_id", user.id)
-      .eq("codigo", codigoNum)
+      .eq("codigo", codigoNorm)
       .maybeSingle()
 
     if (existente) {
       return {
         ok: false,
-        error: `Ya existe un producto con el código ${codigoNum}.`,
+        error: `Ya existe un producto con el código ${codigoNorm}.`,
       }
     }
 
@@ -122,7 +123,7 @@ export const crearItem = {
       .insert({
         user_id: user.id,
         nombre: nombreStr,
-        codigo: codigoNum,
+        codigo: codigoNorm,
         precio: precioPublicoNum,
         precio_compra: Number(precio_compra) || 0,
         precio_mayoreo: Number(precio_mayoreo) || 0,

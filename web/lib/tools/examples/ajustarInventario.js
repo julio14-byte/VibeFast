@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 
 export const ajustarInventario = {
   name: "ajustar_inventario",
@@ -8,8 +9,8 @@ export const ajustarInventario = {
     type: "object",
     properties: {
       codigo: {
-        type: "number",
-        description: "Código numérico del producto a actualizar.",
+        type: "string",
+        description: "Código alfanumérico del producto a actualizar.",
       },
       nombre: {
         type: "string",
@@ -54,21 +55,21 @@ export const ajustarInventario = {
     } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    const codigoNum = Number(codigo)
-    if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
-      throw new Error("El código debe ser un número entero.")
+    const codigoNorm = normalizeCodigo(String(codigo ?? ""))
+    if (!codigoNorm) {
+      throw new Error("El código es inválido.")
     }
 
     const { data: producto, error: selectError } = await supabase
       .from("productos")
       .select("*")
       .eq("user_id", user.id)
-      .eq("codigo", codigoNum)
+      .eq("codigo", codigoNorm)
       .maybeSingle()
 
     if (selectError) throw new Error(selectError.message)
     if (!producto) {
-      return { ok: false, error: `No se encontró producto con código ${codigoNum}.` }
+      return { ok: false, error: `No se encontró producto con código ${codigoNorm}.` }
     }
 
     const updates = {}

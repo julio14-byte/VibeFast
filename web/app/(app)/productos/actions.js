@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/productos"
@@ -50,7 +51,7 @@ function parseProductoForm(formData) {
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
-  const codigoNum = Number.parseInt(codigoRaw ?? "", 10)
+  const codigo = normalizeCodigo(codigoRaw)
   const precio_compra = parseOptionalNumber(precioCompraRaw)
   const precio_mayoreo = parseOptionalNumber(precioMayoreoRaw)
   const precio_publico = precioPublicoRaw
@@ -66,8 +67,7 @@ function parseProductoForm(formData) {
 
   if (
     !nombre ||
-    !Number.isInteger(codigoNum) ||
-    codigoNum < 0 ||
+    !codigo ||
     Number.isNaN(precio_publico) ||
     Number.isNaN(stock) ||
     Number.isNaN(margen_ganancia) ||
@@ -90,7 +90,7 @@ function parseProductoForm(formData) {
 
   return {
     nombre,
-    codigo: codigoNum,
+    codigo,
     precio: precio_publico,
     precio_compra,
     precio_mayoreo,

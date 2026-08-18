@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 import { mapProductoRow, mapProductoRows } from "@/lib/productos/format"
 import { searchProductos } from "@/lib/productos/search"
 import { requireOrganizationId } from "@/lib/organization/context"
@@ -23,7 +24,7 @@ const buscarProductos = {
     properties: {
       query: {
         type: "string",
-        description: "Texto a buscar: nombre del producto o código numérico.",
+        description: "Texto a buscar: nombre del producto o código (alfanumérico).",
       },
       limit: {
         type: "integer",
@@ -66,13 +67,13 @@ const obtenerProductoPorCodigo = {
   name: "obtener_producto_por_codigo",
   title: "Producto por código",
   description:
-    "Obtiene un producto exacto por su código numérico (SKU interno de la tienda).",
+    "Obtiene un producto exacto por su código (SKU interno de la tienda).",
   parameters: {
     type: "object",
     properties: {
       codigo: {
-        type: "integer",
-        description: "Código numérico del producto.",
+        type: "string",
+        description: "Código alfanumérico del producto.",
       },
     },
     required: ["codigo"],
@@ -80,9 +81,9 @@ const obtenerProductoPorCodigo = {
   },
   async execute({ codigo }) {
     const { supabase, organizationId } = await requireUser()
-    const codigoNum = Number(codigo)
-    if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
-      return { ok: false, error: "Código inválido. Usa un número entero positivo." }
+    const codigoNorm = normalizeCodigo(String(codigo ?? ""))
+    if (!codigoNorm) {
+      return { ok: false, error: "Código inválido." }
     }
 
     const { data, error } = await supabase
@@ -91,12 +92,12 @@ const obtenerProductoPorCodigo = {
         "codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, margen_ganancia, clave_sat, unidad_sat"
       )
       .eq("organization_id", organizationId)
-      .eq("codigo", codigoNum)
+      .eq("codigo", codigoNorm)
       .maybeSingle()
 
     if (error) throw new Error(error.message)
     if (!data) {
-      return { ok: false, error: `No hay producto con código ${codigoNum}.` }
+      return { ok: false, error: `No hay producto con código ${codigoNorm}.` }
     }
 
     const producto = mapProductoRow(data)

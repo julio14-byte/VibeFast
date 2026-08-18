@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 
 export const gestionarInventario = {
   name: "gestionar_inventario",
@@ -40,9 +41,9 @@ export const gestionarInventario = {
     const codigoStr = String(codigo ?? "").trim()
     if (!codigoStr) throw new Error("El código del producto es obligatorio.")
 
-    const codigoNum = Number.parseInt(codigoStr, 10)
-    if (!Number.isFinite(codigoNum) || String(codigoNum) !== codigoStr) {
-      throw new Error("El código debe ser un número entero (sin letras ni decimales).")
+    const codigoNorm = normalizeCodigo(codigoStr)
+    if (!codigoNorm) {
+      throw new Error("Código inválido (alfanumérico, máx. 64 caracteres).")
     }
 
     const precioNum = Number(precio)
@@ -59,7 +60,7 @@ export const gestionarInventario = {
       .from("productos")
       .select("id, codigo, nombre, precio, stock")
       .eq("user_id", user.id)
-      .eq("codigo", codigoNum)
+      .eq("codigo", codigoNorm)
       .maybeSingle()
 
     if (selectError) throw new Error(selectError.message)
@@ -93,7 +94,7 @@ export const gestionarInventario = {
       .insert({
         user_id: user.id,
         nombre: nombreStr,
-        codigo: codigoNum,
+        codigo: codigoNorm,
         precio: precioNum,
         precio_publico: precioNum,
         precio_compra: 0,

@@ -146,18 +146,18 @@ export default function ProductoFormModal({
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 label="Código del producto"
-                hint="Número único en tu catálogo (ej. 1001)."
+                hint="SKU único en tu catálogo (ej. BDLI018 o 1001)."
                 required
               >
                 <input
                   name="codigo"
-                  type="number"
+                  type="text"
                   required
-                  min="0"
-                  step="1"
+                  maxLength={64}
+                  pattern="[A-Za-z0-9._-]+"
                   defaultValue={producto?.codigo ?? ""}
                   className="input input-bordered w-full"
-                  placeholder="Ej. 1001"
+                  placeholder="Ej. BDLI018"
                 />
               </Field>
               <Field

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCodigo } from "@/lib/productos/codigo"
 import { calcularTotalesDesdePreciosConIva } from "@/lib/cfdi"
 import { getPrecioVenta } from "@/lib/productos"
 
@@ -11,8 +12,8 @@ export const registrarVenta = {
     type: "object",
     properties: {
       codigo: {
-        type: "number",
-        description: "Código numérico del producto a vender.",
+        type: "string",
+        description: "Código alfanumérico del producto a vender.",
       },
       cantidad: {
         type: "number",
@@ -38,9 +39,9 @@ export const registrarVenta = {
     } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    const codigoNum = Number(codigo)
+    const codigoNorm = normalizeCodigo(String(codigo ?? ""))
     const cantidadNum = Number(cantidad)
-    if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
+    if (!codigoNorm) {
       throw new Error("Código inválido.")
     }
     if (!Number.isInteger(cantidadNum) || cantidadNum <= 0) {
@@ -51,12 +52,12 @@ export const registrarVenta = {
       .from("productos")
       .select("*")
       .eq("user_id", user.id)
-      .eq("codigo", codigoNum)
+      .eq("codigo", codigoNorm)
       .maybeSingle()
 
     if (pErr) throw new Error(pErr.message)
     if (!producto) {
-      return { ok: false, error: `No hay producto con código ${codigoNum}.` }
+      return { ok: false, error: `No hay producto con código ${codigoNorm}.` }
     }
     if (producto.stock < cantidadNum) {
       return {

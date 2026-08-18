@@ -1,3 +1,7 @@
+import { normalizeCodigo } from "@/lib/productos/codigo"
+
+const CODIGO_CAPTURE = "([A-Za-z0-9._-]+)"
+
 function getLastUserMessage(messages) {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === "user") return messages[i].content || ""
@@ -32,8 +36,8 @@ export function parseGestionarInventarioArgs(text) {
   const normalized = normalizeProductText(text)
 
   const codigo =
-    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*["'""]?(\d+)["'""]?/i)?.[1] ??
-    normalized.match(/\bc[oó]digo\s+["'""]?(\d+)["'""]?/i)?.[1]
+    normalized.match(new RegExp(`c[oó]digo\\s*(?:de\\s*)?:?\\s*["'""]?${CODIGO_CAPTURE}["'""]?`, "i"))?.[1] ??
+    normalized.match(new RegExp(`\\bc[oó]digo\\s+["'""]?${CODIGO_CAPTURE}["'""]?`, "i"))?.[1]
 
   const nombre =
     normalized.match(/producto\s+["'""]([^"'""]+)["'""]/i)?.[1] ??
@@ -52,12 +56,12 @@ export function parseGestionarInventarioArgs(text) {
 
   if (!codigo || !nombre || !precio || !stock) return null
 
-  const codigoNum = Number(codigo)
-  if (!Number.isInteger(codigoNum) || codigoNum <= 0) return null
+  const codigoNorm = normalizeCodigo(codigo)
+  if (!codigoNorm) return null
 
   return {
     nombre: nombre.trim(),
-    codigo: codigoNum,
+    codigo: codigoNorm,
     precio: Number.parseFloat(precio),
     stock: Number(stock),
   }
@@ -68,8 +72,8 @@ export function parseCreateProductArgs(text) {
   const normalized = normalizeProductText(text)
 
   const codigo =
-    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*(\d+)/i)?.[1] ??
-    normalized.match(/\bc[oó]digo\s+(\d+)/i)?.[1]
+    normalized.match(new RegExp(`c[oó]digo\\s*(?:de\\s*)?:?\\s*${CODIGO_CAPTURE}`, "i"))?.[1] ??
+    normalized.match(new RegExp(`\\bc[oó]digo\\s+${CODIGO_CAPTURE}`, "i"))?.[1]
 
   const nombre =
     normalized.match(/producto\s+["'""]([^"'""]+)["'""]/i)?.[1] ??
@@ -94,9 +98,12 @@ export function parseCreateProductArgs(text) {
 
   if (!codigo || !nombre || !precio_publico || !stock) return null
 
+  const codigoNorm = normalizeCodigo(codigo)
+  if (!codigoNorm) return null
+
   const result = {
     nombre: nombre.trim(),
-    codigo: Number(codigo),
+    codigo: codigoNorm,
     precio: Number.parseFloat(precio_publico),
     precio_publico: Number.parseFloat(precio_publico),
     stock: Number(stock),
@@ -113,8 +120,8 @@ export function parseVentaArgs(text) {
   const normalized = normalizeProductText(text)
 
   const codigo =
-    normalized.match(/c[oó]digo\s*(?:de\s*)?:?\s*(\d+)/i)?.[1] ??
-    normalized.match(/\bc[oó]digo\s+(\d+)/i)?.[1]
+    normalized.match(new RegExp(`c[oó]digo\\s*(?:de\\s*)?:?\\s*${CODIGO_CAPTURE}`, "i"))?.[1] ??
+    normalized.match(new RegExp(`\\bc[oó]digo\\s+${CODIGO_CAPTURE}`, "i"))?.[1]
 
   const cantidad =
     normalized.match(/(\d+)\s*(?:unidades|pzas|piezas)/i)?.[1] ??
@@ -126,8 +133,11 @@ export function parseVentaArgs(text) {
 
   const tipo_precio = /\bmayoreo\b/i.test(normalized) ? "mayoreo" : "publico"
 
+  const codigoNorm = normalizeCodigo(codigo)
+  if (!codigoNorm) return null
+
   return {
-    codigo: Number(codigo),
+    codigo: codigoNorm,
     cantidad: Number(cantidad),
     tipo_precio,
     forma_pago: "01",

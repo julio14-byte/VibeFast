@@ -2,6 +2,8 @@
  * Parser CSV ligero + normalización de filas para importación masiva.
  */
 
+import { normalizeCodigo } from "@/lib/productos/codigo"
+
 const HEADER_ALIASES = {
   nombre: "nombre",
   producto: "nombre",
@@ -107,11 +109,11 @@ export function mapCsvRowToProducto(row, lineNumber) {
     }
   }
 
-  const codigoNum = Number.parseInt(codigo, 10)
-  if (!Number.isInteger(codigoNum) || codigoNum < 0) {
+  const codigoNorm = normalizeCodigo(codigo)
+  if (!codigoNorm) {
     return {
       ok: false,
-      error: `Línea ${lineNumber}: el código debe ser un número entero.`,
+      error: `Línea ${lineNumber}: código inválido (alfanumérico, máx. 64 caracteres).`,
     }
   }
 
@@ -137,7 +139,7 @@ export function mapCsvRowToProducto(row, lineNumber) {
     ok: true,
     data: {
       nombre,
-      codigo: codigoNum,
+      codigo: codigoNorm,
       precio: precio_publico,
       precio_publico,
       precio_compra: precio_compra >= 0 ? precio_compra : 0,
@@ -152,14 +154,14 @@ export function mapCsvRowToProducto(row, lineNumber) {
 }
 
 export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,margen_mayoreo,stock,clave_sat,unidad_sat
-Llave Stillson 20 pulg,2053,110.50,85.00,95.00,30,25,12,01010101,H87
-Tornillo hexagonal 1/4,1001,2.50,1.20,1.80,30,25,500,01010101,H87
+Llave Stillson 20 pulg,LLAV-2053,110.50,85.00,95.00,30,25,12,01010101,H87
+Tornillo hexagonal 1/4,TORN-1001,2.50,1.20,1.80,30,25,500,01010101,H87
 `
 
 /** Columnas aceptadas y aliases (para guía de importación desde Excel). */
 export const CSV_COLUMN_GUIDE = [
   { columna: "nombre", obligatorio: true, aliases: "producto, descripcion, titulo" },
-  { columna: "codigo", obligatorio: true, aliases: "sku, cod (número entero único)" },
+  { columna: "codigo", obligatorio: true, aliases: "sku, cod (alfanumérico único)" },
   { columna: "precio_publico", obligatorio: true, aliases: "precio (con IVA incluido)" },
   { columna: "stock", obligatorio: false, aliases: "existencia, inventario (default 0)" },
   { columna: "precio_compra", obligatorio: false, aliases: "costo sin IVA" },

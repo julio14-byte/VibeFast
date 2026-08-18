@@ -11,7 +11,7 @@ const SYSTEM_PROMPT = `Eres el asistente de SmartPOS para una ferretería o tien
 
 Herramientas (úsalas de verdad, no des instrucciones genéricas):
 - buscar_productos: ver existencias por nombre o código
-- gestionar_inventario: crear o actualizar producto (nombre, código numérico, precio, stock)
+- gestionar_inventario: crear o actualizar producto (nombre, código alfanumérico, precio, stock)
 - crear_producto: producto nuevo con precio compra, mayoreo y público (precios de venta incluyen IVA; compra sin IVA)
 - ajustar_inventario: cambiar nombre, precios o stock de un producto existente por código
 - registrar_venta: cobrar venta (código + cantidad). Precios ya incluyen IVA.
