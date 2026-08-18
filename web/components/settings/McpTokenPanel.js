@@ -2,32 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { Copy, Check, RefreshCw, Key, Trash2 } from "lucide-react"
+import { buildClaudeDesktopMcpConfigJson } from "@/lib/mcp/claudeDesktopConfig"
 
-function buildClaudeConfig(mcpUrl, bearerOrKey) {
-  const bearer = bearerOrKey.startsWith("Bearer ")
-    ? bearerOrKey
-    : `Bearer ${bearerOrKey}`
-  return JSON.stringify(
-    {
-      mcpServers: {
-        "smartpos-productos": {
-          command: "npx",
-          args: [
-            "-y",
-            "mcp-remote",
-            mcpUrl,
-            "--transport",
-            "http-only",
-            "--header",
-            "Authorization:${SMARTPOS_TOKEN}",
-          ],
-          env: { SMARTPOS_TOKEN: bearer },
-        },
-      },
-    },
-    null,
-    2
-  )
+function buildClaudeConfig(mcpUrl, apiKey) {
+  return buildClaudeDesktopMcpConfigJson(mcpUrl, apiKey)
 }
 
 export default function McpTokenPanel() {
@@ -296,9 +274,19 @@ export default function McpTokenPanel() {
       </details>
 
       <ol className="list-decimal list-inside text-sm text-base-content/70 space-y-1 border-t border-base-200 pt-4">
-        <li>Pega el JSON en <code className="text-xs">claude_desktop_config.json</code></li>
-        <li>Reinicia Claude Desktop por completo</li>
-        <li>Pregunta: «¿Cuánto stock hay del código 1001?»</li>
+        <li>
+          Claude → <strong>Settings → Developer → Edit Config</strong> (activa
+          Developer si no lo ves)
+        </li>
+        <li>Pega el JSON y guarda</li>
+        <li>
+          Cierra Claude por completo (File → Quit / salir del sistema, no solo
+          la ventana)
+        </li>
+        <li>
+          Al abrir de nuevo, busca el icono{" "}
+          <strong>🔨 (martillo)</strong> junto al cuadro de chat
+        </li>
       </ol>
     </section>
   )

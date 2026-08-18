@@ -6,6 +6,7 @@ import {
   listMcpApiKeysForUser,
   revokeMcpApiKey,
 } from "@/lib/mcp/apiKeys"
+import { buildClaudeDesktopMcpConfig } from "@/lib/mcp/claudeDesktopConfig"
 
 function appBaseUrl(request) {
   return (
@@ -15,24 +16,8 @@ function appBaseUrl(request) {
   ).replace(/\/$/, "")
 }
 
-function claudeConfigSnippet(mcpUrl, bearerValue) {
-  return {
-    mcpServers: {
-      "smartpos-productos": {
-        command: "npx",
-        args: [
-          "-y",
-          "mcp-remote",
-          mcpUrl,
-          "--transport",
-          "http-only",
-          "--header",
-          "Authorization:${SMARTPOS_TOKEN}",
-        ],
-        env: { SMARTPOS_TOKEN: bearerValue },
-      },
-    },
-  }
+function claudeConfigSnippet(mcpUrl, apiKey) {
+  return buildClaudeDesktopMcpConfig(mcpUrl, apiKey)
 }
 
 /** GET /api/mcp/keys — listar claves activas del usuario */
@@ -78,7 +63,6 @@ export async function POST(request) {
     const created = await createMcpApiKeyForUser(user.id, name)
     const base = appBaseUrl(request)
     const mcpUrl = `${base}/api/mcp/productos`
-    const bearer = `Bearer ${created.api_key}`
 
     return NextResponse.json({
       id: created.id,
@@ -88,7 +72,7 @@ export async function POST(request) {
       api_key: created.api_key,
       expires_at: null,
       mcp_productos_url: mcpUrl,
-      claude_desktop_config: claudeConfigSnippet(mcpUrl, bearer),
+      claude_desktop_config: claudeConfigSnippet(mcpUrl, created.api_key),
       warning:
         "Guarda la clave ahora. No se volverá a mostrar completa.",
     })
