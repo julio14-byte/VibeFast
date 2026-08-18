@@ -1,6 +1,7 @@
 /**
  * Búsqueda de productos en Supabase (server-side).
- * Nombre: empieza con el texto (prefijo). Código: exacto o prefijo.
+ * Nombre: prefijo (tubo*) y también contiene (ilike %tubo%).
+ * Código: exacto, prefijo o contiene.
  */
 
 function termVariants(term) {
@@ -15,16 +16,15 @@ function escapeFilterValue(value) {
   return value.replace(/[%_,.()]/g, "")
 }
 
-/** Cláusulas OR para un term: nombre (prefijo) + código (exacto / prefijo). */
-function orClausesForTerm(term, { namePrefix = true } = {}) {
+/** Cláusulas OR: nombre (prefijo + contiene) y código. */
+function orClausesForTerm(term) {
   const safe = escapeFilterValue(term)
   if (!safe) return []
 
   const clauses = []
   for (const v of termVariants(safe)) {
-    clauses.push(
-      namePrefix ? `nombre.ilike.${v}%` : `nombre.ilike.%${v}%`
-    )
+    clauses.push(`nombre.ilike.${v}%`)
+    clauses.push(`nombre.ilike.%${v}%`)
   }
 
   clauses.push(`codigo.eq.${safe}`)
@@ -49,12 +49,12 @@ export function applyProductSearchFilter(builder, query, organizationId) {
   if (!q) return request
 
   const terms = q.split(/\s+/).filter(Boolean)
-  for (const term of terms) {
-    const clauses = orClausesForTerm(term)
+  terms.forEach((term, index) => {
+    const clauses = orClausesForTerm(term, { namePrefix: index === 0 })
     if (clauses.length) {
       request = request.or(clauses.join(","))
     }
-  }
+  })
 
   return request
 }

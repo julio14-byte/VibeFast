@@ -31,11 +31,9 @@ export function filterProductos(productos, query) {
     const nombre = normalizeSearch(p.nombre)
     const codigo = normalizeSearch(String(p.codigo))
 
-    return terms.every((term, index) => {
+    return terms.every((term) => {
       if (codigo.includes(term)) return true
-      if (index === 0 ? nombre.startsWith(term) : nombre.includes(term)) {
-        return true
-      }
+      if (nombre.startsWith(term) || nombre.includes(term)) return true
       return false
     })
   })
