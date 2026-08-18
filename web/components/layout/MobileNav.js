@@ -7,6 +7,7 @@ import { Menu } from "lucide-react"
 import { flattenNavItems, MOBILE_PRIMARY_HREFS } from "@/lib/app-nav"
 import { NAV_ICONS, navShortLabel } from "@/lib/nav-icons"
 import MobileMenuSheet from "./MobileMenuSheet"
+import { useNavLinkClick } from "./useNavLinkClick"
 
 function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -40,30 +41,14 @@ export default function MobileNav() {
           className="grid gap-0"
           style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
         >
-          {primaryItems.map(({ href, label }) => {
-            const Icon = NAV_ICONS[href]
-            const active = isActive(pathname, href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`mobile-nav-item flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[10px] font-medium transition-colors touch-manipulation ${
-                  active
-                    ? "text-primary bg-primary/5"
-                    : "text-base-content/65 active:bg-base-200"
-                }`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon
-                  className="size-[1.35rem] shrink-0"
-                  strokeWidth={active ? 2.25 : 2}
-                />
-                <span className="max-w-full truncate text-center leading-none">
-                  {navShortLabel(href, label)}
-                </span>
-              </Link>
-            )
-          })}
+          {primaryItems.map(({ href, label }) => (
+            <MobilePrimaryNavItem
+              key={href}
+              href={href}
+              label={label}
+              pathname={pathname}
+            />
+          ))}
 
           <button
             type="button"
@@ -87,5 +72,32 @@ export default function MobileNav() {
 
       <MobileMenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
+  )
+}
+
+function MobilePrimaryNavItem({ href, label, pathname }) {
+  const Icon = NAV_ICONS[href]
+  const active = isActive(pathname, href)
+  const onClick = useNavLinkClick(href)
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`mobile-nav-item flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[10px] font-medium transition-colors touch-manipulation ${
+        active
+          ? "text-primary bg-primary/5"
+          : "text-base-content/65 active:bg-base-200"
+      }`}
+      aria-current={active ? "page" : undefined}
+    >
+      <Icon
+        className="size-[1.35rem] shrink-0"
+        strokeWidth={active ? 2.25 : 2}
+      />
+      <span className="max-w-full truncate text-center leading-none">
+        {navShortLabel(href, label)}
+      </span>
+    </Link>
   )
 }

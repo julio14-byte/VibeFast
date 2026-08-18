@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard } from "lucide-react"
 import { NAV_SECTIONS } from "@/lib/app-nav"
 import { NAV_ICONS } from "@/lib/nav-icons"
+import { useNavLinkClick } from "./useNavLinkClick"
 
 function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -21,13 +22,30 @@ export default function AppSidebar() {
             {section.title}
           </p>
           <ul className="menu menu-sm gap-0.5 rounded-box bg-base-100 p-2 shadow-sm">
-            {section.items.map((item) => {
-              const Icon = NAV_ICONS[item.href] ?? LayoutDashboard
-              const active = isActive(pathname, item.href)
-              return (
-                <li key={item.href}>
+            {section.items.map((item) => (
+              <SidebarNavItem
+                key={item.href}
+                item={item}
+                pathname={pathname}
+              />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  )
+}
+
+function SidebarNavItem({ item, pathname }) {
+  const Icon = NAV_ICONS[item.href] ?? LayoutDashboard
+  const active = isActive(pathname, item.href)
+  const onClick = useNavLinkClick(item.href)
+
+  return (
+                <li>
                   <Link
                     href={item.href}
+                    onClick={onClick}
                     className={`flex items-start gap-3 rounded-lg px-3 py-2.5 touch-manipulation ${
                       active
                         ? "bg-primary/10 font-semibold text-primary"
@@ -49,11 +67,5 @@ export default function AppSidebar() {
                     </span>
                   </Link>
                 </li>
-              )
-            })}
-          </ul>
-        </div>
-      ))}
-    </nav>
   )
 }

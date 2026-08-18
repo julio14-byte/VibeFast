@@ -123,16 +123,16 @@ export default async function BillingPage({ searchParams }) {
         )}
       </section>
 
-      {active && (
-        <div className="flex flex-wrap gap-3">
-          <Link href="/dashboard" className="btn btn-primary touch-manipulation">
-            Ir al dashboard
-          </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/dashboard" className="btn btn-primary touch-manipulation">
+          Ir al inicio
+        </Link>
+        {active ? (
           <Link href="/productos" className="btn btn-ghost touch-manipulation">
             Productos
           </Link>
-        </div>
-      )}
+        ) : null}
+      </div>
 
       <section className="rounded-xl border border-base-200 bg-base-200/40 p-4 text-sm text-base-content/70">
         <p className="font-medium text-base-content">Fase 2 SaaS · Multi-usuario</p>
