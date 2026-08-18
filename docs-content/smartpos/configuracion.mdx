@@ -31,15 +31,21 @@ Tras guardar, prueba timbrar desde **Facturas**.
 
 En **Configuración** → **MCP · Claude Desktop**:
 
-1. **Crea una API key permanente** (`spos_...`) — recomendado para Claude Desktop
-2. Copia el JSON para `claude_desktop_config.json`
-3. Reinicia Claude Desktop por completo
+1. **Crea una API key permanente** (`spos_...`) — recomendado
+2. Copia el JSON para `claude_desktop_config.json` (Claude Desktop → Settings → Developer)
+3. Reinicia Claude por completo (icono 🔨 junto al chat)
 
-La API key **no expira** (revócala desde Configuración si la pierdes).
+**Autenticación del endpoint** (`/api/mcp/productos`):
+
+| Método | Uso |
+| --- | --- |
+| `Bearer spos_...` | API key (Claude Desktop + mcp-remote) |
+| `Bearer eyJ...` | JWT corto (~1 h) vía `GET /api/mcp/token` |
+| Cookie | Navegador con sesión SmartPOS |
+
+**No uses «Conectores» en claude.ai** — no envían la API key; verás «No autenticado». Usa **Claude Desktop** con el JSON generado.
 
 Requiere migración `019_mcp_api_keys.sql` y `SUPABASE_SERVICE_ROLE_KEY` en el servidor.
-
-Alternativa: token JWT corto (~1 h) vía `GET /api/mcp/token`.
 
 ### Variables que afectan la app
 

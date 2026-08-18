@@ -3,18 +3,17 @@
 // ------------------------------------------------------------
 // Endpoint: /api/mcp/productos
 //
-// Herramientas expuestas:
-//   - buscar_productos          → búsqueda por nombre o código
-//   - obtener_producto_por_codigo → detalle por código exacto
-//   - listar_productos          → catálogo con paginación
-//   - productos_bajo_stock      → existencias bajas
+// Herramientas: buscar_productos, obtener_producto_por_codigo,
+// listar_productos, productos_bajo_stock
 //
-// Requiere sesión Supabase (cookie) o Authorization: Bearer <access_token>.
-// Token: GET /api/mcp/token (logueado) o Configuración → Token MCP.
+// Autenticación (una de estas):
+//   • Cookie — usuario logueado en el navegador
+//   • Bearer JWT — GET /api/mcp/token (expira ~1 h)
+//   • Bearer spos_... — API key en Configuración → MCP (permanente)
 //
-// Claude Desktop (.cursor/mcp.json no aplica — usar claude_desktop_config.json):
-//   npx mcp-remote + --header "Authorization:${SMARTPOS_TOKEN}"
-//   env SMARTPOS_TOKEN=Bearer <access_token>
+// Claude Desktop (recomendado):
+//   Settings → Developer → Edit Config → mcp-remote + header Authorization
+//   Copiar JSON desde Configuración → Crear API key → Copiar config Claude
 // ============================================================
 
 import { getProductosMcpServer } from "@/lib/mcp/productosServer"

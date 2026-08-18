@@ -2,7 +2,16 @@
 // MCP · Streamable HTTP (stateless) — registry completo
 // ------------------------------------------------------------
 // Expone todas las tools de web/lib/tools vía Model Context Protocol.
-// Para solo consultas de productos usa /api/mcp/productos
+// Solo lectura de productos: /api/mcp/productos
+//
+// Autenticación (cualquiera de estas):
+//   1. Cookie de sesión Supabase (navegador logueado)
+//   2. Authorization: Bearer <JWT> — GET /api/mcp/token (~1 h)
+//   3. Authorization: Bearer spos_... — API key permanente
+//      Crear en Configuración → MCP; requiere SUPABASE_SERVICE_ROLE_KEY
+//
+// Claude Desktop: claude_desktop_config.json + npx mcp-remote@latest
+//   (NO usar Conectores web de Claude — no envían Bearer sin OAuth)
 // ============================================================
 
 import { getMcpServer } from "@/lib/mcp/server"
