@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import config from "@/config"
 import { createClient } from "@/lib/supabase/server"
 import { getUser } from "@/lib/supabase/server"
+import { canManageMcpInApp } from "@/lib/mcp/adminAccess"
 
 function appBaseUrl(request) {
   return (
@@ -29,6 +30,12 @@ export async function GET(request) {
     return NextResponse.json(
       { error: "Inicia sesión en SmartPOS para obtener un token MCP." },
       { status: 401 }
+    )
+  }
+  if (!canManageMcpInApp(user)) {
+    return NextResponse.json(
+      { error: "No autorizado para tokens MCP en la app." },
+      { status: 403 }
     )
   }
 

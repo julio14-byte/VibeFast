@@ -24,14 +24,9 @@ export const NAV_SECTIONS = [
         hint: "Presupuestos por WhatsApp",
       },
       {
-        href: "/productos",
-        label: "Productos",
-        hint: "Agregar o cambiar precios",
-      },
-      {
-        href: "/inventario",
-        label: "Existencias",
-        hint: "Ver cuánto hay en bodega",
+        href: "/precios",
+        label: "Consulta de precios",
+        hint: "Menudeo, mayoreo y costo",
       },
     ],
   },
@@ -73,7 +68,7 @@ export const NAV_SECTIONS = [
 export const MOBILE_PRIMARY_HREFS = [
   "/dashboard",
   "/ventas",
-  "/cotizaciones",
+  "/precios",
   "/chat",
 ]
 

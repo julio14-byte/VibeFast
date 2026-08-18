@@ -20,6 +20,23 @@ async function requireUser() {
   return { supabase, user }
 }
 
+const CATALOGO_PATHS = ["/precios", "/productos", "/inventario"]
+
+function safeReturnPath(raw, fallback) {
+  const path = raw?.toString().trim()
+  if (!path?.startsWith("/") || path.startsWith("//")) return fallback
+  if (!CATALOGO_PATHS.some((p) => path === p || path.startsWith(`${p}?`))) {
+    return fallback
+  }
+  return path
+}
+
+function revalidateCatalogo() {
+  for (const p of CATALOGO_PATHS) revalidatePath(p)
+  revalidatePath("/ventas")
+  revalidatePath("/dashboard")
+}
+
 function parseOptionalNumber(raw, fallback = 0) {
   if (!raw?.toString().trim()) return fallback
   const n = Number.parseFloat(raw.toString().trim())
@@ -210,10 +227,7 @@ export async function importProductosCsv(formData) {
       }
     }
 
-    revalidatePath(BASE)
-    revalidatePath("/inventario")
-    revalidatePath("/ventas")
-    revalidatePath("/dashboard")
+    revalidateCatalogo()
 
     return {
       ok: true,
@@ -244,11 +258,12 @@ export async function createProducto(formData) {
       fail(error.message || "No se pudo crear el producto.")
     }
 
-    revalidatePath(BASE)
-    revalidatePath("/inventario")
-    revalidatePath("/ventas")
-    revalidatePath("/dashboard")
-    redirect(`${BASE}?ok=creado`)
+    revalidateCatalogo()
+    const returnTo = safeReturnPath(
+      formData.get("return_to"),
+      `${BASE}?ok=creado`
+    )
+    redirect(returnTo.includes("?") ? `${returnTo}&ok=creado` : `${returnTo}?ok=creado`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message || "Error al crear.")
@@ -273,11 +288,16 @@ export async function updateProducto(formData) {
       fail(error.message || "No se pudo actualizar.")
     }
 
-    revalidatePath(BASE)
-    revalidatePath("/inventario")
-    revalidatePath("/ventas")
-    revalidatePath("/dashboard")
-    redirect(`${BASE}?ok=actualizado`)
+    revalidateCatalogo()
+    const returnTo = safeReturnPath(
+      formData.get("return_to"),
+      `${BASE}?ok=actualizado`
+    )
+    redirect(
+      returnTo.includes("?")
+        ? `${returnTo}&ok=actualizado`
+        : `${returnTo}?ok=actualizado`
+    )
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message || "Error al actualizar.")
@@ -298,9 +318,7 @@ export async function deleteProducto(formData) {
 
     if (error) fail(error.message || "No se pudo eliminar.")
 
-    revalidatePath(BASE)
-    revalidatePath("/inventario")
-    revalidatePath("/dashboard")
+    revalidateCatalogo()
     redirect(`${BASE}?ok=eliminado`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err

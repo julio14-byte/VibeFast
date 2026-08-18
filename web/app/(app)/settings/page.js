@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import PageHeader from "@/components/ui/PageHeader"
+import CatalogoNav from "@/components/catalogo/CatalogoNav"
 import ProductCsvImport from "@/components/productos/ProductCsvImport"
 import PacSandboxForm from "@/components/settings/PacSandboxForm"
 import McpTokenPanel from "@/components/settings/McpTokenPanel"
+import { canManageMcpInApp } from "@/lib/mcp/adminAccess"
 import config from "@/config"
 
 export const metadata = { title: "Configuración · SmartPOS" }
@@ -12,6 +14,10 @@ export const dynamic = "force-dynamic"
 export default async function SettingsPage({ searchParams }) {
   const supabase = await createClient()
   const params = await searchParams
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
@@ -61,7 +67,9 @@ export default async function SettingsPage({ searchParams }) {
 
       <PacSandboxForm empresa={empresa} />
 
-      {config.features.mcp ? <McpTokenPanel /> : null}
+      {config.features.mcp && canManageMcpInApp(user) ? (
+        <McpTokenPanel />
+      ) : null}
 
       <p className="text-sm text-base-content/55">
         Datos de tu negocio para facturas en{" "}

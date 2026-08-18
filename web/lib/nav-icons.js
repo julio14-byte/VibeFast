@@ -9,12 +9,14 @@ import {
   Bot,
   Settings,
   ClipboardList,
+  Tags,
 } from "lucide-react"
 
 export const NAV_ICONS = {
   "/dashboard": LayoutDashboard,
   "/ventas": ShoppingCart,
   "/cotizaciones": ClipboardList,
+  "/precios": Tags,
   "/productos": PackageSearch,
   "/inventario": Boxes,
   "/clientes": Users,
@@ -30,6 +32,7 @@ export function navShortLabel(href, fallback = "") {
     "/dashboard": "Inicio",
     "/ventas": "Cobrar",
     "/cotizaciones": "Cotiz.",
+    "/precios": "Precios",
     "/chat": "Chat",
     "/settings": "Ajustes",
     "/productos": "Productos",

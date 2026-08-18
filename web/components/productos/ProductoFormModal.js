@@ -28,7 +28,12 @@ function Field({ label, hint, required, children }) {
 
 const DEFAULT_MARGEN = 30
 
-export default function ProductoFormModal({ open, onClose, producto }) {
+export default function ProductoFormModal({
+  open,
+  onClose,
+  producto,
+  returnTo,
+}) {
   const isEdit = Boolean(producto?.id)
 
   const initialCompra = producto?.precio_compra ?? ""
@@ -121,6 +126,9 @@ export default function ProductoFormModal({ open, onClose, producto }) {
           className="space-y-6 px-5 py-4"
         >
           {isEdit && <input type="hidden" name="id" value={producto.id} />}
+          {returnTo ? (
+            <input type="hidden" name="return_to" value={returnTo} />
+          ) : null}
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">

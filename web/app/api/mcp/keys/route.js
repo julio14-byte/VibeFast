@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
+import { canManageMcpInApp } from "@/lib/mcp/adminAccess"
 import {
   createMcpApiKeyForUser,
   listMcpApiKeysForUser,
@@ -30,6 +31,12 @@ export async function GET(request) {
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 })
   }
+  if (!canManageMcpInApp(user)) {
+    return NextResponse.json(
+      { error: "No autorizado para administrar claves MCP." },
+      { status: 403 }
+    )
+  }
 
   const keys = await listMcpApiKeysForUser(user.id)
   const base = appBaseUrl(request)
@@ -49,6 +56,12 @@ export async function POST(request) {
   const user = await getUser()
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 })
+  }
+  if (!canManageMcpInApp(user)) {
+    return NextResponse.json(
+      { error: "No autorizado para administrar claves MCP." },
+      { status: 403 }
+    )
   }
 
   let name = "Claude Desktop"
@@ -93,6 +106,12 @@ export async function DELETE(request) {
   const user = await getUser()
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 })
+  }
+  if (!canManageMcpInApp(user)) {
+    return NextResponse.json(
+      { error: "No autorizado para administrar claves MCP." },
+      { status: 403 }
+    )
   }
 
   const keyId = new URL(request.url).searchParams.get("id")

@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getProductosPage } from "@/lib/productos/queries"
 import { formatError } from "@/lib/errors"
 import PageHeader from "@/components/ui/PageHeader"
+import CatalogoNav from "@/components/catalogo/CatalogoNav"
 import ProductosCrud from "@/components/productos/ProductosCrud"
 
 export const metadata = { title: "Productos · SmartPOS" }
@@ -54,22 +55,16 @@ export default async function ProductosPage({ searchParams }) {
         lead="Lista de todo lo que vendes. Usa «Nuevo producto» para agregar uno o el lápiz para cambiar precios."
         tip="Para cargar muchos productos de una vez, ve a Configuración en el menú e importa tu archivo Excel/CSV."
         actions={
-          <>
-            <Link
-              href="/settings"
-              className="btn btn-outline btn-sm touch-manipulation min-h-11"
-            >
-              Importar lista
-            </Link>
-            <Link
-              href="/inventario"
-              className="btn btn-outline btn-sm touch-manipulation min-h-11"
-            >
-              Ver existencias
-            </Link>
-          </>
+          <Link
+            href="/settings"
+            className="btn btn-outline btn-sm touch-manipulation min-h-11"
+          >
+            Importar lista
+          </Link>
         }
       />
+
+      <CatalogoNav />
 
       {formError && (
         <div role="alert" className="alert alert-error">

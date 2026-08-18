@@ -72,6 +72,14 @@ const config = {
     founderEmails: [],
   },
 
+  // MCP / Claude Desktop — conexión externa al inventario (solo servidor).
+  // selfServiceInApp=false oculta el panel en Configuración para usuarios finales.
+  // Admin: MCP_ADMIN_EMAILS en Vercel (emails separados por coma).
+  mcp: {
+    selfServiceInApp: false,
+    adminEmails: [],
+  },
+
   // -----------------------------------------------------------
   // OpenAI
   // -----------------------------------------------------------
