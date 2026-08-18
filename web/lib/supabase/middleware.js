@@ -15,15 +15,21 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import config from "@/config"
 import { isSupabaseConfigured } from "./env"
+import {
+  getAuthenticatedUser,
+  isJwtClockSkewError,
+} from "./authSession"
 
 // Rutas que requieren sesión. Todo lo que cuelga de /(app) en realidad,
 // pero el middleware no ve grupos de rutas, así que listamos prefijos.
 const PROTECTED_PREFIXES = [
   "/dashboard",
+  "/precios",
   "/productos",
+  "/inventario",
+  "/cotizaciones",
   "/account",
   "/chat",
-  "/inventario",
   "/ventas",
   "/facturacion",
   "/clientes",
@@ -73,9 +79,7 @@ async function runUpdateSession(request) {
   )
 
   // IMPORTANTE: no metas lógica entre createServerClient y getUser().
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, error: authError } = await getAuthenticatedUser(supabase)
 
   const { pathname } = request.nextUrl
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
@@ -87,6 +91,9 @@ async function runUpdateSession(request) {
     const url = request.nextUrl.clone()
     url.pathname = config.auth.loginUrl
     url.searchParams.set("next", pathname)
+    if (isJwtClockSkewError(authError)) {
+      url.searchParams.set("error", "clock_skew")
+    }
     return NextResponse.redirect(url)
   }
 

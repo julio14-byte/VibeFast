@@ -46,6 +46,8 @@ export default async function LoginPage({ searchParams }) {
           >
             {supabaseMisconfigured
               ? "Supabase no está configurado."
+              : params?.error === "clock_skew"
+                ? "La hora de tu dispositivo está desincronizada. Activa «Ajustar hora automáticamente», cierra sesión y vuelve a entrar."
               : params?.error === "auth"
                 ? "Correo o contraseña incorrectos."
                 : "No pudimos iniciar sesión. Intenta de nuevo."}

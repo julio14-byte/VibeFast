@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import config from "@/config"
+import {
+  clockSkewUserMessage,
+  getAuthenticatedUser,
+  isJwtClockSkewError,
+} from "@/lib/supabase/authSession"
 import { metricsFromServerStats } from "@/lib/dashboard/metrics"
 import {
   computeVentasPorDia,
@@ -37,12 +42,12 @@ export default async function DashboardPage() {
   } else {
     try {
       const supabase = await createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { user, error: authError } = await getAuthenticatedUser(supabase)
 
       if (!user) {
-        error = "No autenticado."
+        error = isJwtClockSkewError(authError)
+          ? clockSkewUserMessage()
+          : authError || "No autenticado."
       } else {
         showProductMetrics = canViewProductMetrics(user)
 
@@ -68,6 +73,10 @@ export default async function DashboardPage() {
           tablePage.error ||
           ventasRes.error?.message
 
+        if (isJwtClockSkewError(error)) {
+          error = clockSkewUserMessage()
+        }
+
         if (!error) {
           metrics = metricsFromServerStats(stats)
           totalProductos = stats.totalProductos ?? 0
@@ -92,7 +101,9 @@ export default async function DashboardPage() {
         }
       }
     } catch (err) {
-      error = err.message
+      error = isJwtClockSkewError(err?.message)
+        ? clockSkewUserMessage()
+        : err.message
     }
   }
 
