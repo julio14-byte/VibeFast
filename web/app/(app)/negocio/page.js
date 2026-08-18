@@ -34,6 +34,9 @@ export default async function NegocioPage({ searchParams }) {
 
   const formError = params?.error?.toString()
   const ok = params?.ok?.toString()
+  const importCreados = params?.creados?.toString()
+  const importActualizados = params?.actualizados?.toString()
+  const importErrores = params?.errores?.toString()
   const configurado = empresaConfigurada(empresa)
 
   return (
@@ -68,6 +71,18 @@ export default async function NegocioPage({ searchParams }) {
       {ok === "guardado" && (
         <div role="alert" className="alert alert-success">
           <span>Datos del negocio guardados. Facturas y tickets ya los usan.</span>
+        </div>
+      )}
+      {ok === "importado" && (
+        <div role="alert" className="alert alert-success">
+          <span>
+            Importación lista: {importCreados ?? 0} creados,{" "}
+            {importActualizados ?? 0} actualizados
+            {importErrores && Number(importErrores) > 0
+              ? `, ${importErrores} filas con error`
+              : ""}
+            .
+          </span>
         </div>
       )}
 

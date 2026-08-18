@@ -29,6 +29,9 @@ const nextConfig = {
       { source: "/docs/fundamentos/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
       { source: "/docs/troubleshooting/:path*", destination: "/docs/instalacion/instalacion", permanent: true },
       { source: "/docs/smartpos/mcp-productos", destination: "/docs/smartpos/configuracion", permanent: true },
+      { source: "/mi-negocio", destination: "/negocio", permanent: false },
+      { source: "/importar", destination: "/negocio", permanent: false },
+      { source: "/importar-productos", destination: "/negocio", permanent: false },
     ]
   },
 }

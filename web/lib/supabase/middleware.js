@@ -34,6 +34,7 @@ const PROTECTED_PREFIXES = [
   "/facturacion",
   "/clientes",
   "/proveedores",
+  "/negocio",
   "/settings",
   "/agent",
 ]

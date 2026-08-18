@@ -5,7 +5,7 @@ import { FileUp, Download } from "lucide-react"
 import { CSV_TEMPLATE } from "@/lib/productos/csv"
 import { importProductosCsv } from "@/app/(app)/productos/actions"
 
-export default function ProductCsvImport() {
+export default function ProductCsvImport({ returnTo = "/settings" }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -35,7 +35,8 @@ export default function ProductCsvImport() {
         return
       }
       form.reset()
-      window.location.href = `/settings?ok=importado&creados=${result.creados}&actualizados=${result.actualizados}&errores=${result.errores}`
+      const base = returnTo.split("?")[0]
+      window.location.href = `${base}?ok=importado&creados=${result.creados}&actualizados=${result.actualizados}&errores=${result.errores}`
     } catch (err) {
       setError(err?.message ?? "Error al importar.")
       setLoading(false)
@@ -57,14 +58,24 @@ export default function ProductCsvImport() {
             clave_sat, unidad_sat. Precios de venta incluyen IVA.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={downloadTemplate}
-          className="btn btn-ghost btn-sm gap-2 shrink-0 touch-manipulation"
-        >
-          <Download className="size-4" />
-          Plantilla
-        </button>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <a
+            href="/samples/inventas_4934_smartpos.csv"
+            download="inventas_4934_smartpos.csv"
+            className="btn btn-outline btn-sm gap-2 touch-manipulation"
+          >
+            <Download className="size-4" />
+            Tu catálogo (9.849)
+          </a>
+          <button
+            type="button"
+            onClick={downloadTemplate}
+            className="btn btn-ghost btn-sm gap-2 touch-manipulation"
+          >
+            <Download className="size-4" />
+            Plantilla vacía
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">

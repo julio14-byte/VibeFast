@@ -41,7 +41,7 @@ export default function ImportarProductosPanel() {
           esta plantilla.
         </p>
       </div>
-      <ProductCsvImport />
+      <ProductCsvImport returnTo="/negocio" />
       <p className="text-xs text-base-content/50">
         También disponible en{" "}
         <Link href="/settings" className="link link-primary">
