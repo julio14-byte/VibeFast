@@ -1,5 +1,12 @@
 // Formato de moneda y búsqueda de productos (cliente y servidor).
 
+export {
+  SAT_FORMAS_PAGO,
+  SAT_USOS_CFDI,
+  SAT_REGIMENES,
+  USO_CFDI_PUBLICO_GENERAL,
+} from "@/lib/sat/catalogos"
+
 export function formatPrecio(value) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -38,25 +45,3 @@ export function getPrecioVenta(producto, tipo = "publico") {
   }
   return Number(producto.precio_publico ?? producto.precio ?? 0)
 }
-
-// Catálogos SAT usados en la UI
-export const SAT_FORMAS_PAGO = [
-  { clave: "01", nombre: "Efectivo" },
-  { clave: "03", nombre: "Transferencia" },
-  { clave: "04", nombre: "Tarjeta de crédito" },
-  { clave: "28", nombre: "Tarjeta de débito" },
-]
-
-export const SAT_USOS_CFDI = [
-  { clave: "G01", nombre: "Adquisición de mercancías" },
-  { clave: "G03", nombre: "Gastos en general" },
-  { clave: "S01", nombre: "Sin efectos fiscales" },
-  { clave: "P01", nombre: "Por definir" },
-]
-
-export const SAT_REGIMENES = [
-  { clave: "601", nombre: "General de Ley Personas Morales" },
-  { clave: "612", nombre: "Personas Físicas con Actividades Empresariales" },
-  { clave: "616", nombre: "Sin obligaciones fiscales" },
-  { clave: "626", nombre: "Régimen Simplificado de Confianza" },
-]

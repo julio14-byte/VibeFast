@@ -51,6 +51,7 @@ function parseProductoForm(formData) {
   const precioPublicoRaw = formData.get("precio_publico")?.toString().trim()
   const stockRaw = formData.get("stock")?.toString().trim()
   const margenRaw = formData.get("margen_ganancia")?.toString().trim()
+  const margenMayoreoRaw = formData.get("margen_mayoreo")?.toString().trim()
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
@@ -64,6 +65,9 @@ function parseProductoForm(formData) {
   const margen_ganancia = margenRaw
     ? Number.parseFloat(margenRaw)
     : 30
+  const margen_mayoreo = margenMayoreoRaw
+    ? Number.parseFloat(margenMayoreoRaw)
+    : margen_ganancia
 
   if (
     !nombre ||
@@ -71,7 +75,8 @@ function parseProductoForm(formData) {
     codigoNum < 0 ||
     Number.isNaN(precio_publico) ||
     Number.isNaN(stock) ||
-    Number.isNaN(margen_ganancia)
+    Number.isNaN(margen_ganancia) ||
+    Number.isNaN(margen_mayoreo)
   ) {
     return null
   }
@@ -81,7 +86,9 @@ function parseProductoForm(formData) {
     precio_publico < 0 ||
     stock < 0 ||
     margen_ganancia < 0 ||
-    margen_ganancia > 1000
+    margen_ganancia > 1000 ||
+    margen_mayoreo < 0 ||
+    margen_mayoreo > 1000
   ) {
     return null
   }
@@ -94,6 +101,7 @@ function parseProductoForm(formData) {
     precio_mayoreo,
     precio_publico,
     margen_ganancia,
+    margen_mayoreo,
     stock,
     proveedor_id: null,
     clave_sat: claveSat,

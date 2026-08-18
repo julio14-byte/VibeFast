@@ -95,7 +95,13 @@ export default function ConsultaPreciosClient() {
               />
               {selected.margen_ganancia != null && (
                 <p className="text-xs text-base-content/55 pt-1">
-                  Margen configurado: {Number(selected.margen_ganancia)}%
+                  Margen menudeo: {Number(selected.margen_ganancia)}%
+                  {selected.margen_mayoreo != null && (
+                    <span>
+                      {" "}
+                      · Margen mayoreo: {Number(selected.margen_mayoreo)}%
+                    </span>
+                  )}
                 </p>
               )}
             </div>

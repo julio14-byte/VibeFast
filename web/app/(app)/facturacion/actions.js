@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { timbrarCfdi } from "@/lib/pac/sandbox"
 import { generarFacturaInterna } from "@/lib/facturacion/generarFacturaInterna"
+import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
 import { formatPrecio } from "@/lib/productos"
 import { sendCfdiEmail } from "@/lib/resend/send"
 import {
@@ -76,17 +77,33 @@ export async function guardarEmpresaFiscal(formData) {
 export async function generarFactura(formData) {
   try {
     const ventaId = formData.get("venta_id")?.toString()
-    const clienteId = formData.get("cliente_id")?.toString() || null
+    let clienteId = formData.get("cliente_id")?.toString() || null
+    const usoCfdiOverride = formData.get("uso_cfdi")?.toString().trim() || null
     const timbrar = formData.get("timbrar")?.toString() === "1"
     if (!ventaId) fail("Selecciona una venta.")
 
     const { supabase, user } = await requireUser()
+
+    if (!clienteId) {
+      const { data: empresa } = await supabase
+        .from("empresa_fiscal")
+        .select("codigo_postal")
+        .eq("user_id", user.id)
+        .maybeSingle()
+      const publico = await ensureClientePublicoGeneral(
+        supabase,
+        user.id,
+        empresa?.codigo_postal
+      )
+      clienteId = publico.id
+    }
 
     const factura = await generarFacturaInterna({
       supabase,
       userId: user.id,
       ventaId,
       clienteId,
+      usoCfdiOverride,
       timbrar,
     })
 

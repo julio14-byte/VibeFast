@@ -20,6 +20,8 @@ const HEADER_ALIASES = {
   inventario: "stock",
   margen_ganancia: "margen_ganancia",
   margen: "margen_ganancia",
+  margen_mayoreo: "margen_mayoreo",
+  margen_may: "margen_mayoreo",
   clave_sat: "clave_sat",
   unidad_sat: "unidad_sat",
 }
@@ -127,6 +129,9 @@ export function mapCsvRowToProducto(row, lineNumber) {
   const precio_compra = parseNumber(row.precio_compra) ?? 0
   const precio_mayoreo = parseNumber(row.precio_mayoreo) ?? 0
   const margen_ganancia = parseNumber(row.margen_ganancia) ?? 30
+  const margen_mayoreo =
+    parseNumber(row.margen_mayoreo) ??
+    Math.round(margen_ganancia * 0.85 * 10) / 10
 
   return {
     ok: true,
@@ -138,6 +143,7 @@ export function mapCsvRowToProducto(row, lineNumber) {
       precio_compra: precio_compra >= 0 ? precio_compra : 0,
       precio_mayoreo: precio_mayoreo >= 0 ? precio_mayoreo : 0,
       margen_ganancia: margen_ganancia >= 0 ? margen_ganancia : 30,
+      margen_mayoreo: margen_mayoreo >= 0 ? margen_mayoreo : 0,
       stock,
       clave_sat: row.clave_sat?.trim() || "01010101",
       unidad_sat: row.unidad_sat?.trim() || "H87",
@@ -145,7 +151,7 @@ export function mapCsvRowToProducto(row, lineNumber) {
   }
 }
 
-export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,stock,clave_sat,unidad_sat
+export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,margen_mayoreo,stock,clave_sat,unidad_sat
 Llave Stillson 20",2053,110.50,85.00,95.00,30,30,01010101,H87
 Tornillo hexagonal 1/4,1001,2.50,1.20,1.80,30,500,01010101,H87
 `

@@ -102,6 +102,18 @@ export async function deleteCliente(formData) {
     if (!id) fail("Falta el id.")
 
     const { supabase, user } = await requireUser()
+
+    const { data: cliente } = await supabase
+      .from("clientes")
+      .select("es_publico_general")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    if (cliente?.es_publico_general) {
+      fail("No se puede eliminar el cliente Público en general.")
+    }
+
     const { error } = await supabase
       .from("clientes")
       .delete()

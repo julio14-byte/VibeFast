@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { formatPrecio, SAT_REGIMENES } from "@/lib/productos"
+import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
+import { formatPrecio, SAT_REGIMENES, SAT_USOS_CFDI } from "@/lib/productos"
 import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
 import {
   guardarEmpresaFiscal,
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic"
 export default async function FacturacionPage({ searchParams }) {
   const supabase = await createClient()
   const params = await searchParams
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   const [empresaRes, facturasRes, ventasRes, clientesRes] = await Promise.all([
     supabase.from("empresa_fiscal").select("*").maybeSingle(),
@@ -38,14 +41,41 @@ export default async function FacturacionPage({ searchParams }) {
   const empresa = empresaRes.data
   const facturas = facturasRes.data ?? []
   const ventas = ventasRes.data ?? []
-  const clientes = clientesRes.data ?? []
+  let clientes = clientesRes.data ?? []
+
+  let clientePublicoGeneral = null
+  if (user) {
+    try {
+      clientePublicoGeneral = await ensureClientePublicoGeneral(
+        supabase,
+        user.id,
+        empresa?.codigo_postal
+      )
+      if (
+        clientePublicoGeneral &&
+        !clientes.some((c) => c.id === clientePublicoGeneral.id)
+      ) {
+        clientes = [clientePublicoGeneral, ...clientes]
+      }
+    } catch {
+      // migración 020 pendiente: sigue funcionando el fallback en generarFactura
+    }
+  }
+
+  const preselectVentaId = params?.venta_id?.toString()
+  const ventaPreselect = preselectVentaId
+    ? ventas.find((v) => v.id === preselectVentaId)
+    : null
+  const defaultClienteId =
+    ventaPreselect?.cliente_id ??
+    clientePublicoGeneral?.id ??
+    ""
 
   const formError = params?.error?.toString()
   const ok = params?.ok?.toString()
   const folioOk = params?.folio?.toString()
   const estadoOk = params?.estado?.toString()
   const waLink = params?.url?.toString()
-  const preselectVentaId = params?.venta_id?.toString()
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -147,7 +177,9 @@ export default async function FacturacionPage({ searchParams }) {
             aria-label="Régimen"
           >
             {SAT_REGIMENES.map((r) => (
-              <option key={r.clave} value={r.clave}>{r.nombre}</option>
+              <option key={r.clave} value={r.clave}>
+                {r.clave} — {r.nombre}
+              </option>
             ))}
           </select>
           <input
@@ -212,21 +244,38 @@ export default async function FacturacionPage({ searchParams }) {
                 </label>
                 <select
                   name="cliente_id"
-                  defaultValue={
-                    preselectVentaId
-                      ? ventas.find((v) => v.id === preselectVentaId)?.cliente_id ??
-                        ""
-                      : ""
-                  }
+                  defaultValue={defaultClienteId}
                   className="select select-bordered select-sm w-full"
                 >
-                  <option value="">Público en general</option>
                   {clientes.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.razon_social ?? c.nombre} — {c.rfc}
+                      {c.es_publico_general
+                        ? "Público en general"
+                        : c.razon_social ?? c.nombre}{" "}
+                      — {c.rfc}
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label py-0">
+                  <span className="label-text text-xs">Uso CFDI (opcional)</span>
+                </label>
+                <select
+                  name="uso_cfdi"
+                  defaultValue={clientePublicoGeneral?.uso_cfdi ?? "S01"}
+                  className="select select-bordered select-sm w-full"
+                >
+                  {SAT_USOS_CFDI.map((u) => (
+                    <option key={u.clave} value={u.clave}>
+                      {u.clave} — {u.nombre}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-base-content/55">
+                  Para ventas diarias al mostrador usa{" "}
+                  <strong>S01 — Sin efectos fiscales</strong> con Público en general.
+                </p>
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm">

@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { X } from "lucide-react"
 import {
   createProducto,
   updateProducto,
 } from "@/app/(app)/productos/actions"
-import { IVA_RATE, precioVentaConIva, round2 } from "@/lib/precios"
+import { precioVentaConIva } from "@/lib/precios"
 import SatCatalogSearch from "./SatCatalogSearch"
 
 function Field({ label, hint, required, children }) {
@@ -28,6 +28,14 @@ function Field({ label, hint, required, children }) {
 
 const DEFAULT_MARGEN = 30
 
+function defaultMargenMayoreo(producto, margenPublico) {
+  if (producto?.margen_mayoreo != null) {
+    return String(producto.margen_mayoreo)
+  }
+  const base = Number(producto?.margen_ganancia ?? margenPublico ?? DEFAULT_MARGEN)
+  return String(Math.round(base * 0.85 * 10) / 10)
+}
+
 export default function ProductoFormModal({
   open,
   onClose,
@@ -47,7 +55,10 @@ export default function ProductoFormModal({
   const [precioCompra, setPrecioCompra] = useState(
     initialCompra === "" ? "" : String(initialCompra)
   )
-  const [margen, setMargen] = useState(String(initialMargen))
+  const [margenPublico, setMargenPublico] = useState(String(initialMargen))
+  const [margenMayoreo, setMargenMayoreo] = useState(
+    defaultMargenMayoreo(producto, initialMargen)
+  )
   const [precioPublico, setPrecioPublico] = useState(
     initialPublico === "" ? "" : String(initialPublico)
   )
@@ -59,12 +70,14 @@ export default function ProductoFormModal({
 
   useEffect(() => {
     if (!open) return
+    const margen = producto?.margen_ganancia ?? DEFAULT_MARGEN
     setClaveSat(producto?.clave_sat ?? "01010101")
     setUnidadSat(producto?.unidad_sat ?? "H87")
     setPrecioCompra(
       producto?.precio_compra != null ? String(producto.precio_compra) : ""
     )
-    setMargen(String(producto?.margen_ganancia ?? DEFAULT_MARGEN))
+    setMargenPublico(String(margen))
+    setMargenMayoreo(defaultMargenMayoreo(producto, margen))
     setPrecioPublico(
       producto?.precio_publico != null || producto?.precio != null
         ? String(producto?.precio_publico ?? producto?.precio)
@@ -78,24 +91,20 @@ export default function ProductoFormModal({
   }, [open, producto])
 
   const compraNum = Number.parseFloat(precioCompra) || 0
-  const margenNum = Number.parseFloat(margen) || 0
-
-  const previewSinIva = useMemo(() => {
-    if (!compraNum) return 0
-    return round2(compraNum * (1 + margenNum / 100))
-  }, [compraNum, margenNum])
+  const margenPublicoNum = Number.parseFloat(margenPublico) || 0
+  const margenMayoreoNum = Number.parseFloat(margenMayoreo) || 0
 
   useEffect(() => {
     if (!compraNum || publicoManual) return
-    const conIva = precioVentaConIva(compraNum, margenNum)
+    const conIva = precioVentaConIva(compraNum, margenPublicoNum)
     setPrecioPublico(String(conIva))
-  }, [compraNum, margenNum, publicoManual])
+  }, [compraNum, margenPublicoNum, publicoManual])
 
   useEffect(() => {
     if (!compraNum || mayoreoManual) return
-    const conIva = precioVentaConIva(compraNum, margenNum * 0.85)
+    const conIva = precioVentaConIva(compraNum, margenMayoreoNum)
     setPrecioMayoreo(String(conIva))
-  }, [compraNum, margenNum, mayoreoManual])
+  }, [compraNum, margenMayoreoNum, mayoreoManual])
 
   if (!open) return null
 
@@ -108,7 +117,7 @@ export default function ProductoFormModal({
               {isEdit ? "Editar producto" : "Nuevo producto"}
             </h2>
             <p className="text-sm text-base-content/60">
-              Compra sin IVA · venta con IVA incluido ({Math.round(IVA_RATE * 100)}%).
+              Costo sin IVA · precios de venta con IVA incluido.
             </p>
           </div>
           <button
@@ -170,12 +179,12 @@ export default function ProductoFormModal({
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Costo y margen
+              Costo y márgenes
             </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <Field
                 label="Precio de compra (sin IVA)"
-                hint="Costo neto del proveedor, antes de IVA."
+                hint="Costo neto del proveedor."
               >
                 <input
                   name="precio_compra"
@@ -189,8 +198,8 @@ export default function ProductoFormModal({
                 />
               </Field>
               <Field
-                label="Margen de ganancia (%)"
-                hint="Sobre compra sin IVA. Ajusta manualmente; recalcula precios de venta."
+                label="Margen menudeo (%)"
+                hint="Calcula el precio público desde el costo."
               >
                 <input
                   name="margen_ganancia"
@@ -198,20 +207,29 @@ export default function ProductoFormModal({
                   min="0"
                   max="1000"
                   step="0.1"
-                  value={margen}
-                  onChange={(e) => setMargen(e.target.value)}
+                  value={margenPublico}
+                  onChange={(e) => setMargenPublico(e.target.value)}
                   className="input input-bordered w-full"
                   placeholder="30"
                 />
               </Field>
+              <Field
+                label="Margen mayoreo (%)"
+                hint="Calcula el precio mayoreo desde el costo."
+              >
+                <input
+                  name="margen_mayoreo"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="0.1"
+                  value={margenMayoreo}
+                  onChange={(e) => setMargenMayoreo(e.target.value)}
+                  className="input input-bordered w-full"
+                  placeholder="25"
+                />
+              </Field>
             </div>
-            {compraNum > 0 && (
-              <p className="text-xs text-base-content/55 rounded-lg bg-base-200/50 px-3 py-2">
-                Base sin IVA con margen {margenNum}%:{" "}
-                <strong>${previewSinIva.toFixed(2)}</strong> → con IVA:{" "}
-                <strong>${precioVentaConIva(compraNum, margenNum).toFixed(2)}</strong>
-              </p>
-            )}
           </section>
 
           <section className="space-y-3">
@@ -220,8 +238,8 @@ export default function ProductoFormModal({
             </h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
-                label="Precio público / menudeo (con IVA)"
-                hint="Precio en mostrador. Editable; se calcula desde compra + margen."
+                label="Precio público / menudeo"
+                hint="Editable; se recalcula al cambiar costo o margen menudeo."
                 required
               >
                 <input
@@ -240,8 +258,8 @@ export default function ProductoFormModal({
                 />
               </Field>
               <Field
-                label="Precio mayoreo (con IVA)"
-                hint="Para clientes de mayoreo. Editable; por defecto ~85% del margen público."
+                label="Precio mayoreo"
+                hint="Editable; se recalcula al cambiar costo o margen mayoreo."
               >
                 <input
                   name="precio_mayoreo"

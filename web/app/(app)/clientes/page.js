@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { SAT_REGIMENES, SAT_USOS_CFDI } from "@/lib/productos"
+import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
 import { createCliente, updateCliente, deleteCliente } from "./actions"
 
 export const metadata = { title: "Clientes · SmartPOS" }
@@ -9,10 +10,40 @@ export const dynamic = "force-dynamic"
 
 export default async function ClientesPage({ searchParams }) {
   const supabase = await createClient()
-  const { data: clientes, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { data: empresa } = await supabase
+    .from("empresa_fiscal")
+    .select("codigo_postal")
+    .maybeSingle()
+
+  if (user) {
+    try {
+      await ensureClientePublicoGeneral(
+        supabase,
+        user.id,
+        empresa?.codigo_postal
+      )
+    } catch {
+      // migración 020 pendiente
+    }
+  }
+
+  const { data: clientesRaw, error } = await supabase
     .from("clientes")
     .select("*")
     .order("razon_social", { ascending: true })
+
+  const clientes = [...(clientesRaw ?? [])].sort((a, b) => {
+    if (a.es_publico_general && !b.es_publico_general) return -1
+    if (!a.es_publico_general && b.es_publico_general) return 1
+    return (a.razon_social ?? a.nombre ?? "").localeCompare(
+      b.razon_social ?? b.nombre ?? "",
+      "es"
+    )
+  })
 
   const params = await searchParams
   const editId = params?.edit?.toString()
@@ -27,10 +58,10 @@ export default async function ClientesPage({ searchParams }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-          <p className="mt-1 text-sm text-base-content/70">
-            RFC, razón social, dirección y correo para ventas y facturación
-            electrónica SAT.
-          </p>
+        <p className="mt-1 text-sm text-base-content/70">
+          RFC, razón social y datos para facturar. Incluye{" "}
+          <strong>Público en general</strong> para ventas diarias de mostrador.
+        </p>
         </div>
         <Link href="/facturacion" className="btn btn-outline btn-sm">
           Facturación
@@ -60,22 +91,34 @@ export default async function ClientesPage({ searchParams }) {
           <input type="hidden" name="id" value={editCliente.id} />
         )}
         <p className="text-sm font-medium">
-          {editCliente ? "Editar cliente" : "Nuevo cliente"}
+          {editCliente
+            ? editCliente.es_publico_general
+              ? "Editar Público en general"
+              : "Editar cliente"
+            : "Nuevo cliente"}
         </p>
+        {editCliente?.es_publico_general && (
+          <p className="text-xs text-base-content/60">
+            Cliente genérico SAT ({editCliente.rfc}). Usa el mismo código postal
+            que tu emisor en Facturación.
+          </p>
+        )}
         <div className="grid gap-2 sm:grid-cols-2">
           <input
             name="razon_social"
             required
             placeholder="Razón social"
             defaultValue={editCliente?.razon_social ?? editCliente?.nombre ?? ""}
-            className="input input-bordered input-sm"
+            readOnly={Boolean(editCliente?.es_publico_general)}
+            className="input input-bordered input-sm read-only:bg-base-200"
             aria-label="Razón social"
           />
           <input
             name="nombre"
             placeholder="Nombre corto (opcional)"
             defaultValue={editCliente?.nombre ?? ""}
-            className="input input-bordered input-sm"
+            readOnly={Boolean(editCliente?.es_publico_general)}
+            className="input input-bordered input-sm read-only:bg-base-200"
             aria-label="Nombre"
           />
           <input
@@ -83,7 +126,8 @@ export default async function ClientesPage({ searchParams }) {
             required
             placeholder="RFC"
             defaultValue={editCliente?.rfc ?? ""}
-            className="input input-bordered input-sm font-mono"
+            readOnly={Boolean(editCliente?.es_publico_general)}
+            className="input input-bordered input-sm font-mono read-only:bg-base-200"
             aria-label="RFC"
           />
           <input
@@ -131,7 +175,10 @@ export default async function ClientesPage({ searchParams }) {
           </select>
           <select
             name="uso_cfdi"
-            defaultValue={editCliente?.uso_cfdi ?? "G03"}
+            defaultValue={
+              editCliente?.uso_cfdi ??
+              (editCliente?.es_publico_general ? "S01" : "G03")
+            }
             className="select select-bordered select-sm"
             aria-label="Uso CFDI"
           >
@@ -142,6 +189,7 @@ export default async function ClientesPage({ searchParams }) {
             ))}
           </select>
         </div>
+        {!editCliente?.es_publico_general && (
         <label className="flex items-start gap-3 rounded-lg border border-base-200 bg-base-200/30 p-3 cursor-pointer">
           <input
             type="checkbox"
@@ -159,6 +207,7 @@ export default async function ClientesPage({ searchParams }) {
             </span>
           </span>
         </label>
+        )}
         <div className="flex gap-2">
           <button type="submit" className="btn btn-primary btn-sm">
             {editCliente ? "Guardar" : "Agregar cliente"}
@@ -200,6 +249,11 @@ export default async function ClientesPage({ searchParams }) {
                 <tr key={c.id}>
                   <td className="font-medium">
                     {c.razon_social ?? c.nombre}
+                    {c.es_publico_general && (
+                      <span className="ml-2 badge badge-xs badge-outline">
+                        Mostrador
+                      </span>
+                    )}
                   </td>
                   <td className="font-mono text-sm">{c.rfc}</td>
                   <td>
@@ -229,8 +283,14 @@ export default async function ClientesPage({ searchParams }) {
                         <input type="hidden" name="id" value={c.id} />
                         <button
                           type="submit"
-                          className="btn btn-ghost btn-sm btn-square text-error"
+                          disabled={c.es_publico_general}
+                          className="btn btn-ghost btn-sm btn-square text-error disabled:opacity-30"
                           aria-label="Eliminar"
+                          title={
+                            c.es_publico_general
+                              ? "No se puede eliminar Público en general"
+                              : "Eliminar"
+                          }
                         >
                           <Trash2 className="size-4" />
                         </button>

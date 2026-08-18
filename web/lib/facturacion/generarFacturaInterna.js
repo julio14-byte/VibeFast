@@ -1,5 +1,9 @@
 import { calcularTotalesDesdePreciosConIva, generarCfdiXml } from "@/lib/cfdi"
 import { timbrarCfdi } from "@/lib/pac/sandbox"
+import {
+  CLIENTE_PUBLICO_GENERAL_DEFAULTS,
+  ensureClientePublicoGeneral,
+} from "@/lib/clientes/publicoGeneral"
 
 function mapCliente(c, empresaCp) {
   return {
@@ -21,6 +25,7 @@ export async function generarFacturaInterna({
   userId,
   ventaId,
   clienteId = null,
+  usoCfdiOverride = null,
   timbrar = false,
 }) {
   const { data: empresa } = await supabase
@@ -42,22 +47,36 @@ export async function generarFacturaInterna({
 
   if (vErr || !venta) throw new Error("Venta no encontrada.")
 
-  let cliente = {
-    nombre: "Público en general",
-    rfc: "XAXX010101000",
-    regimen_fiscal: "616",
-    codigo_postal: empresa.codigo_postal,
-    uso_cfdi: "S01",
+  let resolvedClienteId = clienteId
+
+  if (!resolvedClienteId) {
+    const publico = await ensureClientePublicoGeneral(
+      supabase,
+      userId,
+      empresa.codigo_postal
+    )
+    resolvedClienteId = publico.id
   }
 
-  if (clienteId) {
-    const { data: c } = await supabase
-      .from("clientes")
-      .select("*")
-      .eq("id", clienteId)
-      .eq("user_id", userId)
-      .single()
-    if (c) cliente = mapCliente(c, empresa.codigo_postal)
+  let cliente = {
+    nombre: CLIENTE_PUBLICO_GENERAL_DEFAULTS.razon_social,
+    rfc: CLIENTE_PUBLICO_GENERAL_DEFAULTS.rfc,
+    regimen_fiscal: CLIENTE_PUBLICO_GENERAL_DEFAULTS.regimen_fiscal,
+    codigo_postal: empresa.codigo_postal,
+    uso_cfdi: CLIENTE_PUBLICO_GENERAL_DEFAULTS.uso_cfdi,
+  }
+
+  const { data: c } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("id", resolvedClienteId)
+    .eq("user_id", userId)
+    .single()
+
+  if (c) cliente = mapCliente(c, empresa.codigo_postal)
+
+  if (usoCfdiOverride) {
+    cliente = { ...cliente, uso_cfdi: usoCfdiOverride }
   }
 
   const folio = empresa.folio_actual
@@ -106,7 +125,7 @@ export async function generarFacturaInterna({
     .insert({
       user_id: userId,
       venta_id: venta.id,
-      cliente_id: clienteId,
+      cliente_id: resolvedClienteId,
       serie,
       folio,
       uuid_cfdi,
