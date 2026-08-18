@@ -27,6 +27,9 @@ export default function TicketView({ ticket, autoPrint = false }) {
         <Link href="/ventas" className="btn btn-outline btn-sm">
           Volver a ventas
         </Link>
+        <Link href="/negocio" className="btn btn-ghost btn-sm">
+          Editar ticket
+        </Link>
       </div>
 
       <div
@@ -34,8 +37,14 @@ export default function TicketView({ ticket, autoPrint = false }) {
         className="ticket-80mm mx-auto bg-white p-3 font-mono text-[11px] leading-tight text-black shadow-lg print:shadow-none"
       >
         <p className="text-center text-sm font-bold">{ticket.titulo}</p>
+        {ticket.textoExtra && (
+          <p className="text-center text-[10px]">{ticket.textoExtra}</p>
+        )}
         {ticket.direccion && (
           <p className="text-center text-[10px]">{ticket.direccion}</p>
+        )}
+        {ticket.telefono && (
+          <p className="text-center text-[10px]">Tel: {ticket.telefono}</p>
         )}
         {ticket.rfc && (
           <p className="text-center text-[10px]">RFC: {ticket.rfc}</p>
@@ -60,20 +69,32 @@ export default function TicketView({ ticket, autoPrint = false }) {
           </div>
         ))}
         <p className="my-2 border-t border-dashed border-gray-400" />
-        <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>{formatPrecio(ticket.subtotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>IVA</span>
-          <span>{formatPrecio(ticket.iva)}</span>
-        </div>
+        {ticket.mostrarIva && (
+          <>
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>{formatPrecio(ticket.subtotal)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>IVA</span>
+              <span>{formatPrecio(ticket.iva)}</span>
+            </div>
+          </>
+        )}
         <div className="flex justify-between text-sm font-bold">
           <span>TOTAL</span>
           <span>{formatPrecio(ticket.total)}</span>
         </div>
+        {ticket.mostrarFormaPago && ticket.formaPagoLabel && (
+          <p className="mt-1 text-[10px]">Pago: {ticket.formaPagoLabel}</p>
+        )}
+        {ticket.notas && (
+          <p className="mt-1 text-[10px]">Notas: {ticket.notas}</p>
+        )}
         <p className="my-2 border-t border-dashed border-gray-400" />
-        <p className="text-center text-[10px]">¡Gracias por su compra!</p>
+        <p className="text-center text-[10px]">
+          {ticket.mensajePie || "¡Gracias por su compra!"}
+        </p>
       </div>
     </>
   )

@@ -35,6 +35,11 @@ export const NAV_SECTIONS = [
     title: "Clientes y facturas",
     items: [
       {
+        href: "/negocio",
+        label: "Mi negocio",
+        hint: "Datos de la ferretería y ticket",
+      },
+      {
         href: "/clientes",
         label: "Clientes",
         hint: "Datos para vender y facturar",

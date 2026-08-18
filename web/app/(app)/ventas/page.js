@@ -36,7 +36,7 @@ export default async function VentasPage({ searchParams }) {
       <PageHeader
         title="Cobrar venta"
         lead="1) Busca el producto. 2) Toca para agregarlo. 3) Pulsa «Cobrar venta» cuando termines."
-        tip="Si no sabes el nombre, escribe parte del código o pregunta en el Chat del menú."
+        tip="Si no has configurado tu ferretería, entra primero a Mi negocio en el menú."
         actions={
           <>
             <Link

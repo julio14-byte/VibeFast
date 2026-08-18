@@ -25,51 +25,6 @@ function fail(message) {
   redirect(`${BASE}?error=${encodeURIComponent(message)}`)
 }
 
-export async function guardarEmpresaFiscal(formData) {
-  try {
-    const { supabase, user, organizationId } = await requireUser()
-
-    const data = {
-      rfc: formData.get("rfc")?.toString().trim().toUpperCase() || "",
-      razon_social: formData.get("razon_social")?.toString().trim() || "",
-      regimen_fiscal: formData.get("regimen_fiscal")?.toString() || "612",
-      codigo_postal: formData.get("codigo_postal")?.toString().trim() || "",
-      direccion: formData.get("direccion")?.toString().trim() || null,
-      serie_factura: formData.get("serie_factura")?.toString().trim() || "A",
-    }
-
-    const { data: existing } = await supabase
-      .from("empresa_fiscal")
-      .select("id")
-      .eq("organization_id", organizationId)
-      .maybeSingle()
-
-    let error
-    if (existing) {
-      const res = await supabase
-        .from("empresa_fiscal")
-        .update(data)
-        .eq("organization_id", organizationId)
-      error = res.error
-    } else {
-      const res = await supabase.from("empresa_fiscal").insert({
-        user_id: user.id,
-        organization_id: organizationId,
-        ...data,
-      })
-      error = res.error
-    }
-
-    if (error) fail(error.message)
-
-    revalidatePath(BASE)
-    redirect(`${BASE}?ok=fiscal`)
-  } catch (err) {
-    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
-    fail(err?.message)
-  }
-}
-
 export async function generarFactura(formData) {
   try {
     const ventaId = formData.get("venta_id")?.toString()

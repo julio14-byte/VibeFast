@@ -1,4 +1,5 @@
 import { formatPrecio } from "./productos"
+import { formaPagoLabel, getTicketConfig } from "./negocio/empresa"
 
 export function buildTicketData({
   venta,
@@ -6,23 +7,27 @@ export function buildTicketData({
   empresa,
   cliente,
 }) {
+  const cfg = getTicketConfig(empresa)
   const fecha = new Date(venta.created_at).toLocaleString("es-MX", {
     dateStyle: "short",
     timeStyle: "short",
   })
 
   return {
-    titulo: empresa?.razon_social || "SmartPOS Ferretería",
-    direccion: empresa?.direccion || "",
-    rfc: empresa?.rfc || "",
+    titulo: cfg.titulo,
+    direccion: cfg.mostrarDireccion ? empresa?.direccion || "" : "",
+    telefono: cfg.mostrarTelefono ? empresa?.telefono || "" : "",
+    rfc: cfg.mostrarRfc ? empresa?.rfc || "" : "",
+    textoExtra: cfg.textoExtra,
     folio: venta.folio,
     fecha,
-    cliente: cliente
-      ? {
-          nombre: cliente.razon_social ?? cliente.nombre,
-          rfc: cliente.rfc,
-        }
-      : null,
+    cliente:
+      cfg.mostrarCliente && cliente
+        ? {
+            nombre: cliente.razon_social ?? cliente.nombre,
+            rfc: cliente.rfc,
+          }
+        : null,
     items: items.map((i) => ({
       nombre: i.nombre,
       cantidad: i.cantidad,
@@ -33,14 +38,20 @@ export function buildTicketData({
     iva: Number(venta.iva),
     total: Number(venta.total),
     formaPago: venta.forma_pago,
+    formaPagoLabel: formaPagoLabel(venta.forma_pago),
     notas: venta.notas,
+    mostrarIva: cfg.mostrarIva,
+    mostrarFormaPago: cfg.mostrarFormaPago,
+    mensajePie: cfg.mensajePie,
   }
 }
 
 export function formatTicketLines(data) {
   const lines = []
   lines.push(data.titulo)
+  if (data.textoExtra) lines.push(data.textoExtra)
   if (data.direccion) lines.push(data.direccion)
+  if (data.telefono) lines.push(`Tel: ${data.telefono}`)
   if (data.rfc) lines.push(`RFC: ${data.rfc}`)
   lines.push("--------------------------------")
   lines.push(`Ticket #${data.folio}`)
@@ -57,11 +68,17 @@ export function formatTicketLines(data) {
     )
   }
   lines.push("--------------------------------")
-  lines.push(`Subtotal: ${formatPrecio(data.subtotal)}`)
-  lines.push(`IVA:      ${formatPrecio(data.iva)}`)
+  if (data.mostrarIva) {
+    lines.push(`Subtotal: ${formatPrecio(data.subtotal)}`)
+    lines.push(`IVA:      ${formatPrecio(data.iva)}`)
+  }
   lines.push(`TOTAL:    ${formatPrecio(data.total)}`)
+  if (data.mostrarFormaPago && data.formaPagoLabel) {
+    lines.push(`Pago: ${data.formaPagoLabel}`)
+  }
+  if (data.notas) lines.push(`Notas: ${data.notas}`)
   lines.push("--------------------------------")
-  lines.push("¡Gracias por su compra!")
+  lines.push(data.mensajePie || "¡Gracias por su compra!")
   return lines
 }
 

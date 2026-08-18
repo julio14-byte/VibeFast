@@ -7,6 +7,7 @@ import {
   FileText,
   MessageSquare,
   Bot,
+  Store,
   Settings,
   ClipboardList,
   Tags,
@@ -20,6 +21,7 @@ export const NAV_ICONS = {
   "/productos": PackageSearch,
   "/inventario": Boxes,
   "/clientes": Users,
+  "/negocio": Store,
   "/facturacion": FileText,
   "/chat": MessageSquare,
   "/agent": Bot,
@@ -38,6 +40,7 @@ export function navShortLabel(href, fallback = "") {
     "/productos": "Productos",
     "/inventario": "Existencias",
     "/clientes": "Clientes",
+    "/negocio": "Negocio",
     "/facturacion": "Facturas",
     "/agent": "Asistente",
   }

@@ -156,7 +156,11 @@ export default async function SettingsPage({ searchParams }) {
       ) : null}
 
       <p className="text-sm text-base-content/55">
-        Datos de tu negocio para facturas en{" "}
+        Datos fiscales y ticket en{" "}
+        <Link href="/negocio" className="link link-primary">
+          Mi negocio
+        </Link>
+        . Facturas en{" "}
         <Link href="/facturacion" className="link link-primary">
           Facturas
         </Link>

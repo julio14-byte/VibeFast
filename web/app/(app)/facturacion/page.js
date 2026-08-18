@@ -2,10 +2,10 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
 import { getMembershipForUser } from "@/lib/organization/context"
-import { formatPrecio, SAT_REGIMENES, SAT_USOS_CFDI } from "@/lib/productos"
+import { formatPrecio, SAT_USOS_CFDI } from "@/lib/productos"
 import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
+import { empresaConfigurada } from "@/lib/negocio/empresa"
 import {
-  guardarEmpresaFiscal,
   generarFactura,
   timbrarFactura,
 } from "./actions"
@@ -96,8 +96,8 @@ export default async function FacturacionPage({ searchParams }) {
           <Link href="/clientes" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Clientes
           </Link>
-          <Link href="/settings" className="btn btn-outline btn-sm flex-1 sm:flex-none">
-            Configuración
+          <Link href="/negocio" className="btn btn-outline btn-sm flex-1 sm:flex-none">
+            Mi negocio
           </Link>
           <Link href="/ventas" className="btn btn-outline btn-sm flex-1 sm:flex-none">
             Ventas
@@ -156,63 +156,32 @@ export default async function FacturacionPage({ searchParams }) {
         </div>
       )}
 
+      {!empresaConfigurada(empresa) && (
+        <div role="alert" className="alert alert-warning">
+          <span>
+            Configura los datos fiscales en{" "}
+            <Link href="/negocio" className="link font-semibold">
+              Mi negocio
+            </Link>{" "}
+            antes de generar facturas.
+          </span>
+        </div>
+      )}
+
       <section className="rounded-box border border-base-200 bg-base-100 p-4">
-        <h2 className="font-semibold mb-3">Datos fiscales del emisor</h2>
-        <form action={guardarEmpresaFiscal} className="grid gap-2 sm:grid-cols-2">
-          <input
-            name="rfc"
-            required
-            placeholder="RFC"
-            defaultValue={empresa?.rfc ?? ""}
-            className="input input-bordered input-sm"
-            aria-label="RFC"
-          />
-          <input
-            name="razon_social"
-            required
-            placeholder="Razón social"
-            defaultValue={empresa?.razon_social ?? ""}
-            className="input input-bordered input-sm"
-            aria-label="Razón social"
-          />
-          <select
-            name="regimen_fiscal"
-            defaultValue={empresa?.regimen_fiscal ?? "612"}
-            className="select select-bordered select-sm"
-            aria-label="Régimen"
-          >
-            {SAT_REGIMENES.map((r) => (
-              <option key={r.clave} value={r.clave}>
-                {r.clave} — {r.nombre}
-              </option>
-            ))}
-          </select>
-          <input
-            name="codigo_postal"
-            required
-            placeholder="Código postal"
-            defaultValue={empresa?.codigo_postal ?? ""}
-            className="input input-bordered input-sm"
-            aria-label="CP"
-          />
-          <input
-            name="direccion"
-            placeholder="Dirección"
-            defaultValue={empresa?.direccion ?? ""}
-            className="input input-bordered input-sm sm:col-span-2"
-            aria-label="Dirección"
-          />
-          <input
-            name="serie_factura"
-            placeholder="Serie"
-            defaultValue={empresa?.serie_factura ?? "A"}
-            className="input input-bordered input-sm w-24"
-            aria-label="Serie"
-          />
-          <button type="submit" className="btn btn-primary btn-sm">
-            Guardar emisor
-          </button>
-        </form>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Datos del emisor</h2>
+            <p className="text-sm text-base-content/60 mt-1">
+              {empresa?.razon_social
+                ? `${empresa.razon_social} · RFC ${empresa.rfc ?? "—"} · CP ${empresa.codigo_postal ?? "—"}`
+                : "Aún no has registrado tu ferretería."}
+            </p>
+          </div>
+          <Link href="/negocio" className="btn btn-primary btn-sm">
+            {empresa?.rfc ? "Editar negocio" : "Configurar negocio"}
+          </Link>
+        </div>
       </section>
 
       <section className="rounded-box border border-base-200 bg-base-100 p-4">
