@@ -152,6 +152,20 @@ export function mapCsvRowToProducto(row, lineNumber) {
 }
 
 export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,margen_mayoreo,stock,clave_sat,unidad_sat
-Llave Stillson 20",2053,110.50,85.00,95.00,30,30,01010101,H87
-Tornillo hexagonal 1/4,1001,2.50,1.20,1.80,30,500,01010101,H87
+Llave Stillson 20 pulg,2053,110.50,85.00,95.00,30,25,12,01010101,H87
+Tornillo hexagonal 1/4,1001,2.50,1.20,1.80,30,25,500,01010101,H87
 `
+
+/** Columnas aceptadas y aliases (para guía de importación desde Excel). */
+export const CSV_COLUMN_GUIDE = [
+  { columna: "nombre", obligatorio: true, aliases: "producto, descripcion, titulo" },
+  { columna: "codigo", obligatorio: true, aliases: "sku, cod (número entero único)" },
+  { columna: "precio_publico", obligatorio: true, aliases: "precio (con IVA incluido)" },
+  { columna: "stock", obligatorio: false, aliases: "existencia, inventario (default 0)" },
+  { columna: "precio_compra", obligatorio: false, aliases: "costo sin IVA" },
+  { columna: "precio_mayoreo", obligatorio: false, aliases: "precio mayoreo con IVA" },
+  { columna: "margen_ganancia", obligatorio: false, aliases: "margen % menudeo (default 30)" },
+  { columna: "margen_mayoreo", obligatorio: false, aliases: "margen % mayoreo" },
+  { columna: "clave_sat", obligatorio: false, aliases: "default 01010101" },
+  { columna: "unidad_sat", obligatorio: false, aliases: "H87 = pieza" },
+]

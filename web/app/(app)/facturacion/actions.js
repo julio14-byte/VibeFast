@@ -13,6 +13,7 @@ import {
   sendWhatsAppCloudMessage,
 } from "@/lib/whatsapp"
 import { requireOrgContext } from "@/lib/organization/context"
+import { generarFacturaGlobalDelDia } from "@/lib/facturacion/facturaGlobal"
 import config from "@/config"
 
 const BASE = "/facturacion"
@@ -252,5 +253,32 @@ export async function enviarCfdiPorWhatsApp(formData) {
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message)
+  }
+}
+
+export async function generarFacturaGlobal(formData) {
+  try {
+    const fecha = formData.get("fecha")?.toString().trim()
+    const timbrar = formData.get("timbrar")?.toString() === "1"
+
+    if (!fecha) fail("Indica la fecha del día a facturar.")
+
+    const { supabase, user, organizationId } = await requireUser()
+
+    const { factura, ventasCount } = await generarFacturaGlobalDelDia({
+      supabase,
+      userId: user.id,
+      organizationId,
+      fecha,
+      timbrar,
+    })
+
+    revalidatePath(BASE)
+    redirect(
+      `${BASE}?ok=global&folio=${factura.folio}&ventas=${ventasCount}&estado=${factura.estado}&factura_id=${factura.id}`
+    )
+  } catch (err) {
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
+    fail(err?.message ?? "Error al generar factura global.")
   }
 }

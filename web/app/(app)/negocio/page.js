@@ -3,6 +3,7 @@ import { createClient, getUser } from "@/lib/supabase/server"
 import PageHeader from "@/components/ui/PageHeader"
 import NegocioForm from "@/components/negocio/NegocioForm"
 import TicketPreview from "@/components/negocio/TicketPreview"
+import ImportarProductosPanel from "@/components/negocio/ImportarProductosPanel"
 import {
   empresaConfigurada,
   getEmpresaForOrganization,
@@ -95,6 +96,8 @@ export default async function NegocioPage({ searchParams }) {
           </p>
         </aside>
       </div>
+
+      <ImportarProductosPanel />
     </div>
   )
 }

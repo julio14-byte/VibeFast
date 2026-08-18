@@ -5,6 +5,9 @@ import { getMembershipForUser } from "@/lib/organization/context"
 import { formatPrecio, SAT_USOS_CFDI } from "@/lib/productos"
 import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
 import { empresaConfigurada } from "@/lib/negocio/empresa"
+import { resumenVentasGlobalPendientes } from "@/lib/facturacion/facturaGlobal"
+import { formatDateInput } from "@/lib/fechas/mexico"
+import FacturaGlobalPanel from "@/components/facturacion/FacturaGlobalPanel"
 import {
   generarFactura,
   timbrarFactura,
@@ -24,13 +27,14 @@ export default async function FacturacionPage({ searchParams }) {
     supabase
       .from("facturas")
       .select(
-        "id, serie, folio, total, estado, rfc_receptor, uuid_cfdi, created_at, cliente_id, email_enviado_at, whatsapp_enviado_at, cliente:clientes(email, telefono, razon_social, nombre)"
+        "id, serie, folio, total, estado, rfc_receptor, uuid_cfdi, created_at, cliente_id, email_enviado_at, whatsapp_enviado_at, es_global, periodo_fecha, ventas_incluidas, cliente:clientes(email, telefono, razon_social, nombre)"
       )
       .order("created_at", { ascending: false })
       .limit(20),
     supabase
       .from("ventas")
-      .select("id, folio, total, created_at, cliente_id")
+      .select("id, folio, total, created_at, cliente_id, factura_id")
+      .is("factura_id", null)
       .order("created_at", { ascending: false })
       .limit(20),
     supabase
@@ -80,7 +84,25 @@ export default async function FacturacionPage({ searchParams }) {
   const ok = params?.ok?.toString()
   const folioOk = params?.folio?.toString()
   const estadoOk = params?.estado?.toString()
+  const ventasGlobalOk = params?.ventas?.toString()
   const waLink = params?.url?.toString()
+
+  let resumenGlobal = null
+  if (user) {
+    const membership = await getMembershipForUser(supabase, user.id)
+    if (membership?.organizationId) {
+      const fechaResumen = params?.fecha?.toString() || formatDateInput()
+      try {
+        resumenGlobal = await resumenVentasGlobalPendientes(
+          supabase,
+          membership.organizationId,
+          fechaResumen
+        )
+      } catch {
+        resumenGlobal = null
+      }
+    }
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -113,9 +135,12 @@ export default async function FacturacionPage({ searchParams }) {
           <span>{formError}</span>
         </div>
       )}
-      {ok === "fiscal" && (
+      {ok === "global" && (
         <div role="alert" className="alert alert-success">
-          <span>Datos fiscales guardados.</span>
+          <span>
+            Factura global folio {folioOk} — {ventasGlobalOk} ventas incluidas —
+            estado: {estadoOk ?? "pendiente"}
+          </span>
         </div>
       )}
       {ok === "factura" && (
@@ -184,8 +209,12 @@ export default async function FacturacionPage({ searchParams }) {
         </div>
       </section>
 
+      {empresaConfigurada(empresa) && (
+        <FacturaGlobalPanel resumen={resumenGlobal} />
+      )}
+
       <section className="rounded-box border border-base-200 bg-base-100 p-4">
-        <h2 className="font-semibold mb-3">Generar factura de venta</h2>
+        <h2 className="font-semibold mb-3">Generar factura de una venta</h2>
         {ventas.length === 0 ? (
           <p className="text-sm text-base-content/60">
             Registra una venta en{" "}
@@ -292,7 +321,14 @@ export default async function FacturacionPage({ searchParams }) {
               <tbody>
                 {facturas.map((f) => (
                   <tr key={f.id}>
-                    <td className="font-mono">{f.serie}-{f.folio}</td>
+                    <td className="font-mono">
+                      {f.serie}-{f.folio}
+                      {f.es_global && (
+                        <span className="badge badge-outline badge-xs ml-1">
+                          Global{f.ventas_incluidas ? ` · ${f.ventas_incluidas}v` : ""}
+                        </span>
+                      )}
+                    </td>
                     <td className="font-mono text-sm">{f.rfc_receptor}</td>
                     <td className="text-xs font-mono max-w-[120px] truncate">
                       {f.uuid_cfdi ?? "—"}

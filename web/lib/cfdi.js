@@ -12,6 +12,7 @@ export function generarCfdiXml({
   formaPago = "01",
   metodoPago = "PUE",
   usoCfdi = "G03",
+  informacionGlobal = null,
 }) {
   const lineasConIva = conceptos.map((c) => ({
     cantidad: c.cantidad,
@@ -19,6 +20,10 @@ export function generarCfdiXml({
   }))
   const { subtotal, iva, total } = calcularTotalesPreciosConIva(lineasConIva)
   const fecha = new Date().toISOString().slice(0, 19)
+
+  const infoGlobalXml = informacionGlobal
+    ? `\n  <cfdi:InformacionGlobal Periodicidad="${informacionGlobal.periodicidad}" Meses="${informacionGlobal.meses}" Año="${informacionGlobal.anio}"/>`
+    : ""
 
   const conceptosXml = conceptos
     .map((c) => {
@@ -29,7 +34,7 @@ export function generarCfdiXml({
     .join("\n    ")
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" Serie="${serie}" Folio="${folio}" Fecha="${fecha}" FormaPago="${formaPago}" MetodoPago="${metodoPago}" SubTotal="${subtotal.toFixed(2)}" Total="${total.toFixed(2)}" Moneda="MXN" TipoDeComprobante="I" Exportacion="01" LugarExpedicion="${emisor.codigo_postal}">
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" Serie="${serie}" Folio="${folio}" Fecha="${fecha}" FormaPago="${formaPago}" MetodoPago="${metodoPago}" SubTotal="${subtotal.toFixed(2)}" Total="${total.toFixed(2)}" Moneda="MXN" TipoDeComprobante="I" Exportacion="01" LugarExpedicion="${emisor.codigo_postal}">${infoGlobalXml}
   <cfdi:Emisor Rfc="${emisor.rfc}" Nombre="${escapeXml(emisor.razon_social)}" RegimenFiscal="${emisor.regimen_fiscal}"/>
   <cfdi:Receptor Rfc="${receptor.rfc}" Nombre="${escapeXml(receptor.nombre)}" UsoCFDI="${usoCfdi}" DomicilioFiscalReceptor="${receptor.codigo_postal || emisor.codigo_postal}" RegimenFiscalReceptor="${receptor.regimen_fiscal}"/>
   <cfdi:Conceptos>

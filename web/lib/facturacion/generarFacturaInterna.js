@@ -151,6 +151,12 @@ export async function generarFacturaInterna({
   if (fErr) throw new Error(fErr.message)
 
   await supabase
+    .from("ventas")
+    .update({ factura_id: factura.id })
+    .eq("id", venta.id)
+    .eq("organization_id", organizationId)
+
+  await supabase
     .from("empresa_fiscal")
     .update({ folio_actual: folio + 1 })
     .eq("organization_id", organizationId)
