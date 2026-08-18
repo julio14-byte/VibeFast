@@ -97,7 +97,7 @@ export default function ProductosCrud({
                       <td className="font-mono text-sm tabular-nums">
                         {producto.codigo}
                       </td>
-                      <td className="font-medium max-w-[200px] truncate sm:max-w-xs">
+                      <td className="min-w-[10rem] max-w-md font-medium leading-snug break-words whitespace-normal">
                         {producto.nombre}
                       </td>
                       <td className="text-right text-sm">

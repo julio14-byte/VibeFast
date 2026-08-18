@@ -136,10 +136,12 @@ export default function ProductSearch({
                       setQuery("")
                       setServerResults([])
                     }}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left touch-manipulation active:bg-base-200/60"
+                    className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left touch-manipulation active:bg-base-200/60"
                   >
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{p.nombre}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium leading-snug break-words whitespace-normal">
+                        {p.nombre}
+                      </p>
                       <p className="text-xs text-base-content/60">
                         Código {p.codigo}
                       </p>

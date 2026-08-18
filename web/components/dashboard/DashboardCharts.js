@@ -125,7 +125,7 @@ export default function DashboardCharts({
               return (
                 <li key={item.id}>
                   <div className="flex justify-between gap-2 text-xs mb-1">
-                    <span className="truncate font-medium">
+                    <span className="min-w-0 break-words whitespace-normal font-medium leading-snug">
                       {i + 1}. {item.nombre}
                     </span>
                     <span className="shrink-0 font-semibold tabular-nums">

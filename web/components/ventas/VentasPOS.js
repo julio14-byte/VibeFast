@@ -171,9 +171,11 @@ export default function VentasPOS({ clientes }) {
         ) : (
           <ul className="divide-y divide-base-200 mb-4">
             {cart.map((item) => (
-              <li key={item.producto_id} className="flex items-center gap-2 py-3">
+              <li key={item.producto_id} className="flex items-start gap-2 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm truncate">{item.nombre}</p>
+                  <p className="font-medium text-sm leading-snug break-words whitespace-normal">
+                    {item.nombre}
+                  </p>
                   <p className="text-xs text-base-content/60">
                     {formatPrecio(item.precio)} × {item.cantidad}
                   </p>

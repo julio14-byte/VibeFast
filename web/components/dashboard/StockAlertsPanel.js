@@ -35,7 +35,9 @@ export default function StockAlertsPanel({ alertasList, totalCriticas }) {
             className="flex items-center justify-between gap-2 rounded-lg bg-base-100/80 px-3 py-2 text-sm border border-base-200/80"
           >
             <div className="min-w-0">
-              <p className="truncate font-medium">{item.nombre}</p>
+              <p className="font-medium leading-snug break-words whitespace-normal">
+                {item.nombre}
+              </p>
               <p className="text-xs text-base-content/55 font-mono">
                 Cód. {item.codigo}
               </p>

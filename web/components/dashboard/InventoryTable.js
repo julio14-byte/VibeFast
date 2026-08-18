@@ -167,7 +167,7 @@ export default function InventoryTable({ productos }) {
                         {p.codigo}
                       </td>
                       <td>
-                        <p className="font-medium leading-snug max-w-[280px] truncate sm:max-w-md">
+                        <p className="font-medium leading-snug break-words whitespace-normal max-w-[280px] sm:max-w-md">
                           {p.nombre}
                         </p>
                       </td>
