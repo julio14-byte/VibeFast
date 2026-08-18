@@ -1,9 +1,13 @@
 -- ============================================================
--- 027 · Permitir márgenes negativos y recalcular desde precios
+-- 028 · Ampliar rango de márgenes (productos baratos, costo bajo)
 -- ------------------------------------------------------------
--- Algunos productos tienen precio mayoreo menor al costo (+ IVA).
--- Ej. costo 130, mayoreo 145 → margen mayoreo ≈ -3.85%
+-- Ej. costo $0.10, público $4 → margen menudeo ≈ 3348%
+-- numeric(6,2) y el tope 1000% no alcanzan en ferretería.
 -- ============================================================
+
+alter table public.productos
+  alter column margen_ganancia type numeric(10, 2),
+  alter column margen_mayoreo type numeric(10, 2);
 
 alter table public.productos
   drop constraint if exists productos_margen_ganancia_check;
@@ -23,10 +27,10 @@ alter table public.productos
     );
 
 comment on column public.productos.margen_ganancia is
-  'Margen % menudeo sobre costo sin IVA (puede ser negativo si vendes por debajo del costo).';
+  'Margen % menudeo sobre costo sin IVA (calculado desde precio público con IVA).';
 
 comment on column public.productos.margen_mayoreo is
-  'Margen % mayoreo sobre costo sin IVA (puede ser negativo si vendes por debajo del costo).';
+  'Margen % mayoreo sobre costo sin IVA (calculado desde precio mayoreo con IVA).';
 
 update public.productos
 set
