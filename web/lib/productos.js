@@ -29,11 +29,13 @@ export function filterProductos(productos, query) {
 
   return (productos ?? []).filter((p) => {
     const nombre = normalizeSearch(p.nombre)
-    const codigo = String(p.codigo)
+    const codigo = normalizeSearch(String(p.codigo))
 
-    return terms.every((term) => {
+    return terms.every((term, index) => {
       if (codigo.includes(term)) return true
-      if (nombre.includes(term)) return true
+      if (index === 0 ? nombre.startsWith(term) : nombre.includes(term)) {
+        return true
+      }
       return false
     })
   })
