@@ -21,6 +21,7 @@ function isPaywallExempt(pathname = "") {
  */
 export async function getPaywallRedirect(userId, pathname = "") {
   if (!config.features.payments) return null
+  if (!pathname?.trim()) return null
   if (isPaywallExempt(pathname)) return null
 
   try {

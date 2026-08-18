@@ -7,7 +7,7 @@ import { Menu } from "lucide-react"
 import { flattenNavItems, MOBILE_PRIMARY_HREFS } from "@/lib/app-nav"
 import { NAV_ICONS, navShortLabel } from "@/lib/nav-icons"
 import MobileMenuSheet from "./MobileMenuSheet"
-import { useNavLinkClick } from "./useNavLinkClick"
+import { useAppNavClick } from "./useAppNavClick"
 
 function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -34,7 +34,7 @@ export default function MobileNav() {
   return (
     <>
       <nav
-        className="mobile-nav-bar fixed inset-x-0 bottom-0 z-40 border-t border-base-200 bg-base-100/95 backdrop-blur-md md:hidden"
+        className="mobile-nav-bar fixed inset-x-0 bottom-0 z-50 border-t border-base-200 bg-base-100/95 backdrop-blur-md md:hidden"
         aria-label="Accesos rápidos"
       >
         <div
@@ -78,7 +78,7 @@ export default function MobileNav() {
 function MobilePrimaryNavItem({ href, label, pathname }) {
   const Icon = NAV_ICONS[href]
   const active = isActive(pathname, href)
-  const onClick = useNavLinkClick(href)
+  const onClick = useAppNavClick(href)
 
   return (
     <Link

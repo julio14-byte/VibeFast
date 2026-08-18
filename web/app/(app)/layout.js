@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import config from "@/config"
@@ -6,7 +5,7 @@ import { getUser } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getPaywallRedirect } from "@/plugins/stripe"
 import UserMenu from "@/components/auth/UserMenu"
-import Logo from "@/components/Logo"
+import AppHeaderBrand from "@/components/layout/AppHeaderBrand"
 import AppSidebar from "@/components/layout/AppSidebar"
 import MobileNav from "@/components/layout/MobileNav"
 
@@ -31,15 +30,7 @@ export default async function AppLayout({ children }) {
     <div className="app-shell flex min-h-dvh min-h-screen flex-col bg-base-200">
       <header className="app-header sticky top-0 z-40 border-b border-base-200 bg-base-100/95 backdrop-blur-md">
         <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 flex-1 items-center gap-2 font-bold touch-manipulation"
-          >
-            <Logo className="size-7 shrink-0" />
-            <span className="truncate text-sm sm:text-base">
-              {config.brand.logoText}
-            </span>
-          </Link>
+          <AppHeaderBrand />
           <UserMenu user={user} />
         </div>
       </header>

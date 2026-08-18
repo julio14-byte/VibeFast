@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard } from "lucide-react"
 import { NAV_SECTIONS } from "@/lib/app-nav"
 import { NAV_ICONS } from "@/lib/nav-icons"
-import { useNavLinkClick } from "./useNavLinkClick"
+import { useAppNavClick } from "./useAppNavClick"
 
 function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -39,7 +39,7 @@ export default function AppSidebar() {
 function SidebarNavItem({ item, pathname }) {
   const Icon = NAV_ICONS[item.href] ?? LayoutDashboard
   const active = isActive(pathname, item.href)
-  const onClick = useNavLinkClick(item.href)
+  const onClick = useAppNavClick(item.href)
 
   return (
                 <li>
