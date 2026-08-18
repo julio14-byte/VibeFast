@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import KpiCard from "./KpiCard"
 
-export default function DashboardKpis({ metrics }) {
+export default function DashboardKpis({ metrics, showLowStock = true }) {
   if (!metrics) return null
 
   const {
@@ -24,7 +24,9 @@ export default function DashboardKpis({ metrics }) {
 
   return (
     <section aria-label="Métricas del inventario">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        className={`grid gap-4 sm:grid-cols-2 ${showLowStock ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}
+      >
         <KpiCard
           title="Ventas (7 días)"
           value={ventasSemanaFmt ?? "$0.00"}
@@ -50,17 +52,19 @@ export default function DashboardKpis({ metrics }) {
           icon={Wallet}
           accent="amber"
         />
-        <KpiCard
-          title="Alertas de stock"
-          value={alertasCriticas}
-          subtitle={
-            agotados > 0
-              ? `${agotados} agotado${agotados === 1 ? "" : "s"} · menos de ${stockCriticoThreshold} u.`
-              : `Productos con menos de ${stockCriticoThreshold} unidades`
-          }
-          icon={AlertTriangle}
-          accent={alertasCriticas > 0 ? "danger" : "success"}
-        />
+        {showLowStock ? (
+          <KpiCard
+            title="Alertas de stock"
+            value={alertasCriticas}
+            subtitle={
+              agotados > 0
+                ? `${agotados} agotado${agotados === 1 ? "" : "s"} · menos de ${stockCriticoThreshold} u.`
+                : `Productos con menos de ${stockCriticoThreshold} unidades`
+            }
+            icon={AlertTriangle}
+            accent={alertasCriticas > 0 ? "danger" : "success"}
+          />
+        ) : null}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

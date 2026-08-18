@@ -64,6 +64,12 @@ const config = {
     hardware: false, // ESP-Claw bridge — Sem 8
   },
 
+  // Secciones del dashboard (Inicio)
+  dashboard: {
+    liveInventory: false, // Tabla "Inventario en vivo"
+    lowStock: false, // Alertas de stock bajo / crítico y gráfica de estado
+  },
+
   // Métricas globales del producto SaaS (waitlist, signups) — solo fundadores.
   productMetrics: {
     enabled: false,

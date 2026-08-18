@@ -216,10 +216,16 @@ async function getDashboardTopValorLegacy(supabase, organizationId, limit = 5) {
 }
 
 /** Stats + gráficas en una sola pasada (evita RPC duplicado). */
-export async function getDashboardInventoryBundle(supabase, organizationId) {
+export async function getDashboardInventoryBundle(
+  supabase,
+  organizationId,
+  { includeAlertas = true } = {}
+) {
   const [resumen, alertas, top] = await Promise.all([
     getDashboardResumen(supabase, organizationId),
-    getDashboardAlertasList(supabase, organizationId),
+    includeAlertas
+      ? getDashboardAlertasList(supabase, organizationId)
+      : Promise.resolve({ alertasList: [], error: null }),
     getDashboardTopValor(supabase, organizationId),
   ])
 

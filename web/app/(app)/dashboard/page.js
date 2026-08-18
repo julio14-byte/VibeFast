@@ -63,14 +63,23 @@ export default async function DashboardPage({ searchParams }) {
           const organizationId = membership.organizationId
           const desde = new Date()
           desde.setDate(desde.getDate() - 7)
+          const showLiveInventory = config.dashboard?.liveInventory !== false
+          const showLowStock = config.dashboard?.lowStock !== false
 
           const [inventory, tablePage, ventasRes, metricsRes] =
             await Promise.all([
-              getDashboardInventoryBundle(supabase, organizationId),
-              getProductosPage(supabase, organizationId, {
-                page: 1,
-                perPage: 50,
+              getDashboardInventoryBundle(supabase, organizationId, {
+                includeAlertas: showLowStock,
               }),
+              showLiveInventory
+                ? getProductosPage(supabase, organizationId, {
+                    page: 1,
+                    perPage: 50,
+                  })
+                : Promise.resolve({
+                    productos: [],
+                    error: null,
+                  }),
               supabase
                 .from("ventas")
                 .select("total, created_at")

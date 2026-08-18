@@ -17,15 +17,18 @@ export default function DashboardCharts({
   ventasChart = { series: [], maxTotal: 0 },
   stockDist = { total: 0, segments: [] },
   topValor = [],
+  showStockChart = true,
 }) {
   const series = ventasChart?.series ?? []
   const maxTotal = ventasChart?.maxTotal ?? 0
   const segments = stockDist?.segments ?? []
   const stockTotal = stockDist?.total ?? 0
 
+  const chartCount = showStockChart ? 3 : 2
+
   return (
     <section
-      className="grid gap-4 lg:grid-cols-3"
+      className={`grid gap-4 ${chartCount === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
       aria-label="Gráficas del negocio"
     >
       <BarChart
@@ -65,47 +68,49 @@ export default function DashboardCharts({
         )}
       </BarChart>
 
-      <BarChart title="Estado del stock" subtitle={`${stockTotal} productos`}>
-        {stockTotal === 0 ? (
-          <p className="text-sm text-base-content/50 py-8 text-center">
-            Sin productos
-          </p>
-        ) : (
-          <>
-            <div className="flex h-3 overflow-hidden rounded-full bg-base-200">
-              {segments.map((s) => (
-                <div
-                  key={s.key}
-                  className={`${s.color} transition-all`}
-                  style={{
-                    width: `${(s.count / stockTotal) * 100}%`,
-                  }}
-                  title={`${s.label}: ${s.count}`}
-                />
-              ))}
-            </div>
-            <ul className="mt-4 space-y-2">
-              {segments.map((s) => (
-                <li
-                  key={s.key}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className={`size-2.5 rounded-full ${s.color}`} />
-                    {s.label}
-                  </span>
-                  <span className="font-semibold tabular-nums">
-                    {s.count}
-                    <span className="text-base-content/45 font-normal text-xs ml-1">
-                      ({Math.round((s.count / stockTotal) * 100)}%)
+      {showStockChart ? (
+        <BarChart title="Estado del stock" subtitle={`${stockTotal} productos`}>
+          {stockTotal === 0 ? (
+            <p className="text-sm text-base-content/50 py-8 text-center">
+              Sin productos
+            </p>
+          ) : (
+            <>
+              <div className="flex h-3 overflow-hidden rounded-full bg-base-200">
+                {segments.map((s) => (
+                  <div
+                    key={s.key}
+                    className={`${s.color} transition-all`}
+                    style={{
+                      width: `${(s.count / stockTotal) * 100}%`,
+                    }}
+                    title={`${s.label}: ${s.count}`}
+                  />
+                ))}
+              </div>
+              <ul className="mt-4 space-y-2">
+                {segments.map((s) => (
+                  <li
+                    key={s.key}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className={`size-2.5 rounded-full ${s.color}`} />
+                      {s.label}
                     </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </BarChart>
+                    <span className="font-semibold tabular-nums">
+                      {s.count}
+                      <span className="text-base-content/45 font-normal text-xs ml-1">
+                        ({Math.round((s.count / stockTotal) * 100)}%)
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </BarChart>
+      ) : null}
 
       <BarChart title="Top valor en inventario" subtitle="Precio público × stock">
         {topValor.length === 0 ? (

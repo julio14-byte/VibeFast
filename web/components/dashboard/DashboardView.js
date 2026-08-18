@@ -4,6 +4,9 @@ import InventoryTable from "@/components/dashboard/InventoryTable"
 import StockAlertsPanel from "@/components/dashboard/StockAlertsPanel"
 import DashboardCharts from "@/components/dashboard/DashboardCharts"
 import QuickActionsBar from "@/components/dashboard/QuickActionsBar"
+import config from "@/config"
+
+const { liveInventory, lowStock } = config.dashboard ?? {}
 
 export default function DashboardView({
   metrics,
@@ -45,7 +48,7 @@ export default function DashboardView({
               Hola, ¿qué vamos a hacer hoy?
             </h1>
             <p className="mt-2 max-w-xl text-sm text-base-content/65 sm:text-base">
-              Aquí ves ventas, existencias y alertas. Toca un botón abajo para
+              Aquí ves ventas y resumen del negocio. Toca un botón abajo para
               cobrar, revisar productos o pedir ayuda.
             </p>
           </div>
@@ -72,31 +75,40 @@ export default function DashboardView({
         />
       ) : null}
 
-      <DashboardKpis metrics={safeMetrics} />
+      <DashboardKpis metrics={safeMetrics} showLowStock={lowStock} />
 
       <DashboardCharts
         ventasChart={safeChart.ventasChart}
         stockDist={safeChart.stockDist}
         topValor={safeChart.topValor}
+        showStockChart={lowStock}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
-        <div className="space-y-2">
-          {totalProductos > productos.length && (
-            <p className="text-xs text-base-content/55 px-1">
-              Mostrando {productos.length} de {totalProductos} productos.{" "}
-              <a href="/inventario" className="link link-primary">
-                Ver inventario completo
-              </a>
-            </p>
-          )}
-          <InventoryTable productos={productos} />
+      {(liveInventory || lowStock) && (
+        <div
+          className={`grid gap-6 ${liveInventory && lowStock ? "xl:grid-cols-[1fr_280px]" : ""}`}
+        >
+          {liveInventory ? (
+            <div className="space-y-2">
+              {totalProductos > productos.length && (
+                <p className="text-xs text-base-content/55 px-1">
+                  Mostrando {productos.length} de {totalProductos} productos.{" "}
+                  <a href="/inventario" className="link link-primary">
+                    Ver inventario completo
+                  </a>
+                </p>
+              )}
+              <InventoryTable productos={productos} />
+            </div>
+          ) : null}
+          {lowStock ? (
+            <StockAlertsPanel
+              alertasList={safeMetrics.alertasList}
+              totalCriticas={safeMetrics.alertasCriticas}
+            />
+          ) : null}
         </div>
-        <StockAlertsPanel
-          alertasList={safeMetrics.alertasList}
-          totalCriticas={safeMetrics.alertasCriticas}
-        />
-      </div>
+      )}
     </div>
   )
 }
