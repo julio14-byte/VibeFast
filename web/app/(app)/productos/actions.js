@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { margenesParaPersistir } from "@/lib/productos/margenes"
 import { deleteDemoProductosForOrg, deleteAllProductosForOrg } from "@/lib/productos/queries"
 import { canManageTeam, requireOrgContext } from "@/lib/organization/context"
 
@@ -47,8 +48,6 @@ function parseProductoForm(formData) {
   const precioMayoreoRaw = formData.get("precio_mayoreo")?.toString().trim()
   const precioPublicoRaw = formData.get("precio_publico")?.toString().trim()
   const stockRaw = formData.get("stock")?.toString().trim()
-  const margenRaw = formData.get("margen_ganancia")?.toString().trim()
-  const margenMayoreoRaw = formData.get("margen_mayoreo")?.toString().trim()
   const claveSat = formData.get("clave_sat")?.toString().trim() || "01010101"
   const unidadSat = formData.get("unidad_sat")?.toString().trim() || "H87"
 
@@ -59,20 +58,12 @@ function parseProductoForm(formData) {
     ? Number.parseFloat(precioPublicoRaw)
     : NaN
   const stock = stockRaw ? Number.parseInt(stockRaw, 10) : NaN
-  const margen_ganancia = margenRaw
-    ? Number.parseFloat(margenRaw)
-    : 30
-  const margen_mayoreo = margenMayoreoRaw
-    ? Number.parseFloat(margenMayoreoRaw)
-    : margen_ganancia
 
   if (
     !nombre ||
     !codigo ||
     Number.isNaN(precio_publico) ||
-    Number.isNaN(stock) ||
-    Number.isNaN(margen_ganancia) ||
-    Number.isNaN(margen_mayoreo)
+    Number.isNaN(stock)
   ) {
     return null
   }
@@ -80,14 +71,16 @@ function parseProductoForm(formData) {
     precio_compra < 0 ||
     precio_mayoreo < 0 ||
     precio_publico < 0 ||
-    stock < 0 ||
-    margen_ganancia < 0 ||
-    margen_ganancia > 1000 ||
-    margen_mayoreo < 0 ||
-    margen_mayoreo > 1000
+    stock < 0
   ) {
     return null
   }
+
+  const { margen_ganancia, margen_mayoreo } = margenesParaPersistir({
+    precio_compra,
+    precio_publico,
+    precio_mayoreo,
+  })
 
   return {
     nombre,
@@ -159,7 +152,8 @@ export async function importProductosCsv(formData) {
         precio_mayoreo: d.precio_mayoreo,
         stock: d.stock,
         proveedor_id: null,
-        margen_ganancia: d.margen_ganancia ?? 30,
+        margen_ganancia: d.margen_ganancia,
+        margen_mayoreo: d.margen_mayoreo,
         clave_sat: d.clave_sat,
         unidad_sat: d.unidad_sat,
       })

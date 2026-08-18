@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { formatPrecio } from "@/lib/productos"
+import { formatMargenPct, margenesParaMostrar } from "@/lib/productos/margenes"
 import { deleteProducto } from "@/app/(app)/productos/actions"
 import ProductoFormModal from "./ProductoFormModal"
 import ProductosPagination from "./ProductosList"
@@ -92,7 +93,11 @@ export default function ProductosCrud({
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((producto) => (
+                  {productos.map((producto) => {
+                    const { margenPublico, margenMayoreo } =
+                      margenesParaMostrar(producto)
+
+                    return (
                     <tr key={producto.id}>
                       <td className="font-mono text-sm tabular-nums">
                         {producto.codigo}
@@ -104,14 +109,10 @@ export default function ProductosCrud({
                         {formatPrecio(producto.precio_compra)}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {producto.margen_ganancia != null
-                          ? `${Number(producto.margen_ganancia)}%`
-                          : "—"}
+                        {formatMargenPct(margenPublico)}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {producto.margen_mayoreo != null
-                          ? `${Number(producto.margen_mayoreo)}%`
-                          : "—"}
+                        {formatMargenPct(margenMayoreo)}
                       </td>
                       <td className="text-right text-sm">
                         {formatPrecio(producto.precio_mayoreo)}
@@ -155,7 +156,8 @@ export default function ProductosCrud({
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

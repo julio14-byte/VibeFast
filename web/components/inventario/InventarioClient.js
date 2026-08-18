@@ -4,6 +4,7 @@ import Link from "next/link"
 import { AlertTriangle } from "lucide-react"
 import ProductSearch from "@/components/inventario/ProductSearch"
 import { formatPrecio } from "@/lib/productos"
+import { formatMargenPct, margenesParaMostrar } from "@/lib/productos/margenes"
 
 function InventarioPagination({ page, totalPages, query }) {
   if (totalPages <= 1) return null
@@ -127,7 +128,10 @@ export default function InventarioClient({
       ) : (
         <>
           <div className="space-y-2 md:hidden">
-            {productos.map((p) => (
+            {productos.map((p) => {
+              const { margenPublico, margenMayoreo } = margenesParaMostrar(p)
+
+              return (
               <article
                 key={p.id}
                 className="rounded-box border border-base-200 bg-base-100 p-3 shadow-sm"
@@ -154,12 +158,12 @@ export default function InventarioClient({
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
                   <span>Público c/IVA {formatPrecio(p.precio_publico ?? p.precio)}</span>
                   <span>Mayoreo c/IVA {formatPrecio(p.precio_mayoreo)}</span>
-                  {p.margen_ganancia != null && (
-                    <span>Margen {Number(p.margen_ganancia)}%</span>
-                  )}
+                  <span>Men. {formatMargenPct(margenPublico)}</span>
+                  <span>May. {formatMargenPct(margenMayoreo)}</span>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
 
           <div className="hidden overflow-hidden rounded-box border border-base-200 bg-base-100 md:block">
@@ -169,7 +173,8 @@ export default function InventarioClient({
                   <tr>
                     <th>Código</th>
                     <th>Producto</th>
-                    <th className="text-right">Margen</th>
+                    <th className="text-right">Margen men.</th>
+                    <th className="text-right">Margen may.</th>
                     <th className="text-right">Stock</th>
                     <th className="text-right">Compra s/IVA</th>
                     <th className="text-right">Mayoreo c/IVA</th>
@@ -178,16 +183,20 @@ export default function InventarioClient({
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((p) => (
+                  {productos.map((p) => {
+                    const { margenPublico, margenMayoreo } = margenesParaMostrar(p)
+
+                    return (
                     <tr key={p.id}>
                       <td className="font-mono tabular-nums text-sm">{p.codigo}</td>
                       <td className="min-w-[12rem] max-w-lg font-medium leading-snug break-words whitespace-normal">
                         {p.nombre}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {p.margen_ganancia != null
-                          ? `${Number(p.margen_ganancia)}%`
-                          : "—"}
+                        {formatMargenPct(margenPublico)}
+                      </td>
+                      <td className="text-right text-sm tabular-nums">
+                        {formatMargenPct(margenMayoreo)}
                       </td>
                       <td className="text-right">
                         <span
@@ -221,7 +230,8 @@ export default function InventarioClient({
                         )}
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

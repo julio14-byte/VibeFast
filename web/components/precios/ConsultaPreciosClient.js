@@ -5,6 +5,7 @@ import { Pencil, Tag } from "lucide-react"
 import ProductSearch from "@/components/inventario/ProductSearch"
 import ProductoFormModal from "@/components/productos/ProductoFormModal"
 import { formatPrecio } from "@/lib/productos"
+import { formatMargenPct, margenesParaMostrar } from "@/lib/productos/margenes"
 
 function stockBadgeClass(stock) {
   if (stock === 0) return "badge-error"
@@ -41,6 +42,9 @@ export default function ConsultaPreciosClient() {
 
   const publico = selected?.precio_publico ?? selected?.precio
   const mayoreo = selected?.precio_mayoreo
+  const { margenPublico, margenMayoreo } = selected
+    ? margenesParaMostrar(selected)
+    : { margenPublico: null, margenMayoreo: null }
 
   return (
     <>
@@ -95,13 +99,13 @@ export default function ConsultaPreciosClient() {
                     : "—"
                 }
               />
-              {selected.margen_ganancia != null && (
+              {(margenPublico != null || margenMayoreo != null) && (
                 <p className="text-xs text-base-content/55 pt-1">
-                  Margen menudeo: {Number(selected.margen_ganancia)}%
-                  {selected.margen_mayoreo != null && (
+                  Margen menudeo: {formatMargenPct(margenPublico)}
+                  {margenMayoreo != null && (
                     <span>
                       {" "}
-                      · Margen mayoreo: {Number(selected.margen_mayoreo)}%
+                      · Margen mayoreo: {formatMargenPct(margenMayoreo)}
                     </span>
                   )}
                 </p>

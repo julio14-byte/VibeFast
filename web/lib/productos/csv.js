@@ -3,6 +3,7 @@
  */
 
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { margenesParaPersistir } from "@/lib/productos/margenes"
 
 const HEADER_ALIASES = {
   nombre: "nombre",
@@ -130,10 +131,11 @@ export function mapCsvRowToProducto(row, lineNumber) {
 
   const precio_compra = parseNumber(row.precio_compra) ?? 0
   const precio_mayoreo = parseNumber(row.precio_mayoreo) ?? 0
-  const margen_ganancia = parseNumber(row.margen_ganancia) ?? 30
-  const margen_mayoreo =
-    parseNumber(row.margen_mayoreo) ??
-    Math.round(margen_ganancia * 0.85 * 10) / 10
+  const { margen_ganancia, margen_mayoreo } = margenesParaPersistir({
+    precio_compra,
+    precio_publico,
+    precio_mayoreo,
+  })
 
   return {
     ok: true,
@@ -144,8 +146,8 @@ export function mapCsvRowToProducto(row, lineNumber) {
       precio_publico,
       precio_compra: precio_compra >= 0 ? precio_compra : 0,
       precio_mayoreo: precio_mayoreo >= 0 ? precio_mayoreo : 0,
-      margen_ganancia: margen_ganancia >= 0 ? margen_ganancia : 30,
-      margen_mayoreo: margen_mayoreo >= 0 ? margen_mayoreo : 0,
+      margen_ganancia,
+      margen_mayoreo,
       stock,
       clave_sat: row.clave_sat?.trim() || "01010101",
       unidad_sat: row.unidad_sat?.trim() || "H87",
@@ -153,9 +155,9 @@ export function mapCsvRowToProducto(row, lineNumber) {
   }
 }
 
-export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,margen_ganancia,margen_mayoreo,stock,clave_sat,unidad_sat
-Llave Stillson 20 pulg,LLAV-2053,110.50,85.00,95.00,30,25,12,01010101,H87
-Tornillo hexagonal 1/4,TORN-1001,2.50,1.20,1.80,30,25,500,01010101,H87
+export const CSV_TEMPLATE = `nombre,codigo,precio_publico,precio_compra,precio_mayoreo,stock,clave_sat,unidad_sat
+Llave Stillson 20 pulg,LLAV-2053,110.50,85.00,95.00,12,01010101,H87
+Tornillo hexagonal 1/4,TORN-1001,2.50,1.20,1.80,500,01010101,H87
 `
 
 /** Columnas aceptadas y aliases (para guía de importación desde Excel). */
@@ -166,8 +168,8 @@ export const CSV_COLUMN_GUIDE = [
   { columna: "stock", obligatorio: false, aliases: "existencia, inventario (default 0)" },
   { columna: "precio_compra", obligatorio: false, aliases: "costo sin IVA" },
   { columna: "precio_mayoreo", obligatorio: false, aliases: "precio mayoreo con IVA" },
-  { columna: "margen_ganancia", obligatorio: false, aliases: "margen % menudeo (default 30)" },
-  { columna: "margen_mayoreo", obligatorio: false, aliases: "margen % mayoreo" },
+  { columna: "margen_ganancia", obligatorio: false, aliases: "se calcula desde costo y precio público" },
+  { columna: "margen_mayoreo", obligatorio: false, aliases: "se calcula desde costo y precio mayoreo" },
   { columna: "clave_sat", obligatorio: false, aliases: "default 01010101" },
   { columna: "unidad_sat", obligatorio: false, aliases: "H87 = pieza" },
 ]
