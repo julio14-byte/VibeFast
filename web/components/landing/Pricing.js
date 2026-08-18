@@ -56,7 +56,7 @@ export default function Pricing() {
 
               {plan.id === "starter" ? (
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   className={`btn mt-8 touch-manipulation ${
                     plan.highlighted ? "btn-accent" : "btn-outline"
                   }`}

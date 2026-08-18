@@ -2,12 +2,17 @@ import Link from "next/link"
 import { Menu } from "lucide-react"
 import config from "@/config"
 import Logo from "@/components/Logo"
-import { getAppEntryUrl, isAuthEnabled } from "@/lib/auth/landing"
+
+function isAuthEnabled() {
+  return (
+    config.features.googleAuth ||
+    config.features.emailLogin ||
+    config.features.usernameLogin
+  )
+}
 
 export default function Navbar() {
-  const entryUrl = getAppEntryUrl()
   const loginUrl = config.auth.loginUrl
-  const entryLabel = config.landing.hero.cta.label
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-base-200 bg-base-100/80 backdrop-blur">
@@ -28,14 +33,9 @@ export default function Navbar() {
                 </li>
               ))}
               {isAuthEnabled() && (
-                <>
-                  <li>
-                    <Link href={loginUrl}>Entrar</Link>
-                  </li>
-                  <li>
-                    <Link href={entryUrl}>{entryLabel}</Link>
-                  </li>
-                </>
+                <li>
+                  <Link href={loginUrl}>Entrar</Link>
+                </li>
               )}
             </ul>
           </div>
@@ -65,8 +65,8 @@ export default function Navbar() {
               Entrar
             </Link>
           )}
-          <Link href={entryUrl} className="btn btn-sm btn-accent touch-manipulation">
-            {entryLabel}
+          <Link href="#waitlist" className="btn btn-sm btn-accent touch-manipulation">
+            {config.landing.hero.cta.label}
           </Link>
         </div>
       </nav>

@@ -48,7 +48,7 @@ const config = {
   // Toggles de features — encienden/apagan rutas y componentes
   // -----------------------------------------------------------
   features: {
-    waitlist: false, // SmartPOS en producción — acceso directo con login
+    waitlist: true, // Captura emails en landing — Sem 1
     googleAuth: true, // Login con Google — Sem 2
     emailLogin: true, // Email + contraseña
     usernameLogin: false, // Usuario + contraseña (sin email visible)
@@ -109,8 +109,6 @@ const config = {
   // -----------------------------------------------------------
   auth: {
     loginUrl: "/login",
-    /** CTAs de la landing: si hay sesión entra al dashboard; si no, middleware manda a login. */
-    entryUrl: "/dashboard",
     afterLoginUrl: "/dashboard",
     afterLogoutUrl: "/",
     providers: ["google", "email"], // sincronizado con features
@@ -131,8 +129,8 @@ const config = {
       title: "Encuentra cualquier pieza y controla tu inventario hablando.",
       subtitle:
         "Mostrador usa IA conversacional para que atiendas más rápido en el mostrador y sepas al instante qué te falta en anaquel.",
-      cta: { label: "Entrar a la app", href: "/dashboard" },
-      ctaSecondary: { label: "Ver precios", href: "#pricing" },
+      cta: { label: "Solicitar acceso", href: "#waitlist" },
+      ctaSecondary: { label: "Ver docs", href: "/docs" },
     },
     problem: {
       eyebrow: "El problema",
@@ -231,12 +229,12 @@ const config = {
       ],
     },
     finalCta: {
-      eyebrow: "Empieza hoy",
-      title: "Tu mostrador inteligente en minutos.",
+      eyebrow: "Tu turno",
+      title: "Deja de configurar. Empieza a construir.",
       subtitle:
-        "Crea tu cuenta gratis, carga tu catálogo e importa productos desde Excel o CSV.",
-      cta: { label: "Entrar a SmartPOS", href: "/dashboard" },
-      ctaSecondary: { label: "Cómo funciona", href: "/docs/smartpos/como-funciona" },
+        "Clona la plantilla, edita config.js y ten tu producto AI-native en producción esta semana.",
+      cta: { label: "Únete al waitlist", href: "#waitlist" },
+      ctaSecondary: { label: "Leer las docs", href: "/docs" },
     },
     waitlist: {
       eyebrow: "Únete primero",
@@ -254,7 +252,6 @@ const config = {
           links: [
             { label: "Características", href: "#features" },
             { label: "Precios", href: "#pricing" },
-            { label: "Entrar a la app", href: "/dashboard" },
             { label: "Preguntas", href: "#faq" },
           ],
         },
