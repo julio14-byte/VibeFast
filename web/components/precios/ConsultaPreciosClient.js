@@ -67,7 +67,9 @@ export default function ConsultaPreciosClient() {
                   <p className="font-mono text-xs text-base-content/55">
                     Código {selected.codigo}
                   </p>
-                  <h2 className="text-lg font-bold leading-snug">{selected.nombre}</h2>
+                  <h2 className="text-lg font-bold leading-snug break-words whitespace-normal">
+                    {selected.nombre}
+                  </h2>
                 </div>
                 <span className={`badge ${stockBadgeClass(selected.stock)}`}>
                   {selected.stock} en bodega

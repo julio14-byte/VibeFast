@@ -181,7 +181,9 @@ export default function InventarioClient({
                   {productos.map((p) => (
                     <tr key={p.id}>
                       <td className="font-mono tabular-nums text-sm">{p.codigo}</td>
-                      <td className="font-medium">{p.nombre}</td>
+                      <td className="min-w-[12rem] max-w-lg font-medium leading-snug break-words whitespace-normal">
+                        {p.nombre}
+                      </td>
                       <td className="text-right text-sm tabular-nums">
                         {p.margen_ganancia != null
                           ? `${Number(p.margen_ganancia)}%`
