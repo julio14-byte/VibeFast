@@ -89,9 +89,6 @@ export default function CotizacionPresupuesto({
             </Text>
           ) : null}
 
-          <Text style={text}>
-            ¿Te la apartamos? Responde a este correo para confirmar.
-          </Text>
           <Text style={footer}>
             {appName} · Cotización
           </Text>

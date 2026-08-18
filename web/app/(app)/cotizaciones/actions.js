@@ -31,6 +31,16 @@ function round2(n) {
   return Math.round(n * 100) / 100
 }
 
+function parseValidezDias(raw, fallback = 7) {
+  return Math.min(90, Math.max(1, Number(raw) || fallback))
+}
+
+function venceAtFromValidezDias(validezDias) {
+  const venceAt = new Date()
+  venceAt.setDate(venceAt.getDate() + validezDias)
+  return venceAt.toISOString()
+}
+
 async function getNextCotizacionFolio(supabase, userId) {
   const { data } = await supabase
     .from("cotizaciones")
@@ -126,7 +136,7 @@ export async function crearCotizacion(formData) {
     const notas = formData.get("notas")?.toString().trim() || null
     const clienteId = formData.get("cliente_id")?.toString() || null
     const telefono = formData.get("telefono_whatsapp")?.toString().trim() || null
-    const validezDias = Math.min(90, Math.max(1, Number(formData.get("validez_dias")) || 7))
+    const validezDias = parseValidezDias(formData.get("validez_dias"))
 
     const items = parseCartItems(itemsJson)
     if (!items) fail("Agrega al menos un producto.", `${BASE}/nueva`)
@@ -135,9 +145,6 @@ export async function crearCotizacion(formData) {
     const lineas = await buildLineasFromCart(supabase, user.id, items, tipoPrecio)
     const { subtotal, iva, total } = calcularTotalesDesdePreciosConIva(lineas)
     const folio = await getNextCotizacionFolio(supabase, user.id)
-
-    const venceAt = new Date()
-    venceAt.setDate(venceAt.getDate() + validezDias)
 
     const { data: cotizacion, error: cErr } = await supabase
       .from("cotizaciones")
@@ -152,7 +159,7 @@ export async function crearCotizacion(formData) {
         forma_pago: formaPago,
         notas,
         validez_dias: validezDias,
-        vence_at: venceAt.toISOString(),
+        vence_at: venceAtFromValidezDias(validezDias),
         telefono_whatsapp: telefono,
         estado: "borrador",
       })
@@ -187,12 +194,16 @@ export async function enviarCotizacionWhatsApp(formData) {
     const cotizacionId = formData.get("cotizacion_id")?.toString()
     const telefono =
       formData.get("telefono_whatsapp")?.toString().trim() || null
+    const validezRaw = formData.get("validez_dias")?.toString()
 
     if (!cotizacionId) fail("Falta la cotización.")
 
     const { supabase, user } = await requireUser()
     const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
+
+    const validezDias = parseValidezDias(validezRaw, cotizacion.validez_dias ?? 7)
+    const venceAt = venceAtFromValidezDias(validezDias)
 
     const phone =
       telefono ||
@@ -207,7 +218,8 @@ export async function enviarCotizacionWhatsApp(formData) {
       subtotal: cotizacion.subtotal,
       iva: cotizacion.iva,
       total: cotizacion.total,
-      validezDias: cotizacion.validez_dias,
+      validezDias,
+      venceAt,
       notas: cotizacion.notas,
       clienteNombre: cotizacion.cliente?.razon_social ?? cotizacion.cliente?.nombre,
     })
@@ -221,6 +233,8 @@ export async function enviarCotizacionWhatsApp(formData) {
     const patch = {
       telefono_whatsapp: phone,
       whatsapp_enviado_at: new Date().toISOString(),
+      validez_dias: validezDias,
+      vence_at: venceAt,
       estado: cotizacion.estado === "borrador" ? "enviada" : cotizacion.estado,
     }
 
@@ -248,12 +262,16 @@ export async function enviarCotizacionEmail(formData) {
   try {
     const cotizacionId = formData.get("cotizacion_id")?.toString()
     const emailOverride = formData.get("email")?.toString().trim() || null
+    const validezRaw = formData.get("validez_dias")?.toString()
 
     if (!cotizacionId) fail("Falta la cotización.")
 
     const { supabase, user } = await requireUser()
     const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
+
+    const validezDias = parseValidezDias(validezRaw, cotizacion.validez_dias ?? 7)
+    const venceAt = venceAtFromValidezDias(validezDias)
 
     const to =
       emailOverride ||
@@ -294,8 +312,8 @@ export async function enviarCotizacionEmail(formData) {
       subtotalFmt: formatPrecio(cotizacion.subtotal),
       ivaFmt: formatPrecio(cotizacion.iva),
       totalFmt: formatPrecio(cotizacion.total),
-      validezDias: cotizacion.validez_dias,
-      venceFmt: new Date(cotizacion.vence_at).toLocaleDateString("es-MX"),
+      validezDias,
+      venceFmt: new Date(venceAt).toLocaleDateString("es-MX"),
       notas: cotizacion.notas,
     })
 
@@ -309,6 +327,8 @@ export async function enviarCotizacionEmail(formData) {
     const patch = {
       email_destino: to,
       email_enviado_at: new Date().toISOString(),
+      validez_dias: validezDias,
+      vence_at: venceAt,
       estado: cotizacion.estado === "borrador" ? "enviada" : cotizacion.estado,
     }
 

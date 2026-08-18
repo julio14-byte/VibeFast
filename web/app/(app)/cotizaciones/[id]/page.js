@@ -276,6 +276,13 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
             <p>
               <span className="text-base-content/60">Validez:</span>{" "}
               {cotizacion.validez_dias} días
+              {cotizacion.vence_at && (
+                <span className="text-base-content/55">
+                  {" "}
+                  (hasta{" "}
+                  {new Date(cotizacion.vence_at).toLocaleDateString("es-MX")})
+                </span>
+              )}
             </p>
             {cotizacion.telefono_whatsapp && (
               <p>
@@ -319,6 +326,19 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
                     className="input input-bordered input-sm w-full"
                   />
                 </label>
+                <label className="form-control w-full">
+                  <span className="label-text text-xs font-medium">
+                    Válida (días)
+                  </span>
+                  <input
+                    name="validez_dias"
+                    type="number"
+                    min={1}
+                    max={90}
+                    defaultValue={cotizacion.validez_dias ?? 7}
+                    className="input input-bordered input-sm w-full"
+                  />
+                </label>
                 <button type="submit" className="btn btn-success btn-sm w-full">
                   Enviar presupuesto
                 </button>
@@ -335,6 +355,19 @@ export default async function CotizacionDetallePage({ params, searchParams }) {
                     type="email"
                     defaultValue={cotizacion.cliente?.email ?? ""}
                     placeholder="cliente@correo.com"
+                    className="input input-bordered input-sm w-full"
+                  />
+                </label>
+                <label className="form-control w-full">
+                  <span className="label-text text-xs font-medium">
+                    Válida (días)
+                  </span>
+                  <input
+                    name="validez_dias"
+                    type="number"
+                    min={1}
+                    max={90}
+                    defaultValue={cotizacion.validez_dias ?? 7}
                     className="input input-bordered input-sm w-full"
                   />
                 </label>
