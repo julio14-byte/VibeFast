@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { deleteDemoProductosForOrg } from "@/lib/productos/queries"
 import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/productos"
@@ -305,6 +306,23 @@ export async function updateProducto(formData) {
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message || "Error al actualizar.")
+  }
+}
+
+export async function deleteDemoProductos() {
+  try {
+    const { supabase, organizationId } = await requireUser()
+    const result = await deleteDemoProductosForOrg(supabase, organizationId)
+
+    if (result.error) {
+      return { ok: false, error: result.error }
+    }
+
+    revalidateCatalogo()
+    return { ok: true, eliminados: result.eliminados }
+  } catch (err) {
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
+    return { ok: false, error: err?.message ?? "Error al eliminar demo." }
   }
 }
 

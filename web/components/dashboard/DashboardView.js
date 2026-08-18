@@ -12,6 +12,7 @@ export default function DashboardView({
   showProductMetrics = false,
   productos = [],
   totalProductos = 0,
+  okMessage = null,
   appName,
   chartData,
 }) {
@@ -57,6 +58,12 @@ export default function DashboardView({
       <div className="sm:hidden">
         <QuickActionsBar />
       </div>
+
+      {okMessage ? (
+        <div role="alert" className="alert alert-success">
+          <span>{okMessage}</span>
+        </div>
+      ) : null}
 
       {showProductMetrics ? (
         <ProductMetricsKpis

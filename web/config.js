@@ -64,11 +64,9 @@ const config = {
     hardware: false, // ESP-Claw bridge — Sem 8
   },
 
-  // Métricas globales del producto (waitlist, signups, chat) en el dashboard.
-  // Requiere SUPABASE_SERVICE_ROLE_KEY en el servidor.
+  // Métricas globales del producto SaaS (waitlist, signups) — solo fundadores.
   productMetrics: {
-    enabled: true,
-    // Vacío = cualquier usuario autenticado (MVP single-founder).
+    enabled: false,
     founderEmails: [],
   },
 

@@ -15,7 +15,7 @@ export function canViewProductMetrics(user) {
   if (!user) return false
 
   const allowlist = config.productMetrics.founderEmails ?? []
-  if (allowlist.length === 0) return true
+  if (allowlist.length === 0) return false
 
   const email = user.email?.toLowerCase()
   return allowlist.some((e) => e.toLowerCase() === email)

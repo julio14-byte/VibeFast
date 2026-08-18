@@ -1,4 +1,5 @@
 import { applyProductSearchFilter, PRODUCT_SELECT } from "./search.js"
+import { isDemoProducto } from "./demoCatalog.js"
 
 const DEFAULT_PAGE_SIZE = 50
 
@@ -65,6 +66,7 @@ export async function getDashboardProductStats(supabase, organizationId) {
       .from("productos")
       .select("stock, precio, precio_publico")
       .eq("organization_id", organizationId)
+      .order("id", { ascending: true })
       .range(from, from + pageSize - 1)
 
     if (error) {
@@ -116,6 +118,7 @@ export async function getDashboardChartProductData(supabase, organizationId) {
       .from("productos")
       .select("id, codigo, nombre, stock, precio, precio_publico")
       .eq("organization_id", organizationId)
+      .order("id", { ascending: true })
       .range(from, from + pageSize - 1)
 
     if (error) return { error: error.message }
@@ -161,4 +164,48 @@ export async function getAlertasStockCount(supabase, organizationId) {
     .lt("stock", 2)
 
   return { count: count ?? 0, error: error?.message ?? null }
+}
+
+/** Productos de ejemplo (plantilla / pruebas) en la organización. */
+export async function getDemoProductos(supabase, organizationId) {
+  const { data, error } = await supabase
+    .from("productos")
+    .select("id, codigo, nombre")
+    .eq("organization_id", organizationId)
+
+  if (error) {
+    return { demoProductos: [], error: error.message }
+  }
+
+  const demoProductos = (data ?? []).filter(isDemoProducto)
+  return { demoProductos, error: null }
+}
+
+/** Elimina productos demo de la organización (servidor). */
+export async function deleteDemoProductosForOrg(supabase, organizationId) {
+  const { demoProductos, error: listError } = await getDemoProductos(
+    supabase,
+    organizationId
+  )
+
+  if (listError) {
+    return { eliminados: 0, error: listError }
+  }
+
+  const ids = demoProductos.map((p) => p.id)
+  if (!ids.length) {
+    return { eliminados: 0, error: null }
+  }
+
+  const { error } = await supabase
+    .from("productos")
+    .delete()
+    .in("id", ids)
+    .eq("organization_id", organizationId)
+
+  if (error) {
+    return { eliminados: 0, error: error.message }
+  }
+
+  return { eliminados: ids.length, error: null }
 }

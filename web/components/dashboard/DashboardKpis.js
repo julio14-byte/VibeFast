@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ShoppingCart,
   Plus,
+  TrendingUp,
 } from "lucide-react"
 import KpiCard from "./KpiCard"
 
@@ -17,11 +18,24 @@ export default function DashboardKpis({ metrics }) {
     alertasCriticas,
     agotados,
     stockCriticoThreshold,
+    ventasSemanaFmt,
+    ventasSemanaCount,
   } = metrics
 
   return (
     <section aria-label="Métricas del inventario">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          title="Ventas (7 días)"
+          value={ventasSemanaFmt ?? "$0.00"}
+          subtitle={
+            ventasSemanaCount > 0
+              ? `${ventasSemanaCount} venta${ventasSemanaCount === 1 ? "" : "s"} registrada${ventasSemanaCount === 1 ? "" : "s"}`
+              : "Sin ventas en la última semana"
+          }
+          icon={TrendingUp}
+          accent="steel"
+        />
         <KpiCard
           title="Productos registrados"
           value={totalProductos}
