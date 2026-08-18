@@ -5,8 +5,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeCodigo } from "@/lib/productos/codigo"
-import { deleteDemoProductosForOrg } from "@/lib/productos/queries"
-import { requireOrgContext } from "@/lib/organization/context"
+import { deleteDemoProductosForOrg, deleteAllProductosForOrg } from "@/lib/productos/queries"
+import { canManageTeam, requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/productos"
 const IMPORT_BATCH = 200
@@ -306,6 +306,32 @@ export async function updateProducto(formData) {
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message || "Error al actualizar.")
+  }
+}
+
+export async function deleteAllProductos(formData) {
+  try {
+    const ctx = await requireUser()
+    if (!canManageTeam(ctx.role)) {
+      return { ok: false, error: "Solo el dueño o administrador puede vaciar el catálogo." }
+    }
+
+    const confirm = formData.get("confirm")?.toString().trim()
+    if (confirm !== "VACIAR") {
+      return { ok: false, error: 'Escribe VACIAR para confirmar.' }
+    }
+
+    const result = await deleteAllProductosForOrg(ctx.supabase, ctx.organizationId)
+
+    if (result.error) {
+      return { ok: false, error: result.error }
+    }
+
+    revalidateCatalogo()
+    return { ok: true, eliminados: result.eliminados }
+  } catch (err) {
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
+    return { ok: false, error: err?.message ?? "Error al vaciar catálogo." }
   }
 }
 

@@ -209,3 +209,31 @@ export async function deleteDemoProductosForOrg(supabase, organizationId) {
 
   return { eliminados: ids.length, error: null }
 }
+
+/** Elimina todo el catálogo de la organización. */
+export async function deleteAllProductosForOrg(supabase, organizationId) {
+  const { count, error: countError } = await supabase
+    .from("productos")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", organizationId)
+
+  if (countError) {
+    return { eliminados: 0, error: countError.message }
+  }
+
+  const total = count ?? 0
+  if (total === 0) {
+    return { eliminados: 0, error: null }
+  }
+
+  const { error } = await supabase
+    .from("productos")
+    .delete()
+    .eq("organization_id", organizationId)
+
+  if (error) {
+    return { eliminados: 0, error: error.message }
+  }
+
+  return { eliminados: total, error: null }
+}

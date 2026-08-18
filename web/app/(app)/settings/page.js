@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import PageHeader from "@/components/ui/PageHeader"
 import CatalogoNav from "@/components/catalogo/CatalogoNav"
 import ProductCsvImport from "@/components/productos/ProductCsvImport"
+import VaciarCatalogoPanel from "@/components/productos/VaciarCatalogoPanel"
 import PacSandboxForm from "@/components/settings/PacSandboxForm"
 import McpTokenPanel from "@/components/settings/McpTokenPanel"
 import TeamPanel from "@/components/settings/TeamPanel"
@@ -87,6 +88,7 @@ export default async function SettingsPage({ searchParams }) {
   const importCreados = params?.creados?.toString()
   const importActualizados = params?.actualizados?.toString()
   const importErrores = params?.errores?.toString()
+  const vaciados = params?.n?.toString()
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -138,6 +140,14 @@ export default async function SettingsPage({ searchParams }) {
           </span>
         </div>
       )}
+      {ok === "vaciado" && (
+        <div role="alert" className="alert alert-success">
+          <span>
+            Catálogo vaciado: se eliminaron {vaciados ?? 0} productos. Ya puedes
+            importar de nuevo.
+          </span>
+        </div>
+      )}
 
       <TeamPanel
         members={teamMembers}
@@ -148,6 +158,7 @@ export default async function SettingsPage({ searchParams }) {
       />
 
       <ProductCsvImport />
+      <VaciarCatalogoPanel returnTo="/settings" />
 
       <PacSandboxForm empresa={empresa} />
 

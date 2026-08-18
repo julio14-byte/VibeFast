@@ -37,6 +37,7 @@ export default async function NegocioPage({ searchParams }) {
   const importCreados = params?.creados?.toString()
   const importActualizados = params?.actualizados?.toString()
   const importErrores = params?.errores?.toString()
+  const vaciados = params?.n?.toString()
   const configurado = empresaConfigurada(empresa)
 
   return (
@@ -82,6 +83,14 @@ export default async function NegocioPage({ searchParams }) {
               ? `, ${importErrores} filas con error`
               : ""}
             .
+          </span>
+        </div>
+      )}
+      {ok === "vaciado" && (
+        <div role="alert" className="alert alert-success">
+          <span>
+            Catálogo vaciado: se eliminaron {vaciados ?? 0} productos. Ya puedes
+            importar de nuevo.
           </span>
         </div>
       )}

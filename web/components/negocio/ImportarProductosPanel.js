@@ -1,5 +1,6 @@
 import Link from "next/link"
 import ProductCsvImport from "@/components/productos/ProductCsvImport"
+import VaciarCatalogoPanel from "@/components/productos/VaciarCatalogoPanel"
 import { CSV_COLUMN_GUIDE } from "@/lib/productos/csv"
 
 export default function ImportarProductosPanel() {
@@ -42,6 +43,7 @@ export default function ImportarProductosPanel() {
         </p>
       </div>
       <ProductCsvImport returnTo="/negocio" />
+      <VaciarCatalogoPanel returnTo="/negocio" />
       <p className="text-xs text-base-content/50">
         También disponible en{" "}
         <Link href="/settings" className="link link-primary">
