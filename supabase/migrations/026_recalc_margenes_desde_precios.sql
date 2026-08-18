@@ -1,5 +1,8 @@
 -- ============================================================
 -- 026 · Recalcular márgenes desde costo y precios con IVA
+-- ------------------------------------------------------------
+-- NOTA: Si falla por productos_margen_mayoreo_check, ejecuta antes
+-- la migración 027_margenes_negativos_recalc.sql (permite márgenes negativos).
 -- ============================================================
 
 update public.productos
