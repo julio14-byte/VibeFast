@@ -17,12 +17,9 @@ import {
   getProductMetrics,
 } from "@/lib/dashboard/productMetrics"
 import {
-  deleteDemoProductosForOrg,
-  getDashboardChartProductData,
-  getDashboardProductStats,
+  getDashboardInventoryBundle,
   getProductosPage,
 } from "@/lib/productos/queries"
-import { revalidatePath } from "next/cache"
 import { getMembershipForUser } from "@/lib/organization/context"
 
 import DashboardView from "@/components/dashboard/DashboardView"
@@ -39,7 +36,6 @@ export default async function DashboardPage({ searchParams }) {
   let productMetrics = null
   let productMetricsError = null
   let showProductMetrics = false
-  let demoEliminados = 0
   let error = null
 
   const params = await searchParams
@@ -65,78 +61,59 @@ export default async function DashboardPage({ searchParams }) {
           error = "Sin organización asignada. Cierra sesión y vuelve a entrar."
         } else {
           const organizationId = membership.organizationId
+          const desde = new Date()
+          desde.setDate(desde.getDate() - 7)
 
-          const demoCleanup = await deleteDemoProductosForOrg(
-            supabase,
-            organizationId
-          )
-          if (demoCleanup.error) {
-            error = demoCleanup.error
-          } else {
-            demoEliminados = demoCleanup.eliminados ?? 0
-            if (demoEliminados > 0) {
-              revalidatePath("/dashboard")
-              revalidatePath("/productos")
-              revalidatePath("/inventario")
-              revalidatePath("/precios")
-            }
+          const [inventory, tablePage, ventasRes, metricsRes] =
+            await Promise.all([
+              getDashboardInventoryBundle(supabase, organizationId),
+              getProductosPage(supabase, organizationId, {
+                page: 1,
+                perPage: 50,
+              }),
+              supabase
+                .from("ventas")
+                .select("total, created_at")
+                .eq("organization_id", organizationId)
+                .gte("created_at", desde.toISOString())
+                .order("created_at", { ascending: true }),
+              showProductMetrics ? getProductMetrics() : Promise.resolve(null),
+            ])
+
+          error =
+            inventory.error ||
+            tablePage.error ||
+            ventasRes.error?.message
+
+          if (isJwtClockSkewError(error)) {
+            error = clockSkewUserMessage()
           }
 
           if (!error) {
-            const desde = new Date()
-            desde.setDate(desde.getDate() - 7)
-
-            const [stats, chartProducts, tablePage, ventasRes, metricsRes] =
-              await Promise.all([
-                getDashboardProductStats(supabase, organizationId),
-                getDashboardChartProductData(supabase, organizationId),
-                getProductosPage(supabase, organizationId, {
-                  page: 1,
-                  perPage: 50,
-                }),
-                supabase
-                  .from("ventas")
-                  .select("total, created_at")
-                  .eq("organization_id", organizationId)
-                  .gte("created_at", desde.toISOString())
-                  .order("created_at", { ascending: true }),
-                showProductMetrics ? getProductMetrics() : Promise.resolve(null),
-              ])
-
-            error =
-              stats.error ||
-              chartProducts.error ||
-              tablePage.error ||
-              ventasRes.error?.message
-
-            if (isJwtClockSkewError(error)) {
-              error = clockSkewUserMessage()
+            const stats = inventory.stats
+            const chartProducts = inventory.chart
+            const ventasStats = summarizeVentasPeriodo(ventasRes.data ?? [])
+            metrics = {
+              ...metricsFromServerStats(stats),
+              ...ventasStats,
+            }
+            totalProductos = stats.totalProductos ?? 0
+            productos = tablePage.productos
+            ventas = ventasRes.data ?? []
+            chartData = {
+              ventasChart: computeVentasPorDia(ventas, 7),
+              stockDist: stockDistributionFromCounts(
+                chartProducts.dist,
+                chartProducts.total
+              ),
+              topValor: chartProducts.topValor,
             }
 
-            if (!error) {
-              const ventasStats = summarizeVentasPeriodo(ventasRes.data ?? [])
-              metrics = {
-                ...metricsFromServerStats(stats),
-                ...ventasStats,
-              }
-              totalProductos = stats.totalProductos ?? 0
-              productos = tablePage.productos
-              ventas = ventasRes.data ?? []
-              chartData = {
-                ventasChart: computeVentasPorDia(ventas, 7),
-                stockDist: stockDistributionFromCounts(
-                  chartProducts.dist,
-                  chartProducts.total
-                ),
-                topValor: chartProducts.topValor,
-              }
-
-              if (showProductMetrics && metricsRes) {
-                if (metricsRes.error) {
-                  productMetricsError = metricsRes.error
-                } else {
-                  productMetrics = metricsRes
-                }
+            if (showProductMetrics && metricsRes) {
+              if (metricsRes.error) {
+                productMetricsError = metricsRes.error
+              } else {
+                productMetrics = metricsRes
               }
             }
           }
@@ -160,8 +137,6 @@ export default async function DashboardPage({ searchParams }) {
   let okMessage = null
   if (ok === "demo_eliminado") {
     okMessage = `Se eliminaron ${demoEliminadosParam ?? 0} productos de ejemplo.`
-  } else if (demoEliminados > 0) {
-    okMessage = `Se eliminaron ${demoEliminados} productos de ejemplo de la plantilla inicial.`
   }
 
   return (

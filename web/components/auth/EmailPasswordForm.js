@@ -52,7 +52,7 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
         if (signUpError) throw signUpError
 
         if (data.session) {
-          window.location.href = next
+          window.location.assign(next)
           return
         }
 
@@ -76,7 +76,7 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
         throw signInError
       }
 
-      window.location.href = next
+      window.location.assign(next)
     } catch (err) {
       setError(err?.message || "No se pudo completar la operación.")
       setLoading(false)
@@ -160,7 +160,9 @@ export default function EmailPasswordForm({ next = "/dashboard" }) {
           aria-busy={loading}
         >
           {loading
-            ? "Procesando…"
+            ? mode === "register"
+              ? "Creando cuenta…"
+              : "Entrando…"
             : mode === "register"
               ? "Crear cuenta"
               : "Entrar"}

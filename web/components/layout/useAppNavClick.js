@@ -1,28 +1,25 @@
 "use client"
 
 import { useCallback } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 
 /**
- * Navegación fiable en la app (Link + router.push).
- * Evita clics que no cambian de ruta en móvil / Next.js App Router.
+ * Scroll al tope si ya estás en la ruta; en otras rutas deja que <Link> navegue.
+ * Evita preventDefault + router.push, que en móvil a veces no cambia de página.
  */
 export function useAppNavClick(href, { onNavigate } = {}) {
   const pathname = usePathname()
-  const router = useRouter()
 
   return useCallback(
     (event) => {
-      event.preventDefault()
-      onNavigate?.()
-
       if (pathname === href) {
+        event.preventDefault()
         window.scrollTo({ top: 0, behavior: "smooth" })
         return
       }
 
-      router.push(href)
+      onNavigate?.()
     },
-    [href, onNavigate, pathname, router]
+    [href, onNavigate, pathname]
   )
 }
