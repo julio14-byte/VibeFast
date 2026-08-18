@@ -2,6 +2,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { getProductosPage } from "@/lib/productos/queries"
+import { getMembershipForUser } from "@/lib/organization/context"
 import { formatError } from "@/lib/errors"
 import PageHeader from "@/components/ui/PageHeader"
 import CatalogoNav from "@/components/catalogo/CatalogoNav"
@@ -33,7 +34,12 @@ export default async function ProductosPage({ searchParams }) {
       if (!user) {
         error = "No autenticado."
       } else {
-        const pageRes = await getProductosPage(supabase, user.id, { page, query })
+        const membership = await getMembershipForUser(supabase, user.id)
+        const pageRes = await getProductosPage(
+          supabase,
+          membership?.organizationId ?? user.id,
+          { page, query }
+        )
 
         productos = pageRes.productos
         pagination = {

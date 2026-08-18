@@ -16,13 +16,18 @@ export const CLIENTE_PUBLICO_GENERAL_DEFAULTS = {
 }
 
 /**
- * Garantiza un cliente «Público en general» por tienda (SAT XAXX010101000).
+ * Garantiza un cliente «Público en general» por ferretería (SAT XAXX010101000).
  */
-export async function ensureClientePublicoGeneral(supabase, userId, codigoPostal) {
+export async function ensureClientePublicoGeneral(
+  supabase,
+  organizationId,
+  userId,
+  codigoPostal
+) {
   const { data: flagged } = await supabase
     .from("clientes")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("es_publico_general", true)
     .maybeSingle()
 
@@ -40,7 +45,7 @@ export async function ensureClientePublicoGeneral(supabase, userId, codigoPostal
   const { data: byRfc } = await supabase
     .from("clientes")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("rfc", PUBLICO_GENERAL_RFC)
     .maybeSingle()
 
@@ -57,6 +62,7 @@ export async function ensureClientePublicoGeneral(supabase, userId, codigoPostal
     .from("clientes")
     .insert({
       user_id: userId,
+      organization_id: organizationId,
       ...CLIENTE_PUBLICO_GENERAL_DEFAULTS,
       codigo_postal: codigoPostal ?? "00000",
       email: null,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { timbrarCfdi } from "@/lib/pac/sandbox"
+import { requireOrganizationId } from "@/lib/organization/context"
 
 // API sandbox PAC — para integración futura con timbrado externo.
 export async function POST(request) {
@@ -11,6 +12,13 @@ export async function POST(request) {
 
   if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+  }
+
+  let organizationId
+  try {
+    organizationId = await requireOrganizationId(supabase, user.id)
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 403 })
   }
 
   let body
@@ -29,7 +37,7 @@ export async function POST(request) {
     .from("facturas")
     .select("*")
     .eq("id", facturaId)
-    .eq("user_id", user.id)
+    .eq("organization_id", organizationId)
     .single()
 
   if (!factura) {
@@ -39,7 +47,7 @@ export async function POST(request) {
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("organization_id", organizationId)
     .maybeSingle()
 
   const timbre = await timbrarCfdi({
@@ -61,7 +69,7 @@ export async function POST(request) {
       timbrado_at: new Date().toISOString(),
     })
     .eq("id", facturaId)
-    .eq("user_id", user.id)
+    .eq("organization_id", organizationId)
 
   return NextResponse.json({
     ok: true,

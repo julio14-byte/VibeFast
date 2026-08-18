@@ -135,11 +135,11 @@ export default async function BillingPage({ searchParams }) {
       )}
 
       <section className="rounded-xl border border-base-200 bg-base-200/40 p-4 text-sm text-base-content/70">
-        <p className="font-medium text-base-content">Fase 1 SaaS</p>
+        <p className="font-medium text-base-content">Fase 2 SaaS · Multi-usuario</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>14 días de prueba en plan Starter (200 productos).</li>
-          <li>Plan Pro: hasta 5.000 productos y facturación completa.</li>
-          <li>El cobro es mensual vía Stripe; puedes cancelar desde el portal.</li>
+          <li>Tu ferretería comparte catálogo, ventas y clientes entre empleados.</li>
+          <li>Invita cajeros desde Configuración (según límite de tu plan).</li>
+          <li>14 días de prueba en Starter; Pro incluye más productos y usuarios.</li>
         </ul>
       </section>
     </div>

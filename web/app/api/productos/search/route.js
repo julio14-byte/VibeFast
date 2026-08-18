@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient, getUser } from "@/lib/supabase/server"
 import { searchProductos } from "@/lib/productos/search"
+import { requireOrganizationId } from "@/lib/organization/context"
 
 export async function GET(request) {
   const user = await getUser()
@@ -14,7 +15,14 @@ export async function GET(request) {
   const offset = Math.max(0, Number(searchParams.get("offset")) || 0)
 
   const supabase = await createClient()
-  const { productos, total, error } = await searchProductos(supabase, user.id, {
+  let organizationId
+  try {
+    organizationId = await requireOrganizationId(supabase, user.id)
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 403 })
+  }
+
+  const { productos, total, error } = await searchProductos(supabase, organizationId, {
     query,
     limit,
     offset,

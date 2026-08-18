@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { SAT_REGIMENES, SAT_USOS_CFDI } from "@/lib/productos"
 import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
+import { getMembershipForUser } from "@/lib/organization/context"
 import { createCliente, updateCliente, deleteCliente } from "./actions"
 
 export const metadata = { title: "Clientes · SmartPOS" }
@@ -21,13 +22,17 @@ export default async function ClientesPage({ searchParams }) {
 
   if (user) {
     try {
-      await ensureClientePublicoGeneral(
-        supabase,
-        user.id,
-        empresa?.codigo_postal
-      )
+      const membership = await getMembershipForUser(supabase, user.id)
+      if (membership?.organizationId) {
+        await ensureClientePublicoGeneral(
+          supabase,
+          membership.organizationId,
+          user.id,
+          empresa?.codigo_postal
+        )
+      }
     } catch {
-      // migración 020 pendiente
+      // migración 020/021 pendiente
     }
   }
 

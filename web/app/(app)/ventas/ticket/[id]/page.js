@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { buildTicketData } from "@/lib/ticket"
 import TicketView from "@/components/ventas/TicketView"
 import { marcarTicketImpreso } from "../../actions"
+import { getMembershipForUser } from "@/lib/organization/context"
 
 export const metadata = { title: "Ticket · SmartPOS" }
 export const dynamic = "force-dynamic"
@@ -21,11 +22,14 @@ export default async function TicketPage({
   } = await supabase.auth.getUser()
   if (!user) notFound()
 
+  const membership = await getMembershipForUser(supabase, user.id)
+  if (!membership?.organizationId) notFound()
+
   const { data: venta } = await supabase
     .from("ventas")
     .select("*, items:venta_items(*), cliente:clientes(*)")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("organization_id", membership.organizationId)
     .single()
 
   if (!venta) notFound()
@@ -33,7 +37,7 @@ export default async function TicketPage({
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
     .select("razon_social, rfc, direccion")
-    .eq("user_id", user.id)
+    .eq("organization_id", membership.organizationId)
     .maybeSingle()
 
   const ticket = buildTicketData({

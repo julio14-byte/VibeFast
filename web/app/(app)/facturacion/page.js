@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
+import { getMembershipForUser } from "@/lib/organization/context"
 import { formatPrecio, SAT_REGIMENES, SAT_USOS_CFDI } from "@/lib/productos"
 import EnviarCfdiButtons from "@/components/facturacion/EnviarCfdiButtons"
 import {
@@ -46,11 +47,15 @@ export default async function FacturacionPage({ searchParams }) {
   let clientePublicoGeneral = null
   if (user) {
     try {
-      clientePublicoGeneral = await ensureClientePublicoGeneral(
-        supabase,
-        user.id,
-        empresa?.codigo_postal
-      )
+      const membership = await getMembershipForUser(supabase, user.id)
+      if (membership?.organizationId) {
+        clientePublicoGeneral = await ensureClientePublicoGeneral(
+          supabase,
+          membership.organizationId,
+          user.id,
+          empresa?.codigo_postal
+        )
+      }
       if (
         clientePublicoGeneral &&
         !clientes.some((c) => c.id === clientePublicoGeneral.id)

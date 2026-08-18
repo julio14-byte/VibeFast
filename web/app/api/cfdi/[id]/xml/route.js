@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { requireOrganizationId } from "@/lib/organization/context"
 
 export async function GET(request, { params }) {
   const { id } = await params
@@ -12,11 +13,18 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 })
   }
 
+  let organizationId
+  try {
+    organizationId = await requireOrganizationId(supabase, user.id)
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 403 })
+  }
+
   const { data: factura } = await supabase
     .from("facturas")
     .select("serie, folio, xml_cfdi")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("organization_id", organizationId)
     .single()
 
   if (!factura?.xml_cfdi) {

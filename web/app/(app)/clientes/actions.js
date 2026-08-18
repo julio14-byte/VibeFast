@@ -2,17 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/clientes"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 function fail(message) {
@@ -53,9 +48,10 @@ export async function createCliente(formData) {
     const data = parseClienteForm(formData)
     if (!data) fail("La razón social es obligatoria.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId } = await requireUser()
     const { error } = await supabase.from("clientes").insert({
       user_id: user.id,
+      organization_id: organizationId,
       ...data,
     })
 
@@ -77,12 +73,12 @@ export async function updateCliente(formData) {
     const data = parseClienteForm(formData)
     if (!id || !data) fail("Datos inválidos.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const { error } = await supabase
       .from("clientes")
       .update(data)
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message)
 
@@ -101,13 +97,13 @@ export async function deleteCliente(formData) {
     const id = formData.get("id")?.toString()
     if (!id) fail("Falta el id.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
 
     const { data: cliente } = await supabase
       .from("clientes")
       .select("es_publico_general")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .maybeSingle()
 
     if (cliente?.es_publico_general) {
@@ -118,7 +114,7 @@ export async function deleteCliente(formData) {
       .from("clientes")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message)
 

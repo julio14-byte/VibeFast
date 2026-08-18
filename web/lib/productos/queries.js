@@ -4,7 +4,7 @@ const DEFAULT_PAGE_SIZE = 50
 
 export async function getProductosPage(
   supabase,
-  userId,
+  organizationId,
   { page = 1, perPage = DEFAULT_PAGE_SIZE, query = "" } = {}
 ) {
   const safePage = Math.max(1, Number(page) || 1)
@@ -18,7 +18,7 @@ export async function getProductosPage(
     .order("nombre", { ascending: true })
     .range(from, to)
 
-  request = applyProductSearchFilter(request, query, userId)
+  request = applyProductSearchFilter(request, query, organizationId)
 
   const { data, error, count } = await request
 
@@ -33,11 +33,11 @@ export async function getProductosPage(
 }
 
 /** Métricas del dashboard sin cargar el catálogo completo en memoria. */
-export async function getDashboardProductStats(supabase, userId) {
+export async function getDashboardProductStats(supabase, organizationId) {
   const { count: totalProductos, error: countError } = await supabase
     .from("productos")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
 
   if (countError) {
     return { error: countError.message }
@@ -46,7 +46,7 @@ export async function getDashboardProductStats(supabase, userId) {
   const { data: alertasList, error: alertasError } = await supabase
     .from("productos")
     .select("id, codigo, nombre, stock, precio, precio_publico")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .lt("stock", 2)
     .order("stock", { ascending: true })
     .limit(8)
@@ -64,7 +64,7 @@ export async function getDashboardProductStats(supabase, userId) {
     const { data, error } = await supabase
       .from("productos")
       .select("stock, precio, precio_publico")
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .range(from, from + pageSize - 1)
 
     if (error) {
@@ -87,7 +87,7 @@ export async function getDashboardProductStats(supabase, userId) {
   const { count: alertasCriticas, error: alertasCountError } = await supabase
     .from("productos")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .lt("stock", 2)
 
   if (alertasCountError) {
@@ -104,7 +104,7 @@ export async function getDashboardProductStats(supabase, userId) {
 }
 
 /** Métricas + datos de gráficas sin cargar todo el catálogo en una sola petición. */
-export async function getDashboardChartProductData(supabase, userId) {
+export async function getDashboardChartProductData(supabase, organizationId) {
   const dist = { ok: 0, bajo: 0, critico: 0, agotado: 0 }
   let topValor = []
   let total = 0
@@ -115,7 +115,7 @@ export async function getDashboardChartProductData(supabase, userId) {
     const { data, error } = await supabase
       .from("productos")
       .select("id, codigo, nombre, stock, precio, precio_publico")
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .range(from, from + pageSize - 1)
 
     if (error) return { error: error.message }
@@ -153,11 +153,11 @@ export async function getDashboardChartProductData(supabase, userId) {
 }
 
 /** Conteo de productos con stock crítico (< 2). */
-export async function getAlertasStockCount(supabase, userId) {
+export async function getAlertasStockCount(supabase, organizationId) {
   const { count, error } = await supabase
     .from("productos")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .lt("stock", 2)
 
   return { count: count ?? 0, error: error?.message ?? null }

@@ -2,25 +2,13 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { calcularTotalesDesdePreciosConIva, desglosarPrecioConIva } from "@/lib/cfdi"
-import { buildCotizacionWhatsAppMessage } from "@/lib/cotizaciones/whatsapp"
-import { cotizacionPuedeConvertir } from "@/lib/cotizaciones/labels"
-import { buildWhatsAppLink, sendWhatsAppCloudMessage } from "@/lib/whatsapp"
-import { generarFacturaInterna } from "@/lib/facturacion/generarFacturaInterna"
-import { sendCotizacionEmail } from "@/lib/resend/send"
-import { formatPrecio } from "@/lib/productos"
+import { requireOrgContext } from "@/lib/organization/context"
 import config from "@/config"
 
 const BASE = "/cotizaciones"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 function fail(message, path = BASE) {
@@ -41,34 +29,34 @@ function venceAtFromValidezDias(validezDias) {
   return venceAt.toISOString()
 }
 
-async function getNextCotizacionFolio(supabase, userId) {
+async function getNextCotizacionFolio(supabase, organizationId) {
   const { data } = await supabase
     .from("cotizaciones")
     .select("folio")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .order("folio", { ascending: false })
     .limit(1)
     .maybeSingle()
   return (data?.folio ?? 0) + 1
 }
 
-async function getNextVentaFolio(supabase, userId) {
+async function getNextVentaFolio(supabase, organizationId) {
   const { data } = await supabase
     .from("ventas")
     .select("folio")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .order("folio", { ascending: false })
     .limit(1)
     .maybeSingle()
   return (data?.folio ?? 0) + 1
 }
 
-async function loadCotizacion(supabase, userId, cotizacionId) {
+async function loadCotizacion(supabase, organizationId, cotizacionId) {
   const { data, error } = await supabase
     .from("cotizaciones")
     .select("*, items:cotizacion_items(*), cliente:clientes(id, nombre, razon_social, telefono, email)")
     .eq("id", cotizacionId)
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .single()
 
   if (error || !data) return null
@@ -87,7 +75,7 @@ function parseCartItems(itemsJson) {
   return items
 }
 
-async function buildLineasFromCart(supabase, userId, items, tipoPrecio) {
+async function buildLineasFromCart(supabase, organizationId, items, tipoPrecio) {
   const lineas = []
 
   for (const item of items) {
@@ -102,7 +90,7 @@ async function buildLineasFromCart(supabase, userId, items, tipoPrecio) {
       .from("productos")
       .select("*")
       .eq("id", productoId)
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .single()
 
     if (pErr || !producto) throw new Error("Producto no encontrado.")
@@ -141,15 +129,16 @@ export async function crearCotizacion(formData) {
     const items = parseCartItems(itemsJson)
     if (!items) fail("Agrega al menos un producto.", `${BASE}/nueva`)
 
-    const { supabase, user } = await requireUser()
-    const lineas = await buildLineasFromCart(supabase, user.id, items, tipoPrecio)
+    const { supabase, user, organizationId } = await requireUser()
+    const lineas = await buildLineasFromCart(supabase, organizationId, items, tipoPrecio)
     const { subtotal, iva, total } = calcularTotalesDesdePreciosConIva(lineas)
-    const folio = await getNextCotizacionFolio(supabase, user.id)
+    const folio = await getNextCotizacionFolio(supabase, organizationId)
 
     const { data: cotizacion, error: cErr } = await supabase
       .from("cotizaciones")
       .insert({
         user_id: user.id,
+        organization_id: organizationId,
         cliente_id: clienteId,
         folio,
         tipo_precio: tipoPrecio,
@@ -198,8 +187,8 @@ export async function enviarCotizacionWhatsApp(formData) {
 
     if (!cotizacionId) fail("Falta la cotización.")
 
-    const { supabase, user } = await requireUser()
-    const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    const { supabase, organizationId } = await requireUser()
+    const cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
 
     const validezDias = parseValidezDias(validezRaw, cotizacion.validez_dias ?? 7)
@@ -266,8 +255,8 @@ export async function enviarCotizacionEmail(formData) {
 
     if (!cotizacionId) fail("Falta la cotización.")
 
-    const { supabase, user } = await requireUser()
-    const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    const { supabase, organizationId } = await requireUser()
+    const cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
 
     const validezDias = parseValidezDias(validezRaw, cotizacion.validez_dias ?? 7)
@@ -288,7 +277,7 @@ export async function enviarCotizacionEmail(formData) {
     const { data: empresa } = await supabase
       .from("empresa_fiscal")
       .select("razon_social")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .maybeSingle()
 
     const emisorNombre = empresa?.razon_social ?? config.app.name
@@ -349,8 +338,8 @@ export async function rechazarCotizacion(formData) {
     const cotizacionId = formData.get("cotizacion_id")?.toString()
     if (!cotizacionId) fail("Falta la cotización.")
 
-    const { supabase, user } = await requireUser()
-    const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    const { supabase, organizationId } = await requireUser()
+    const cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
     if (cotizacion.estado === "convertida") {
       fail("Esta cotización ya se convirtió en venta.", `${BASE}/${cotizacionId}`)
@@ -376,6 +365,7 @@ export async function rechazarCotizacion(formData) {
 export async function convertirCotizacionAVentaInterna(
   supabase,
   userId,
+  organizationId,
   cotizacion
 ) {
   if (!cotizacionPuedeConvertir(cotizacion.estado)) {
@@ -389,7 +379,7 @@ export async function convertirCotizacionAVentaInterna(
   const items = cotizacion.items ?? []
   if (!items.length) throw new Error("La cotización no tiene productos.")
 
-  const folio = await getNextVentaFolio(supabase, userId)
+  const folio = await getNextVentaFolio(supabase, organizationId)
 
   for (const item of items) {
     if (!item.producto_id) continue
@@ -398,7 +388,7 @@ export async function convertirCotizacionAVentaInterna(
       .from("productos")
       .select("stock, nombre")
       .eq("id", item.producto_id)
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .single()
 
     if (pErr || !producto) {
@@ -414,7 +404,7 @@ export async function convertirCotizacionAVentaInterna(
       .from("productos")
       .update({ stock: producto.stock - item.cantidad })
       .eq("id", item.producto_id)
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
 
     if (stockErr) throw new Error(stockErr.message)
   }
@@ -423,6 +413,7 @@ export async function convertirCotizacionAVentaInterna(
     .from("ventas")
     .insert({
       user_id: userId,
+      organization_id: organizationId,
       cliente_id: cotizacion.cliente_id,
       cotizacion_id: cotizacion.id,
       folio,
@@ -469,13 +460,14 @@ export async function convertirCotizacionAVenta(formData) {
 
     if (!cotizacionId) fail("Falta la cotización.")
 
-    const { supabase, user } = await requireUser()
-    const cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    const { supabase, user, organizationId } = await requireUser()
+    const cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
 
     const { ventaId, folio, total } = await convertirCotizacionAVentaInterna(
       supabase,
       user.id,
+      organizationId,
       cotizacion
     )
 
@@ -506,8 +498,8 @@ export async function convertirCotizacionYFacturar(formData) {
 
     if (!cotizacionId) fail("Falta la cotización.")
 
-    const { supabase, user } = await requireUser()
-    let cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+    const { supabase, user, organizationId } = await requireUser()
+    let cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     if (!cotizacion) fail("Cotización no encontrada.")
 
     let ventaId = cotizacion.venta_id
@@ -516,10 +508,11 @@ export async function convertirCotizacionYFacturar(formData) {
       const result = await convertirCotizacionAVentaInterna(
         supabase,
         user.id,
+        organizationId,
         cotizacion
       )
       ventaId = result.ventaId
-      cotizacion = await loadCotizacion(supabase, user.id, cotizacionId)
+      cotizacion = await loadCotizacion(supabase, organizationId, cotizacionId)
     }
 
     const clienteFactura = clienteId || cotizacion.cliente_id
@@ -527,6 +520,7 @@ export async function convertirCotizacionYFacturar(formData) {
     const factura = await generarFacturaInterna({
       supabase,
       userId: user.id,
+      organizationId,
       ventaId,
       clienteId: clienteFactura,
       timbrar,

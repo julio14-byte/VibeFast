@@ -2,17 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/proveedores"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 function fail(message) {
@@ -24,9 +19,10 @@ export async function createProveedor(formData) {
     const nombre = formData.get("nombre")?.toString().trim()
     if (!nombre) fail("El nombre del proveedor es obligatorio.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId } = await requireUser()
     const { error } = await supabase.from("proveedores").insert({
       user_id: user.id,
+      organization_id: organizationId,
       nombre,
       contacto: formData.get("contacto")?.toString().trim() || null,
       telefono: formData.get("telefono")?.toString().trim() || null,
@@ -50,12 +46,12 @@ export async function deleteProveedor(formData) {
     const id = formData.get("id")?.toString()
     if (!id) fail("Falta el id.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const { error } = await supabase
       .from("proveedores")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message)
 

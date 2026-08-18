@@ -23,6 +23,7 @@ function mapCliente(c, empresaCp) {
 export async function generarFacturaInterna({
   supabase,
   userId,
+  organizationId,
   ventaId,
   clienteId = null,
   usoCfdiOverride = null,
@@ -31,7 +32,7 @@ export async function generarFacturaInterna({
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .maybeSingle()
 
   if (!empresa?.rfc || !empresa?.razon_social) {
@@ -42,7 +43,7 @@ export async function generarFacturaInterna({
     .from("ventas")
     .select("*, items:venta_items(*)")
     .eq("id", ventaId)
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .single()
 
   if (vErr || !venta) throw new Error("Venta no encontrada.")
@@ -52,6 +53,7 @@ export async function generarFacturaInterna({
   if (!resolvedClienteId) {
     const publico = await ensureClientePublicoGeneral(
       supabase,
+      organizationId,
       userId,
       empresa.codigo_postal
     )
@@ -70,7 +72,7 @@ export async function generarFacturaInterna({
     .from("clientes")
     .select("*")
     .eq("id", resolvedClienteId)
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .single()
 
   if (c) cliente = mapCliente(c, empresa.codigo_postal)
@@ -124,6 +126,7 @@ export async function generarFacturaInterna({
     .from("facturas")
     .insert({
       user_id: userId,
+      organization_id: organizationId,
       venta_id: venta.id,
       cliente_id: resolvedClienteId,
       serie,
@@ -150,7 +153,7 @@ export async function generarFacturaInterna({
   await supabase
     .from("empresa_fiscal")
     .update({ folio_actual: folio + 1 })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
 
   return factura
 }

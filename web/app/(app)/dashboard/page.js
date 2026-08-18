@@ -20,6 +20,7 @@ import {
   getDashboardProductStats,
   getProductosPage,
 } from "@/lib/productos/queries"
+import { getMembershipForUser } from "@/lib/organization/context"
 
 import DashboardView from "@/components/dashboard/DashboardView"
 
@@ -54,11 +55,14 @@ export default async function DashboardPage() {
         const desde = new Date()
         desde.setDate(desde.getDate() - 7)
 
+        const membership = await getMembershipForUser(supabase, user.id)
+        const organizationId = membership?.organizationId ?? user.id
+
         const [stats, chartProducts, tablePage, ventasRes, metricsRes] =
           await Promise.all([
-            getDashboardProductStats(supabase, user.id),
-            getDashboardChartProductData(supabase, user.id),
-            getProductosPage(supabase, user.id, { page: 1, perPage: 50 }),
+            getDashboardProductStats(supabase, organizationId),
+            getDashboardChartProductData(supabase, organizationId),
+            getProductosPage(supabase, organizationId, { page: 1, perPage: 50 }),
             supabase
               .from("ventas")
               .select("total, created_at")

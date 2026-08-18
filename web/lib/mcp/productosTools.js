@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { mapProductoRow, mapProductoRows } from "@/lib/productos/format"
 import { searchProductos } from "@/lib/productos/search"
+import { requireOrganizationId } from "@/lib/organization/context"
 
 async function requireUser() {
   const supabase = await createClient()
@@ -8,7 +9,8 @@ async function requireUser() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) throw new Error("No autenticado")
-  return { supabase, user }
+  const organizationId = await requireOrganizationId(supabase, user.id)
+  return { supabase, user, organizationId }
 }
 
 const buscarProductos = {
@@ -32,14 +34,14 @@ const buscarProductos = {
     additionalProperties: false,
   },
   async execute({ query, limit = 12 }) {
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const q = String(query ?? "").trim()
     if (!q) {
       return { ok: true, total: 0, productos: [], mensaje: "Indica un texto o código para buscar." }
     }
 
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 12))
-    const { productos, total, error } = await searchProductos(supabase, user.id, {
+    const { productos, total, error } = await searchProductos(supabase, organizationId, {
       query: q,
       limit: safeLimit,
       offset: 0,
@@ -77,7 +79,7 @@ const obtenerProductoPorCodigo = {
     additionalProperties: false,
   },
   async execute({ codigo }) {
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const codigoNum = Number(codigo)
     if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
       return { ok: false, error: "Código inválido. Usa un número entero positivo." }
@@ -88,7 +90,7 @@ const obtenerProductoPorCodigo = {
       .select(
         "codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, margen_ganancia, clave_sat, unidad_sat"
       )
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .eq("codigo", codigoNum)
       .maybeSingle()
 
@@ -130,11 +132,11 @@ const listarProductos = {
     additionalProperties: false,
   },
   async execute({ query = "", limit = 20, offset = 0 } = {}) {
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 20))
     const safeOffset = Math.max(0, Number(offset) || 0)
 
-    const { productos, total, error } = await searchProductos(supabase, user.id, {
+    const { productos, total, error } = await searchProductos(supabase, organizationId, {
       query: String(query ?? "").trim(),
       limit: safeLimit,
       offset: safeOffset,
@@ -174,7 +176,7 @@ const productosBajoStock = {
     additionalProperties: false,
   },
   async execute({ umbral = 5, limit = 25 } = {}) {
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const safeUmbral = Math.max(0, Number(umbral) || 5)
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 25))
 
@@ -183,7 +185,7 @@ const productosBajoStock = {
       .select(
         "codigo, nombre, stock, precio, precio_compra, precio_mayoreo, precio_publico, margen_ganancia, clave_sat, unidad_sat"
       )
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .lte("stock", safeUmbral)
       .order("stock", { ascending: true })
       .order("nombre", { ascending: true })

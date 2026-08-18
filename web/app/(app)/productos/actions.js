@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
-import { getOrganizationForUser } from "@/lib/billing/organization"
+import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/productos"
 const IMPORT_BATCH = 200
@@ -12,12 +12,7 @@ const MAX_CSV_BYTES = 5 * 1024 * 1024
 const MAX_CSV_ROWS = 10000
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 const CATALOGO_PATHS = ["/precios", "/productos", "/inventario"]
@@ -115,7 +110,7 @@ function fail(message) {
 
 export async function importProductosCsv(formData) {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId, organization } = await requireUser()
     const file = formData.get("file")
     const mode = formData.get("mode")?.toString() || "upsert"
 
@@ -154,6 +149,7 @@ export async function importProductosCsv(formData) {
       const d = mapped.data
       payloads.push({
         user_id: user.id,
+        organization_id: organizationId,
         nombre: d.nombre,
         codigo: d.codigo,
         precio: d.precio_publico,
@@ -175,12 +171,11 @@ export async function importProductosCsv(formData) {
       }
     }
 
-    const organization = await getOrganizationForUser(user.id)
     if (organization?.product_limit) {
       const { count: currentCount } = await supabase
         .from("productos")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
 
       const projected = (currentCount ?? 0) + payloads.length
       if (projected > organization.product_limit) {
@@ -201,7 +196,7 @@ export async function importProductosCsv(formData) {
         const { data, error } = await supabase
           .from("productos")
           .upsert(batch, {
-            onConflict: "user_id,codigo",
+            onConflict: "organization_id,codigo",
             ignoreDuplicates: true,
           })
           .select("id")
@@ -215,7 +210,7 @@ export async function importProductosCsv(formData) {
         const { data: existentes } = await supabase
           .from("productos")
           .select("codigo")
-          .eq("user_id", user.id)
+          .eq("organization_id", organizationId)
           .in("codigo", codigos)
 
         const existSet = new Set((existentes ?? []).map((e) => e.codigo))
@@ -223,7 +218,7 @@ export async function importProductosCsv(formData) {
         const batchCreados = batch.length - batchActualizados
 
         const { error } = await supabase.from("productos").upsert(batch, {
-          onConflict: "user_id,codigo",
+          onConflict: "organization_id,codigo",
         })
 
         if (error) {
@@ -255,9 +250,10 @@ export async function createProducto(formData) {
     const data = parseProductoForm(formData)
     if (!data) fail("Revisa código, nombre, precios y stock.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId } = await requireUser()
     const { error } = await supabase.from("productos").insert({
       user_id: user.id,
+      organization_id: organizationId,
       ...data,
     })
 
@@ -284,12 +280,12 @@ export async function updateProducto(formData) {
     const data = parseProductoForm(formData)
     if (!id || !data) fail("Datos inválidos.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const { error } = await supabase
       .from("productos")
       .update(data)
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) {
       if (error.code === "23505") fail(`Ya existe código "${data.codigo}".`)
@@ -317,12 +313,12 @@ export async function deleteProducto(formData) {
     const id = formData.get("id")?.toString()
     if (!id) fail("Falta el id.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
     const { error } = await supabase
       .from("productos")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message || "No se pudo eliminar.")
 

@@ -2,27 +2,22 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { calcularTotalesDesdePreciosConIva, desglosarPrecioConIva } from "@/lib/cfdi"
+import { requireOrgContext } from "@/lib/organization/context"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect("/login?next=/ventas&error=auth")
-  return { supabase, user }
+  return requireOrgContext("/ventas")
 }
 
 function fail(message) {
   redirect(`/ventas?error=${encodeURIComponent(message)}`)
 }
 
-async function getNextVentaFolio(supabase, userId) {
+async function getNextVentaFolio(supabase, organizationId) {
   const { data } = await supabase
     .from("ventas")
     .select("folio")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .order("folio", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -52,8 +47,8 @@ export async function registrarVenta(formData) {
       fail("Agrega al menos un producto.")
     }
 
-    const { supabase, user } = await requireUser()
-    const folio = await getNextVentaFolio(supabase, user.id)
+    const { supabase, user, organizationId } = await requireUser()
+    const folio = await getNextVentaFolio(supabase, organizationId)
 
     const lineas = []
     for (const item of items) {
@@ -68,7 +63,7 @@ export async function registrarVenta(formData) {
         .from("productos")
         .select("*")
         .eq("id", productoId)
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
         .single()
 
       if (pErr || !producto) fail("Producto no encontrado.")
@@ -98,7 +93,7 @@ export async function registrarVenta(formData) {
         .from("productos")
         .update({ stock: producto.stock - cantidad })
         .eq("id", producto.id)
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
 
       if (stockErr) fail(stockErr.message)
     }
@@ -109,6 +104,7 @@ export async function registrarVenta(formData) {
       .from("ventas")
       .insert({
         user_id: user.id,
+        organization_id: organizationId,
         cliente_id: clienteId,
         folio,
         tipo_precio: tipoPrecio,
@@ -153,11 +149,7 @@ export async function registrarVenta(formData) {
 }
 
 export async function marcarTicketImpreso(ventaId) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
+  const { supabase, organizationId } = await requireUser()
 
   await supabase
     .from("ventas")
@@ -166,7 +158,7 @@ export async function marcarTicketImpreso(ventaId) {
       ticket_impreso_at: new Date().toISOString(),
     })
     .eq("id", ventaId)
-    .eq("user_id", user.id)
+    .eq("organization_id", organizationId)
 
   revalidatePath("/ventas")
 }

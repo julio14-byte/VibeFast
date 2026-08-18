@@ -2,17 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { requireOrgContext } from "@/lib/organization/context"
 
 const BASE = "/settings"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 function fail(message) {
@@ -21,7 +16,7 @@ function fail(message) {
 
 export async function guardarPacConfig(formData) {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
 
     const data = {
       pac_provider: formData.get("pac_provider")?.toString() || "sandbox",
@@ -36,7 +31,7 @@ export async function guardarPacConfig(formData) {
     const { data: existing } = await supabase
       .from("empresa_fiscal")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .maybeSingle()
 
     if (!existing) {
@@ -48,7 +43,7 @@ export async function guardarPacConfig(formData) {
     const { error } = await supabase
       .from("empresa_fiscal")
       .update(data)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message)
 

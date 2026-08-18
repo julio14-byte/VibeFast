@@ -44,8 +44,8 @@ const PRODUCT_SELECT =
 /**
  * Aplica filtros de texto a un query builder de productos.
  */
-export function applyProductSearchFilter(builder, query, userId) {
-  let request = builder.eq("user_id", userId)
+export function applyProductSearchFilter(builder, query, organizationId) {
+  let request = builder.eq("organization_id", organizationId)
 
   const q = query?.trim()
   if (!q) return request
@@ -63,7 +63,7 @@ export function applyProductSearchFilter(builder, query, userId) {
 
 export async function searchProductos(
   supabase,
-  userId,
+  organizationId,
   { query = "", limit = 12, offset = 0 } = {}
 ) {
   const q = query?.trim()
@@ -74,7 +74,7 @@ export async function searchProductos(
     .order("nombre", { ascending: true })
     .range(offset, offset + limit - 1)
 
-  request = applyProductSearchFilter(request, q, userId)
+  request = applyProductSearchFilter(request, q, organizationId)
 
   const { data, error, count } = await request
   return { productos: data ?? [], total: count ?? 0, error }

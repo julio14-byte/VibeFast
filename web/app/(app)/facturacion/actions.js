@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { timbrarCfdi } from "@/lib/pac/sandbox"
 import { generarFacturaInterna } from "@/lib/facturacion/generarFacturaInterna"
 import { ensureClientePublicoGeneral } from "@/lib/clientes/publicoGeneral"
@@ -13,17 +12,13 @@ import {
   buildWhatsAppLink,
   sendWhatsAppCloudMessage,
 } from "@/lib/whatsapp"
+import { requireOrgContext } from "@/lib/organization/context"
 import config from "@/config"
 
 const BASE = "/facturacion"
 
 async function requireUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${BASE}&error=auth`)
-  return { supabase, user }
+  return requireOrgContext(BASE)
 }
 
 function fail(message) {
@@ -32,7 +27,7 @@ function fail(message) {
 
 export async function guardarEmpresaFiscal(formData) {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId } = await requireUser()
 
     const data = {
       rfc: formData.get("rfc")?.toString().trim().toUpperCase() || "",
@@ -46,7 +41,7 @@ export async function guardarEmpresaFiscal(formData) {
     const { data: existing } = await supabase
       .from("empresa_fiscal")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .maybeSingle()
 
     let error
@@ -54,11 +49,12 @@ export async function guardarEmpresaFiscal(formData) {
       const res = await supabase
         .from("empresa_fiscal")
         .update(data)
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
       error = res.error
     } else {
       const res = await supabase.from("empresa_fiscal").insert({
         user_id: user.id,
+        organization_id: organizationId,
         ...data,
       })
       error = res.error
@@ -82,16 +78,17 @@ export async function generarFactura(formData) {
     const timbrar = formData.get("timbrar")?.toString() === "1"
     if (!ventaId) fail("Selecciona una venta.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, user, organizationId } = await requireUser()
 
     if (!clienteId) {
       const { data: empresa } = await supabase
         .from("empresa_fiscal")
         .select("codigo_postal")
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
         .maybeSingle()
       const publico = await ensureClientePublicoGeneral(
         supabase,
+        organizationId,
         user.id,
         empresa?.codigo_postal
       )
@@ -101,6 +98,7 @@ export async function generarFactura(formData) {
     const factura = await generarFacturaInterna({
       supabase,
       userId: user.id,
+      organizationId,
       ventaId,
       clienteId,
       usoCfdiOverride,
@@ -122,13 +120,13 @@ export async function timbrarFactura(formData) {
     const facturaId = formData.get("factura_id")?.toString()
     if (!facturaId) fail("Falta id de factura.")
 
-    const { supabase, user } = await requireUser()
+    const { supabase, organizationId } = await requireUser()
 
     const { data: factura } = await supabase
       .from("facturas")
       .select("*")
       .eq("id", facturaId)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .single()
 
     if (!factura) fail("Factura no encontrada.")
@@ -137,7 +135,7 @@ export async function timbrarFactura(formData) {
     const { data: empresa } = await supabase
       .from("empresa_fiscal")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .maybeSingle()
 
     const timbre = await timbrarCfdi({
@@ -157,7 +155,7 @@ export async function timbrarFactura(formData) {
         timbrado_at: new Date().toISOString(),
       })
       .eq("id", facturaId)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     if (error) fail(error.message)
 
@@ -173,12 +171,12 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || config.app.defaultUrl
 }
 
-async function loadFacturaForEnvio(supabase, userId, facturaId) {
+async function loadFacturaForEnvio(supabase, organizationId, facturaId) {
   const { data: factura } = await supabase
     .from("facturas")
     .select("*, cliente:clientes(*)")
     .eq("id", facturaId)
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .single()
 
   if (!factura) return null
@@ -186,7 +184,7 @@ async function loadFacturaForEnvio(supabase, userId, facturaId) {
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
     .select("razon_social")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .maybeSingle()
 
   return { factura, empresa }
@@ -199,8 +197,8 @@ export async function enviarCfdiPorEmail(formData) {
 
     if (!facturaId) fail("Falta la factura.")
 
-    const { supabase, user } = await requireUser()
-    const loaded = await loadFacturaForEnvio(supabase, user.id, facturaId)
+    const { supabase, organizationId } = await requireUser()
+    const loaded = await loadFacturaForEnvio(supabase, organizationId, facturaId)
     if (!loaded) fail("Factura no encontrada.")
 
     const { factura, empresa } = loaded
@@ -235,7 +233,7 @@ export async function enviarCfdiPorEmail(formData) {
         ultimo_envio_destino: to,
       })
       .eq("id", facturaId)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     revalidatePath(BASE)
     redirect(`${BASE}?ok=email&folio=${factura.folio}`)
@@ -255,8 +253,8 @@ export async function enviarCfdiPorWhatsApp(formData) {
     if (!facturaId) fail("Falta la factura.")
     if (!telefono) fail("Indica el número de WhatsApp.")
 
-    const { supabase, user } = await requireUser()
-    const loaded = await loadFacturaForEnvio(supabase, user.id, facturaId)
+    const { supabase, organizationId } = await requireUser()
+    const loaded = await loadFacturaForEnvio(supabase, organizationId, facturaId)
     if (!loaded) fail("Factura no encontrada.")
 
     const { factura, empresa } = loaded
@@ -292,7 +290,7 @@ export async function enviarCfdiPorWhatsApp(formData) {
         ultimo_envio_destino: telefono,
       })
       .eq("id", facturaId)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
 
     revalidatePath(BASE)
     redirect(`${BASE}?ok=whatsapp&folio=${factura.folio}`)

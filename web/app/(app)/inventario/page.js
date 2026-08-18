@@ -3,6 +3,7 @@ import InventarioClient from "@/components/inventario/InventarioClient"
 import CatalogoNav from "@/components/catalogo/CatalogoNav"
 import { formatError } from "@/lib/errors"
 import { getAlertasStockCount, getProductosPage } from "@/lib/productos/queries"
+import { getMembershipForUser } from "@/lib/organization/context"
 
 export const metadata = { title: "Inventario · SmartPOS" }
 export const dynamic = "force-dynamic"
@@ -25,9 +26,12 @@ export default async function InventarioPage({ searchParams }) {
     )
   }
 
+  const membership = await getMembershipForUser(supabase, user.id)
+  const organizationId = membership?.organizationId ?? user.id
+
   const [pageRes, alertasRes] = await Promise.all([
-    getProductosPage(supabase, user.id, { page, query }),
-    getAlertasStockCount(supabase, user.id),
+    getProductosPage(supabase, organizationId, { page, query }),
+    getAlertasStockCount(supabase, organizationId),
   ])
 
   if (pageRes.error) {
