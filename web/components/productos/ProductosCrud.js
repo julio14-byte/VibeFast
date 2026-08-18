@@ -84,8 +84,8 @@ export default function ProductosCrud({
                     <th>Código</th>
                     <th>Nombre</th>
                     <th className="text-right">Compra s/IVA</th>
-                    <th className="text-right">Margen men.</th>
                     <th className="text-right">Margen may.</th>
+                    <th className="text-right">Margen men.</th>
                     <th className="text-right">Mayoreo c/IVA</th>
                     <th className="text-right">Público c/IVA</th>
                     <th className="text-right">Stock</th>
@@ -109,10 +109,10 @@ export default function ProductosCrud({
                         {formatPrecio(producto.precio_compra)}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {formatMargenPct(margenPublico)}
+                        {formatMargenPct(margenMayoreo)}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {formatMargenPct(margenMayoreo)}
+                        {formatMargenPct(margenPublico)}
                       </td>
                       <td className="text-right text-sm">
                         {formatPrecio(producto.precio_mayoreo)}

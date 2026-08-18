@@ -158,8 +158,8 @@ export default function InventarioClient({
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
                   <span>Público c/IVA {formatPrecio(p.precio_publico ?? p.precio)}</span>
                   <span>Mayoreo c/IVA {formatPrecio(p.precio_mayoreo)}</span>
-                  <span>Men. {formatMargenPct(margenPublico)}</span>
                   <span>May. {formatMargenPct(margenMayoreo)}</span>
+                  <span>Men. {formatMargenPct(margenPublico)}</span>
                 </div>
               </article>
               )
@@ -173,8 +173,8 @@ export default function InventarioClient({
                   <tr>
                     <th>Código</th>
                     <th>Producto</th>
-                    <th className="text-right">Margen men.</th>
                     <th className="text-right">Margen may.</th>
+                    <th className="text-right">Margen men.</th>
                     <th className="text-right">Stock</th>
                     <th className="text-right">Compra s/IVA</th>
                     <th className="text-right">Mayoreo c/IVA</th>
@@ -193,10 +193,10 @@ export default function InventarioClient({
                         {p.nombre}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {formatMargenPct(margenPublico)}
+                        {formatMargenPct(margenMayoreo)}
                       </td>
                       <td className="text-right text-sm tabular-nums">
-                        {formatMargenPct(margenMayoreo)}
+                        {formatMargenPct(margenPublico)}
                       </td>
                       <td className="text-right">
                         <span

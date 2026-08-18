@@ -204,17 +204,6 @@ export default function ProductoFormModal({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-base-200 bg-base-200/30 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">
-                  Margen menudeo
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-primary">
-                  {formatMargenPct(margenPublico)}
-                </p>
-                <p className="mt-1 text-xs text-base-content/55">
-                  Sobre costo sin IVA, según precio público.
-                </p>
-              </div>
-              <div className="rounded-xl border border-base-200 bg-base-200/30 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">
                   Margen mayoreo
                 </p>
                 <p className="mt-1 text-2xl font-bold tabular-nums text-primary">
@@ -222,6 +211,17 @@ export default function ProductoFormModal({
                 </p>
                 <p className="mt-1 text-xs text-base-content/55">
                   Sobre costo sin IVA, según precio mayoreo.
+                </p>
+              </div>
+              <div className="rounded-xl border border-base-200 bg-base-200/30 px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">
+                  Margen menudeo
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-primary">
+                  {formatMargenPct(margenPublico)}
+                </p>
+                <p className="mt-1 text-xs text-base-content/55">
+                  Sobre costo sin IVA, según precio público.
                 </p>
               </div>
             </div>

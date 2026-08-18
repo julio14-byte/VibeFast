@@ -101,11 +101,11 @@ export default function ConsultaPreciosClient() {
               />
               {(margenPublico != null || margenMayoreo != null) && (
                 <p className="text-xs text-base-content/55 pt-1">
-                  Margen menudeo: {formatMargenPct(margenPublico)}
-                  {margenMayoreo != null && (
+                  Margen mayoreo: {formatMargenPct(margenMayoreo)}
+                  {margenPublico != null && (
                     <span>
                       {" "}
-                      · Margen mayoreo: {formatMargenPct(margenMayoreo)}
+                      · Margen menudeo: {formatMargenPct(margenPublico)}
                     </span>
                   )}
                 </p>
