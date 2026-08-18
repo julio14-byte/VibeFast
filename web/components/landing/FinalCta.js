@@ -1,9 +1,12 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import config from "@/config"
+import { getAppEntryUrl } from "@/lib/auth/landing"
 
 export default function FinalCta() {
   const { eyebrow, title, subtitle, cta, ctaSecondary } = config.landing.finalCta
+  const entryUrl = getAppEntryUrl()
+  const primaryHref = cta.href === "#waitlist" ? entryUrl : cta.href
 
   return (
     <section className="relative overflow-hidden border-t border-base-200 bg-base-100">
@@ -24,7 +27,7 @@ export default function FinalCta() {
         )}
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <Link href={cta.href} className="btn btn-accent btn-lg">
+          <Link href={primaryHref} className="btn btn-accent btn-lg touch-manipulation">
             {cta.label}
             <ArrowRight className="size-4" />
           </Link>

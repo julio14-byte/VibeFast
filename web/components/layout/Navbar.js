@@ -2,8 +2,13 @@ import Link from "next/link"
 import { Menu } from "lucide-react"
 import config from "@/config"
 import Logo from "@/components/Logo"
+import { getAppEntryUrl, isAuthEnabled } from "@/lib/auth/landing"
 
 export default function Navbar() {
+  const entryUrl = getAppEntryUrl()
+  const loginUrl = config.auth.loginUrl
+  const entryLabel = config.landing.hero.cta.label
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-base-200 bg-base-100/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -22,10 +27,15 @@ export default function Navbar() {
                   <Link href={item.href}>{item.label}</Link>
                 </li>
               ))}
-              {config.features.googleAuth && (
-                <li>
-                  <Link href={config.auth.loginUrl}>Entrar</Link>
-                </li>
+              {isAuthEnabled() && (
+                <>
+                  <li>
+                    <Link href={loginUrl}>Entrar</Link>
+                  </li>
+                  <li>
+                    <Link href={entryUrl}>{entryLabel}</Link>
+                  </li>
+                </>
               )}
             </ul>
           </div>
@@ -50,13 +60,13 @@ export default function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
-          {config.features.googleAuth && (
-            <Link href={config.auth.loginUrl} className="btn btn-sm btn-ghost">
+          {isAuthEnabled() && (
+            <Link href={loginUrl} className="btn btn-sm btn-ghost touch-manipulation">
               Entrar
             </Link>
           )}
-          <Link href="#waitlist" className="btn btn-sm btn-accent">
-            {config.landing.hero.cta.label}
+          <Link href={entryUrl} className="btn btn-sm btn-accent touch-manipulation">
+            {entryLabel}
           </Link>
         </div>
       </nav>

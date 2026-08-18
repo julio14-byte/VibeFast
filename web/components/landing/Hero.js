@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, Sparkles, LayoutDashboard, MessageSquare, Bot } from "lucide-react"
 import config from "@/config"
+import { getAppEntryUrl } from "@/lib/auth/landing"
 
 const MOCK_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, active: true },
@@ -10,6 +11,8 @@ const MOCK_NAV = [
 
 export default function Hero() {
   const { eyebrow, title, subtitle, cta, ctaSecondary } = config.landing.hero
+  const entryUrl = getAppEntryUrl()
+  const primaryHref = cta.href === "#waitlist" ? entryUrl : cta.href
 
   return (
     <section className="relative overflow-hidden">
@@ -38,7 +41,7 @@ export default function Hero() {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <Link href={cta.href} className="btn btn-accent btn-lg">
+          <Link href={primaryHref} className="btn btn-accent btn-lg touch-manipulation">
             {cta.label}
             <ArrowRight className="size-4" />
           </Link>
