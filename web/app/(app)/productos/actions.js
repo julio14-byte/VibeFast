@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeCodigo } from "@/lib/productos/codigo"
-import { margenesParaPersistir } from "@/lib/productos/margenes"
+import { margenesParaPersistir, roundMargenPct } from "@/lib/productos/margenes"
 import { deleteDemoProductosForOrg, deleteAllProductosForOrg } from "@/lib/productos/queries"
 import { canManageTeam, requireOrgContext } from "@/lib/organization/context"
 
@@ -88,14 +88,20 @@ function parseProductoForm(formData) {
     precio_mayoreo,
   })
 
-  const margen_ganancia = Number.isFinite(margenFromForm)
-    ? margenFromForm
-    : calculated.margen_ganancia
-  const margen_mayoreo = Number.isFinite(margenMayoreoFromForm)
-    ? margenMayoreoFromForm
-    : calculated.margen_mayoreo
+  const margen_ganancia = roundMargenPct(
+    Number.isFinite(margenFromForm)
+      ? margenFromForm
+      : calculated.margen_ganancia
+  )
+  const margen_mayoreo = roundMargenPct(
+    Number.isFinite(margenMayoreoFromForm)
+      ? margenMayoreoFromForm
+      : calculated.margen_mayoreo
+  )
 
   if (
+    margen_ganancia == null ||
+    margen_mayoreo == null ||
     margen_ganancia < -100 ||
     margen_ganancia > 99999999.99 ||
     margen_mayoreo < -100 ||
@@ -265,7 +271,7 @@ export async function importProductosCsv(formData) {
 export async function createProducto(formData) {
   try {
     const data = parseProductoForm(formData)
-    if (!data) fail("Revisa código, nombre, precios y stock.")
+    if (!data) fail("Revisa código, nombre, precios, stock y márgenes (máx. 2 decimales).")
 
     const { supabase, user, organizationId } = await requireUser()
     const { error } = await supabase.from("productos").insert({
@@ -295,7 +301,7 @@ export async function updateProducto(formData) {
   try {
     const id = formData.get("id")?.toString()
     const data = parseProductoForm(formData)
-    if (!id || !data) fail("Datos inválidos.")
+    if (!id || !data) fail("Datos inválidos. Revisa precios, stock y márgenes (máx. 2 decimales).")
 
     const { supabase, organizationId } = await requireUser()
     const { error } = await supabase

@@ -7,7 +7,7 @@ import {
   updateProducto,
 } from "@/app/(app)/productos/actions"
 import { margenDesdePrecioVenta, precioVentaConIva } from "@/lib/precios"
-import { margenesParaMostrar } from "@/lib/productos/margenes"
+import { margenesParaMostrar, roundMargenPct } from "@/lib/productos/margenes"
 import SatCatalogSearch from "./SatCatalogSearch"
 
 function Field({ label, hint, required, children }) {
@@ -36,7 +36,7 @@ function initialMargenMayoreo(producto, margenMenudeo) {
   const { margenMayoreo } = margenesParaMostrar(producto ?? {})
   if (margenMayoreo != null) return String(margenMayoreo)
   const base = Number(margenMenudeo ?? DEFAULT_MARGEN)
-  return String(Math.round(base * 0.85 * 10) / 10)
+  return String(roundMargenPct(base * 0.85) ?? DEFAULT_MARGEN * 0.85)
 }
 
 function initialMargenMenudeo(producto) {
@@ -106,13 +106,13 @@ export default function ProductoFormModal({
   useEffect(() => {
     if (!compraNum || !publicoManual || !publicoNum) return
     const m = margenDesdePrecioVenta(compraNum, publicoNum)
-    if (m != null) setMargenPublico(String(m))
+    if (m != null) setMargenPublico(String(roundMargenPct(m)))
   }, [compraNum, publicoNum, publicoManual])
 
   useEffect(() => {
     if (!compraNum || !mayoreoManual || !mayoreoNum) return
     const m = margenDesdePrecioVenta(compraNum, mayoreoNum)
-    if (m != null) setMargenMayoreo(String(m))
+    if (m != null) setMargenMayoreo(String(roundMargenPct(m)))
   }, [compraNum, mayoreoNum, mayoreoManual])
 
   if (!open) return null
@@ -219,11 +219,15 @@ export default function ProductoFormModal({
                   type="number"
                   min="-100"
                   max="99999999"
-                  step="0.1"
+                  step="0.01"
                   value={margenMayoreo}
                   onChange={(e) => {
                     setMargenMayoreo(e.target.value)
                     setMayoreoManual(false)
+                  }}
+                  onBlur={() => {
+                    const n = roundMargenPct(margenMayoreo)
+                    if (n != null) setMargenMayoreo(String(n))
                   }}
                   className="input input-bordered w-full"
                   placeholder="25"
@@ -238,11 +242,15 @@ export default function ProductoFormModal({
                   type="number"
                   min="-100"
                   max="99999999"
-                  step="0.1"
+                  step="0.01"
                   value={margenPublico}
                   onChange={(e) => {
                     setMargenPublico(e.target.value)
                     setPublicoManual(false)
+                  }}
+                  onBlur={() => {
+                    const n = roundMargenPct(margenPublico)
+                    if (n != null) setMargenPublico(String(n))
                   }}
                   className="input input-bordered w-full"
                   placeholder="30"
