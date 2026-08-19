@@ -1,4 +1,4 @@
-import { formatPrecio } from "@/lib/productos"
+import { formatPrecioTicket } from "@/lib/productos"
 import {
   TICKET_PAPER_CLASS,
   TICKET_PRINT_AREA_ID,
@@ -6,7 +6,7 @@ import {
 
 /**
  * Cuerpo del ticket (vista previa e impresión).
- * Estructura: rollo 80 mm → contenido 72 mm centrado con márgenes laterales.
+ * Ancho completo del rollo 80 mm, sin márgenes laterales.
  */
 export default function TicketBody({ ticket, preview = false }) {
   const paperClass = preview
@@ -34,7 +34,7 @@ export default function TicketBody({ ticket, preview = false }) {
           <p className="ticket-meta text-center">RFC: {ticket.rfc}</p>
         ) : null}
 
-        <p className="ticket-rule my-2 border-t border-dashed border-gray-400" />
+        <p className="ticket-rule" />
 
         <p>Ticket #{ticket.folio}</p>
         <p>{ticket.fecha}</p>
@@ -48,46 +48,56 @@ export default function TicketBody({ ticket, preview = false }) {
           </>
         ) : null}
 
-        <p className="ticket-rule my-2 border-t border-dashed border-gray-400" />
+        <p className="ticket-rule" />
 
         {ticket.items.map((item, i) => (
-          <div key={i} className="ticket-item mb-1">
+          <div key={i} className="ticket-item">
             <p className="ticket-item-name">{item.nombre}</p>
-            <p className="ticket-meta">
-              {item.cantidad} × {formatPrecio(item.precio)} ={" "}
-              {formatPrecio(item.subtotal)}
+            <p className="ticket-meta ticket-item-qty">
+              <span>
+                {item.cantidad} x {formatPrecioTicket(item.precio)}
+              </span>
+              <span className="ticket-amount">
+                {formatPrecioTicket(item.subtotal)}
+              </span>
             </p>
           </div>
         ))}
 
-        <p className="ticket-rule my-2 border-t border-dashed border-gray-400" />
+        <p className="ticket-rule" />
 
         {ticket.mostrarIva ? (
           <>
-            <div className="ticket-row flex justify-between gap-2">
+            <div className="ticket-row">
               <span>Subtotal</span>
-              <span>{formatPrecio(ticket.subtotal)}</span>
+              <span className="ticket-amount">
+                {formatPrecioTicket(ticket.subtotal)}
+              </span>
             </div>
-            <div className="ticket-row flex justify-between gap-2">
+            <div className="ticket-row">
               <span>IVA</span>
-              <span>{formatPrecio(ticket.iva)}</span>
+              <span className="ticket-amount">
+                {formatPrecioTicket(ticket.iva)}
+              </span>
             </div>
           </>
         ) : null}
 
-        <div className="ticket-total flex justify-between gap-2 font-bold">
+        <div className="ticket-total ticket-row font-bold">
           <span>TOTAL</span>
-          <span>{formatPrecio(ticket.total)}</span>
+          <span className="ticket-amount">
+            {formatPrecioTicket(ticket.total)}
+          </span>
         </div>
 
         {ticket.mostrarFormaPago && ticket.formaPagoLabel ? (
-          <p className="ticket-meta mt-1">Pago: {ticket.formaPagoLabel}</p>
+          <p className="ticket-meta">Pago: {ticket.formaPagoLabel}</p>
         ) : null}
         {ticket.notas ? (
-          <p className="ticket-meta mt-1">Notas: {ticket.notas}</p>
+          <p className="ticket-meta">Notas: {ticket.notas}</p>
         ) : null}
 
-        <p className="ticket-rule my-2 border-t border-dashed border-gray-400" />
+        <p className="ticket-rule" />
         <p className="ticket-meta text-center">
           {ticket.mensajePie || "¡Gracias por su compra!"}
         </p>

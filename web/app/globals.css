@@ -368,25 +368,21 @@ h4,
   @apply my-8 border-base-300;
 }
 
-/* Ticket térmico Epson TM-T20II (rollo 80 mm, área útil 72 mm) */
+/* Ticket térmico Epson TM-T20II (rollo 80 mm, sin márgenes) */
 .ticket-paper {
   width: var(--ticket-paper-width, 80mm);
   max-width: var(--ticket-paper-width, 80mm);
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
-  /* Centra contenido 72 mm dentro del rollo 80 mm */
-  padding-left: var(--ticket-side-inset, 4mm);
-  padding-right: var(--ticket-side-inset, 4mm);
+  padding: 0;
 }
 
 .ticket-print-area {
   width: 100%;
-  max-width: var(--ticket-print-width, 72mm);
-  margin-left: auto;
-  margin-right: auto;
-  padding: var(--ticket-padding-top, 1mm) var(--ticket-padding-x, 0)
-    var(--ticket-padding-bottom, 2mm);
+  max-width: var(--ticket-print-width, 78mm);
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
   font-family: var(
     --ticket-font-family,
@@ -395,37 +391,63 @@ h4,
     "Liberation Mono",
     monospace
   );
-  font-size: var(--ticket-font-size, 9pt);
-  line-height: var(--ticket-line-height, 1.2);
+  font-size: var(--ticket-font-size, 7pt);
+  line-height: var(--ticket-line-height, 1.1);
   letter-spacing: 0;
   word-wrap: break-word;
   overflow-wrap: anywhere;
+  overflow: visible;
 }
 
 .ticket-print-area .ticket-title {
-  font-size: var(--ticket-font-size-title, 10pt);
-  line-height: 1.15;
+  font-size: var(--ticket-font-size-title, 8pt);
+  line-height: 1.1;
+  margin: 0 0 0.5mm;
 }
 
 .ticket-print-area .ticket-meta {
-  font-size: var(--ticket-font-size-sm, 8pt);
-  line-height: 1.15;
+  font-size: var(--ticket-font-size-sm, 6.5pt);
+  line-height: 1.1;
+  margin: 0;
 }
 
 .ticket-print-area .ticket-total {
-  font-size: var(--ticket-font-size-total, 10pt);
-  line-height: 1.15;
+  font-size: var(--ticket-font-size-total, 8pt);
+  line-height: 1.1;
+}
+
+.ticket-print-area .ticket-item {
+  margin-bottom: 0.5mm;
 }
 
 .ticket-print-area .ticket-item-name {
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
+  margin: 0;
+}
+
+.ticket-print-area .ticket-rule {
+  margin: 1mm 0;
+  border: 0;
+  border-top: 1px dashed #666;
 }
 
 .ticket-print-area .ticket-row,
-.ticket-print-area .ticket-total {
+.ticket-print-area .ticket-item-qty {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1mm;
   max-width: 100%;
+  margin: 0;
+}
+
+.ticket-print-area .ticket-amount {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 /* Compatibilidad con clase anterior */
@@ -491,27 +513,32 @@ h4,
     visibility: visible;
   }
 
-  /* Windows/Chrome: centrar bloque 80 mm aunque el driver use hoja más ancha */
+  /* Bloque 80 mm pegado al borde izquierdo del rollo (sin márgenes) */
   html.ticket-print-mode #ticket-print {
     position: fixed;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    transform: none;
     width: var(--ticket-paper-width, 80mm) !important;
     max-width: var(--ticket-paper-width, 80mm) !important;
     margin: 0 !important;
-    padding-left: var(--ticket-side-inset, 4mm) !important;
-    padding-right: var(--ticket-side-inset, 4mm) !important;
+    padding: 0 !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
   }
 
   html.ticket-print-mode #ticket-print .ticket-print-area {
     width: 100% !important;
-    max-width: var(--ticket-print-width, 72mm) !important;
-    margin: 0 auto !important;
-    padding: var(--ticket-padding-top, 1mm) var(--ticket-padding-x, 0)
-      var(--ticket-padding-bottom, 2mm) !important;
+    max-width: var(--ticket-print-width, 78mm) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.ticket-print-mode .ticket-amount {
+    overflow: visible !important;
+    white-space: nowrap !important;
   }
 
   html.ticket-print-mode .ticket-item-name {

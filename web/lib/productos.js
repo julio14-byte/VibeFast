@@ -14,6 +14,12 @@ export function formatPrecio(value) {
   }).format(Number(value) || 0)
 }
 
+/** Precio compacto para ticket térmico (sin separador de miles, siempre 2 decimales). */
+export function formatPrecioTicket(value) {
+  const n = Math.round((Number(value) || 0) * 100) / 100
+  return `$${n.toFixed(2)}`
+}
+
 export function normalizeSearch(str) {
   return (str || "")
     .toLowerCase()
