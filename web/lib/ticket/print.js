@@ -66,9 +66,3 @@ export function getTicketPrintCssVars() {
 export const TICKET_PRINT_ROOT_CLASS = "ticket-print-mode"
 export const TICKET_PAPER_CLASS = "ticket-paper"
 export const TICKET_PRINT_AREA_ID = "ticket-print"
-
-/** Texto corto para el diálogo de impresión del navegador. */
-export function ticketPrintSetupHint() {
-  const p = getTicketPrintConfig()
-  return `${p.model}: papel ${p.paperWidthMm} mm, márgenes «Ninguno», escala 100%. Ajustes: printOffsetLeftMm=${p.printOffsetLeftMm}, printWidthMm=${p.printWidthMm}.`
-}
