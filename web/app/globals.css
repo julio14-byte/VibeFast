@@ -379,8 +379,8 @@ h4,
 }
 
 .ticket-print-area {
-  width: 100%;
-  max-width: var(--ticket-print-width, 78mm);
+  width: var(--ticket-print-width, 72mm);
+  max-width: var(--ticket-print-width, 72mm);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -391,63 +391,78 @@ h4,
     "Liberation Mono",
     monospace
   );
-  font-size: var(--ticket-font-size, 7pt);
-  line-height: var(--ticket-line-height, 1.1);
+  font-size: var(--ticket-font-size, 9pt);
+  line-height: var(--ticket-line-height, 1.2);
   letter-spacing: 0;
   word-wrap: break-word;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   overflow: visible;
 }
 
 .ticket-print-area .ticket-title {
-  font-size: var(--ticket-font-size-title, 8pt);
-  line-height: 1.1;
-  margin: 0 0 0.5mm;
+  font-size: var(--ticket-font-size-title, 10pt);
+  line-height: 1.15;
+  margin: 0 0 1mm;
 }
 
 .ticket-print-area .ticket-meta {
-  font-size: var(--ticket-font-size-sm, 6.5pt);
-  line-height: 1.1;
+  font-size: var(--ticket-font-size-sm, 8pt);
+  line-height: 1.15;
   margin: 0;
 }
 
 .ticket-print-area .ticket-total {
-  font-size: var(--ticket-font-size-total, 8pt);
-  line-height: 1.1;
+  font-size: var(--ticket-font-size-total, 10pt);
+  line-height: 1.15;
 }
 
 .ticket-print-area .ticket-item {
-  margin-bottom: 0.5mm;
+  margin-bottom: 1mm;
 }
 
 .ticket-print-area .ticket-item-name {
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   word-break: break-word;
   margin: 0;
 }
 
 .ticket-print-area .ticket-rule {
-  margin: 1mm 0;
+  margin: 1.5mm 0;
   border: 0;
   border-top: 1px dashed #666;
 }
 
-.ticket-print-area .ticket-row,
-.ticket-print-area .ticket-item-qty {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1mm;
-  max-width: 100%;
+.ticket-print-area .ticket-row {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
   margin: 0;
 }
 
+.ticket-print-area .ticket-row-label,
 .ticket-print-area .ticket-amount {
-  flex-shrink: 0;
+  display: table-cell;
+  vertical-align: baseline;
+}
+
+.ticket-print-area .ticket-row-label {
+  width: 55%;
+  padding-right: 1mm;
+}
+
+.ticket-print-area .ticket-amount,
+.ticket-print-area .ticket-amount-line {
+  width: 45%;
+  text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  text-align: right;
+}
+
+.ticket-print-area .ticket-amount-line {
+  display: block;
+  width: 100%;
+  margin: 0;
 }
 
 /* Compatibilidad con clase anterior */
@@ -467,8 +482,11 @@ h4,
     width: 80mm !important;
     min-width: 0 !important;
     max-width: 80mm !important;
-    margin: 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
     background: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -513,9 +531,9 @@ h4,
     visibility: visible;
   }
 
-  /* Bloque 80 mm pegado al borde izquierdo del rollo (sin márgenes) */
+  /* absolute (no fixed) → ticket largo no se corta abajo en Chrome/Windows */
   html.ticket-print-mode #ticket-print {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     transform: none;
@@ -529,14 +547,15 @@ h4,
   }
 
   html.ticket-print-mode #ticket-print .ticket-print-area {
-    width: 100% !important;
-    max-width: var(--ticket-print-width, 78mm) !important;
+    width: var(--ticket-print-width, 72mm) !important;
+    max-width: var(--ticket-print-width, 72mm) !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
   }
 
-  html.ticket-print-mode .ticket-amount {
+  html.ticket-print-mode .ticket-amount,
+  html.ticket-print-mode .ticket-amount-line {
     overflow: visible !important;
     white-space: nowrap !important;
   }

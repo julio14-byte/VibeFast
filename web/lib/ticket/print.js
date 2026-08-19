@@ -12,19 +12,19 @@ export const TM_T20II_80MM = {
   model: "Epson TM-T20II",
   paperWidthMm: 80,
   rollWidthMm: 79.5,
-  printWidthMm: 78,
-  charsPerLine: 52,
+  printWidthMm: 72,
+  charsPerLine: 48,
   pageMarginMm: 0,
   sideInsetMm: 0,
   paddingTopMm: 0,
   paddingBottomMm: 0,
   paddingHorizontalMm: 0,
   fontFamily: '"Courier New", Courier, "Liberation Mono", monospace',
-  fontSizePt: 7,
-  fontSizeSmallPt: 6.5,
-  fontSizeTitlePt: 8,
-  fontSizeTotalPt: 8,
-  lineHeight: 1.1,
+  fontSizePt: 9,
+  fontSizeSmallPt: 8,
+  fontSizeTitlePt: 10,
+  fontSizeTotalPt: 10,
+  lineHeight: 1.2,
   autoPrintDelayMs: 600,
 }
 
@@ -36,7 +36,7 @@ export function getTicketPrintConfig() {
 
 export function getTicketPrintCssVars() {
   const p = getTicketPrintConfig()
-  const sideInset = p.sideInsetMm ?? 4
+  const sideInset = p.sideInsetMm ?? 0
   return {
     "--ticket-paper-width": `${p.paperWidthMm}mm`,
     "--ticket-print-width": `${p.printWidthMm}mm`,

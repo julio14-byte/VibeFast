@@ -6,7 +6,7 @@ import {
 
 /**
  * Cuerpo del ticket (vista previa e impresión).
- * Ancho completo del rollo 80 mm, sin márgenes laterales.
+ * Sin márgenes; ancho limitado al área imprimible de la TM-T20II (72 mm).
  */
 export default function TicketBody({ ticket, preview = false }) {
   const paperClass = preview
@@ -53,13 +53,11 @@ export default function TicketBody({ ticket, preview = false }) {
         {ticket.items.map((item, i) => (
           <div key={i} className="ticket-item">
             <p className="ticket-item-name">{item.nombre}</p>
-            <p className="ticket-meta ticket-item-qty">
-              <span>
-                {item.cantidad} x {formatPrecioTicket(item.precio)}
-              </span>
-              <span className="ticket-amount">
-                {formatPrecioTicket(item.subtotal)}
-              </span>
+            <p className="ticket-meta">
+              {item.cantidad} x {formatPrecioTicket(item.precio)}
+            </p>
+            <p className="ticket-meta ticket-amount-line">
+              {formatPrecioTicket(item.subtotal)}
             </p>
           </div>
         ))}
@@ -69,13 +67,13 @@ export default function TicketBody({ ticket, preview = false }) {
         {ticket.mostrarIva ? (
           <>
             <div className="ticket-row">
-              <span>Subtotal</span>
+              <span className="ticket-row-label">Subtotal</span>
               <span className="ticket-amount">
                 {formatPrecioTicket(ticket.subtotal)}
               </span>
             </div>
             <div className="ticket-row">
-              <span>IVA</span>
+              <span className="ticket-row-label">IVA</span>
               <span className="ticket-amount">
                 {formatPrecioTicket(ticket.iva)}
               </span>
@@ -84,7 +82,7 @@ export default function TicketBody({ ticket, preview = false }) {
         ) : null}
 
         <div className="ticket-total ticket-row font-bold">
-          <span>TOTAL</span>
+          <span className="ticket-row-label">TOTAL</span>
           <span className="ticket-amount">
             {formatPrecioTicket(ticket.total)}
           </span>
