@@ -12,13 +12,14 @@ export const TM_T20II_80MM = {
   model: "Epson TM-T20II",
   paperWidthMm: 80,
   rollWidthMm: 79.5,
-  printWidthMm: 72,
-  charsPerLine: 48,
+  printWidthMm: 66,
+  charsPerLine: 42,
   pageMarginMm: 0,
   /** Ajuste izquierdo del cabezal (Windows suele necesitar 7–9 mm). */
   sideInsetMm: 4,
   printOffsetLeftMm: 8,
-  printOffsetRightMm: 2,
+  /** Zona no imprimible derecha del cabezal (~4 mm en rollo 80 mm). */
+  printOffsetRightMm: 4,
   paddingTopMm: 0,
   paddingBottomMm: 0,
   paddingHorizontalMm: 0,
@@ -47,6 +48,7 @@ export function getTicketPrintCssVars() {
     "--ticket-print-width": `${p.printWidthMm}mm`,
     "--ticket-offset-left": `${offsetLeft}mm`,
     "--ticket-offset-right": `${offsetRight}mm`,
+    "--ticket-amount-padding": "2mm",
     "--ticket-side-inset": `${inset}mm`,
     "--ticket-padding-top": `${p.paddingTopMm}mm`,
     "--ticket-padding-bottom": `${p.paddingBottomMm}mm`,
@@ -68,5 +70,5 @@ export const TICKET_PRINT_AREA_ID = "ticket-print"
 /** Texto corto para el diálogo de impresión del navegador. */
 export function ticketPrintSetupHint() {
   const p = getTicketPrintConfig()
-  return `${p.model}: papel ${p.paperWidthMm} mm, márgenes «Ninguno», escala 100%. Si se corta a la izquierda, ajusta printOffsetLeftMm en config.js (actual: ${p.printOffsetLeftMm} mm).`
+  return `${p.model}: papel ${p.paperWidthMm} mm, márgenes «Ninguno», escala 100%. Ajustes: printOffsetLeftMm=${p.printOffsetLeftMm}, printWidthMm=${p.printWidthMm}.`
 }

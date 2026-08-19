@@ -376,14 +376,14 @@ h4,
   margin-right: auto;
   box-sizing: border-box;
   padding-left: var(--ticket-offset-left, 8mm);
-  padding-right: var(--ticket-offset-right, 2mm);
+  padding-right: var(--ticket-offset-right, 4mm);
 }
 
 .ticket-print-area {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 var(--ticket-amount-padding, 2mm) 0 0;
   box-sizing: border-box;
   font-family: var(
     --ticket-font-family,
@@ -448,16 +448,18 @@ h4,
 }
 
 .ticket-print-area .ticket-row-label {
-  width: 55%;
+  width: 48%;
   padding-right: 1mm;
 }
 
 .ticket-print-area .ticket-amount,
 .ticket-print-area .ticket-amount-line {
-  width: 45%;
+  width: 52%;
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  padding-right: var(--ticket-amount-padding, 2mm);
+  box-sizing: border-box;
 }
 
 .ticket-print-area .ticket-amount-line {
@@ -533,8 +535,8 @@ h4,
     top: auto !important;
     left: auto !important;
     transform: none !important;
-    width: var(--ticket-print-width, 72mm) !important;
-    max-width: var(--ticket-print-width, 72mm) !important;
+    width: var(--ticket-print-width, 66mm) !important;
+    max-width: var(--ticket-print-width, 66mm) !important;
     margin: 0 0 0 var(--ticket-offset-left, 8mm) !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -546,14 +548,16 @@ h4,
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 var(--ticket-amount-padding, 2mm) 0 0 !important;
     overflow: visible !important;
+    box-sizing: border-box !important;
   }
 
   html.ticket-print-mode .ticket-amount,
   html.ticket-print-mode .ticket-amount-line {
     overflow: visible !important;
     white-space: nowrap !important;
+    padding-right: var(--ticket-amount-padding, 2mm) !important;
   }
 
   html.ticket-print-mode .ticket-item-name {
