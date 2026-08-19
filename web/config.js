@@ -79,6 +79,7 @@ const config = {
       printWidthMm: 72,
       charsPerLine: 48,
       pageMarginMm: 0,
+      sideInsetMm: 4,
       paddingTopMm: 1,
       paddingBottomMm: 2,
       paddingHorizontalMm: 0,

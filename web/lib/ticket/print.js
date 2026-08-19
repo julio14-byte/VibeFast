@@ -15,6 +15,8 @@ export const TM_T20II_80MM = {
   printWidthMm: 72,
   charsPerLine: 48,
   pageMarginMm: 0,
+  /** Margen lateral en rollo 80 mm → centra área útil de 72 mm (4 mm c/lado). */
+  sideInsetMm: 4,
   paddingTopMm: 1,
   paddingBottomMm: 2,
   paddingHorizontalMm: 0,
@@ -35,9 +37,11 @@ export function getTicketPrintConfig() {
 
 export function getTicketPrintCssVars() {
   const p = getTicketPrintConfig()
+  const sideInset = p.sideInsetMm ?? 4
   return {
     "--ticket-paper-width": `${p.paperWidthMm}mm`,
     "--ticket-print-width": `${p.printWidthMm}mm`,
+    "--ticket-side-inset": `${sideInset}mm`,
     "--ticket-padding-top": `${p.paddingTopMm}mm`,
     "--ticket-padding-bottom": `${p.paddingBottomMm}mm`,
     "--ticket-padding-x": `${p.paddingHorizontalMm}mm`,
@@ -58,5 +62,5 @@ export const TICKET_PRINT_AREA_ID = "ticket-print"
 /** Texto corto para el diálogo de impresión del navegador. */
 export function ticketPrintSetupHint() {
   const p = getTicketPrintConfig()
-  return `Impresora ${p.model}: papel ${p.paperWidthMm} mm, márgenes ninguno, escala 100%.`
+  return `Impresora ${p.model}: papel ${p.paperWidthMm} mm, márgenes ninguno, escala 100%. En Windows/Chrome desactiva encabezado y pie de página.`
 }
