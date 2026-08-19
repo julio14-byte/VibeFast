@@ -2,7 +2,6 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { buildTicketData } from "@/lib/ticket"
 import TicketView from "@/components/ventas/TicketView"
-import { marcarTicketImpreso } from "../../actions"
 import { getMembershipForUser } from "@/lib/organization/context"
 
 export const metadata = { title: "Ticket · SmartPOS" }
@@ -48,7 +47,14 @@ export default async function TicketPage({
   })
 
   if (autoPrint && !venta.ticket_impreso) {
-    await marcarTicketImpreso(id)
+    await supabase
+      .from("ventas")
+      .update({
+        ticket_impreso: true,
+        ticket_impreso_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .eq("organization_id", membership.organizationId)
   }
 
   return (

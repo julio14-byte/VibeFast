@@ -95,7 +95,10 @@ export function metricsFromServerStats(stats) {
   return {
     totalProductos: stats.totalProductos ?? 0,
     valorInventario: stats.valorInventario ?? 0,
-    valorInventarioFmt: formatPrecio(stats.valorInventario ?? 0),
+    valorInventarioFmt:
+      stats.valorInventario == null
+        ? "N/D"
+        : formatPrecio(stats.valorInventario),
     alertasCriticas: stats.alertasCriticas ?? 0,
     agotados: stats.agotados ?? 0,
     alertasList,

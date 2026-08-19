@@ -88,9 +88,82 @@ async function getDashboardResumen(supabase, organizationId) {
     return { error: error.message }
   }
 
-  return getDashboardResumenLegacy(supabase, organizationId)
+  return getDashboardResumenLegacyFast(supabase, organizationId)
 }
 
+/** Fallback rápido si falta la migración 025 (evita paginar miles de filas). */
+async function getDashboardResumenLegacyFast(supabase, organizationId) {
+  const orgFilter = { organization_id: organizationId }
+
+  const [totalRes, agotadosRes, criticoRes, bajoRes, okRes, alertasRes] =
+    await Promise.all([
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter),
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter)
+        .eq("stock", 0),
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter)
+        .gt("stock", 0)
+        .lt("stock", 2),
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter)
+        .gte("stock", 2)
+        .lte("stock", 5),
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter)
+        .gt("stock", 5),
+      supabase
+        .from("productos")
+        .select("id", { count: "exact", head: true })
+        .match(orgFilter)
+        .lt("stock", 2),
+    ])
+
+  const firstError =
+    totalRes.error ||
+    agotadosRes.error ||
+    criticoRes.error ||
+    bajoRes.error ||
+    okRes.error ||
+    alertasRes.error
+
+  if (firstError) {
+    return { error: firstError.message }
+  }
+
+  const total = totalRes.count ?? 0
+  const agotados = agotadosRes.count ?? 0
+  const dist = {
+    ok: okRes.count ?? 0,
+    bajo: bajoRes.count ?? 0,
+    critico: criticoRes.count ?? 0,
+    agotado: agotados,
+  }
+
+  return {
+    totalProductos: total,
+    valorInventario: null,
+    alertasCriticas: alertasRes.count ?? 0,
+    agotados,
+    dist,
+    total,
+    error: null,
+    legacyApproximate: true,
+  }
+}
+
+/** @deprecated Paginación completa — solo tests; usar getDashboardResumenLegacyFast. */
 async function getDashboardResumenLegacy(supabase, organizationId) {
   const dist = { ok: 0, bajo: 0, critico: 0, agotado: 0 }
   let valorInventario = 0
@@ -171,9 +244,45 @@ async function getDashboardTopValor(supabase, organizationId, limit = 5) {
     return { topValor: [], error: error.message }
   }
 
-  return getDashboardTopValorLegacy(supabase, organizationId, limit)
+  return getDashboardTopValorLegacyFast(supabase, organizationId, limit)
 }
 
+/** Top valor aproximado sin escanear todo el catálogo (migración 025 pendiente). */
+async function getDashboardTopValorLegacyFast(
+  supabase,
+  organizationId,
+  limit = 5
+) {
+  const { data, error } = await supabase
+    .from("productos")
+    .select("id, codigo, nombre, stock, precio, precio_publico")
+    .eq("organization_id", organizationId)
+    .gt("stock", 0)
+    .order("stock", { ascending: false })
+    .limit(Math.max(limit * 10, 50))
+
+  if (error) return { topValor: [], error: error.message }
+
+  const topValor = (data ?? [])
+    .map((p) => {
+      const stock = Number(p.stock) || 0
+      const precio = Number(p.precio_publico ?? p.precio ?? 0)
+      return {
+        id: p.id,
+        nombre: p.nombre,
+        codigo: p.codigo,
+        stock,
+        valor: precio * stock,
+      }
+    })
+    .filter((p) => p.valor > 0)
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, limit)
+
+  return { topValor, error: null }
+}
+
+/** @deprecated Paginación completa — solo tests; usar getDashboardTopValorLegacyFast. */
 async function getDashboardTopValorLegacy(supabase, organizationId, limit = 5) {
   let topValor = []
   const pageSize = 1000
