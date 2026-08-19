@@ -76,7 +76,7 @@ const config = {
       model: "Epson TM-T20II",
       paperWidthMm: 80,
       rollWidthMm: 79.5,
-      printWidthMm: 66,
+      printWidthMm: 68,
       charsPerLine: 42,
       pageMarginMm: 0,
       sideInsetMm: 4,

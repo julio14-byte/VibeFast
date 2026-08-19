@@ -7,7 +7,6 @@ import TicketBody from "@/components/ventas/TicketBody"
 import {
   getTicketPrintConfig,
   getTicketPrintCssVars,
-  ticketPrintSetupHint,
   TICKET_PRINT_ROOT_CLASS,
   TICKET_PRINT_AREA_ID,
 } from "@/lib/ticket/print"
@@ -59,24 +58,21 @@ export default function TicketView({ ticket, autoPrint = false }) {
 
   return (
     <>
-      <div className="no-print mb-4 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="btn btn-primary btn-sm gap-2"
-          >
-            <Printer className="size-4" />
-            Imprimir ticket
-          </button>
-          <Link href="/ventas" className="btn btn-outline btn-sm">
-            Volver a ventas
-          </Link>
-          <Link href="/negocio" className="btn btn-ghost btn-sm">
-            Editar ticket
-          </Link>
-        </div>
-        <p className="text-xs text-base-content/60">{ticketPrintSetupHint()}</p>
+      <div className="no-print mb-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="btn btn-primary btn-sm gap-2"
+        >
+          <Printer className="size-4" />
+          Imprimir ticket
+        </button>
+        <Link href="/ventas" className="btn btn-outline btn-sm">
+          Volver a ventas
+        </Link>
+        <Link href="/negocio" className="btn btn-ghost btn-sm">
+          Editar ticket
+        </Link>
       </div>
 
       <TicketBody ticket={ticket} />
