@@ -55,7 +55,7 @@ export const registrarVenta = {
     if (!producto) {
       return { ok: false, error: `No hay producto con código ${codigoNorm}.` }
     }
-    if (producto.stock < cantidadNum) {
+    if (producto.stock > 0 && producto.stock < cantidadNum) {
       return {
         ok: false,
         error: `Stock insuficiente de "${producto.nombre}" (hay ${producto.stock}).`,

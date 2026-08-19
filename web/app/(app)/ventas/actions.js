@@ -67,7 +67,7 @@ export async function registrarVenta(formData) {
         .single()
 
       if (pErr || !producto) fail("Producto no encontrado.")
-      if (producto.stock < cantidad) {
+      if (producto.stock > 0 && producto.stock < cantidad) {
         fail(`Stock insuficiente de "${producto.nombre}" (hay ${producto.stock}).`)
       }
 
@@ -91,7 +91,7 @@ export async function registrarVenta(formData) {
 
       const { error: stockErr } = await supabase
         .from("productos")
-        .update({ stock: producto.stock - cantidad })
+        .update({ stock: Math.max(0, producto.stock - cantidad) })
         .eq("id", producto.id)
         .eq("organization_id", organizationId)
 

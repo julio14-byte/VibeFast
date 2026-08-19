@@ -4,6 +4,7 @@
 export function mapProductoRow(p) {
   if (!p) return null
   return {
+    id: p.id,
     codigo: p.codigo,
     nombre: p.nombre,
     descripcion: p.nombre,

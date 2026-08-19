@@ -49,26 +49,30 @@ export default function VentasPOS({ clientes }) {
   }
 
   function addToCart(producto) {
+    if (!producto?.id) return
+
+    const stock = Number(producto.stock) || 0
+    const tracksStock = stock > 0
     const isMayoreo = precioMayoreo
-    const existing = cart.find((c) => c.producto_id === producto.id)
-    if (existing) {
-      if (existing.cantidad >= producto.stock) return
-      setCart(
-        cart.map((c) =>
+
+    setCart((prev) => {
+      const existing = prev.find((c) => c.producto_id === producto.id)
+      if (existing) {
+        if (tracksStock && existing.cantidad >= stock) return prev
+        return prev.map((c) =>
           c.producto_id === producto.id
             ? { ...c, cantidad: c.cantidad + 1 }
             : c
         )
-      )
-    } else {
-      if (producto.stock <= 0) return
-      setCart([
-        ...cart,
+      }
+
+      return [
+        ...prev,
         {
           producto_id: producto.id,
           codigo: producto.codigo,
           nombre: producto.nombre,
-          stock: producto.stock,
+          stock,
           cantidad: 1,
           precio: getPrecioVenta(producto, isMayoreo ? "mayoreo" : "publico"),
           precio_publico: Number(
@@ -76,18 +80,19 @@ export default function VentasPOS({ clientes }) {
           ),
           precio_mayoreo: Number(producto.precio_mayoreo ?? 0),
         },
-      ])
-    }
+      ]
+    })
   }
 
   function updateQty(productoId, delta) {
-    setCart(
-      cart
+    setCart((prev) =>
+      prev
         .map((c) => {
           if (c.producto_id !== productoId) return c
           const newQty = c.cantidad + delta
           if (newQty <= 0) return null
-          if (newQty > c.stock) return c
+          const stock = Number(c.stock) || 0
+          if (stock > 0 && newQty > stock) return c
           return { ...c, cantidad: newQty }
         })
         .filter(Boolean)
@@ -95,7 +100,7 @@ export default function VentasPOS({ clientes }) {
   }
 
   function removeItem(productoId) {
-    setCart(cart.filter((c) => c.producto_id !== productoId))
+    setCart((prev) => prev.filter((c) => c.producto_id !== productoId))
   }
 
   const totals = useMemo(() => {
@@ -178,6 +183,9 @@ export default function VentasPOS({ clientes }) {
                   </p>
                   <p className="text-xs text-base-content/60">
                     {formatPrecio(item.precio)} × {item.cantidad}
+                    {Number(item.stock) === 0 ? (
+                      <span className="text-warning"> · sin stock registrado</span>
+                    ) : null}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
