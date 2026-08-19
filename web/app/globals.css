@@ -426,10 +426,11 @@ h4,
   overflow-wrap: break-word;
   word-break: break-word;
   margin: 0;
+  text-transform: uppercase;
 }
 
 .ticket-print-area .ticket-rule {
-  margin: 1.5mm 0;
+  margin: 2mm 0;
   border: 0;
   border-top: 1px dashed #666;
 }

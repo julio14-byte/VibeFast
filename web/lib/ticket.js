@@ -1,6 +1,11 @@
 import { formatPrecio } from "./productos"
 import { formaPagoLabel, getTicketConfig } from "./negocio/empresa"
 
+/** Nombre de producto en ticket: mayúsculas. */
+export function ticketNombreProducto(nombre) {
+  return (nombre ?? "").toString().trim().toLocaleUpperCase("es-MX")
+}
+
 export function buildTicketData({
   venta,
   items,
@@ -29,7 +34,7 @@ export function buildTicketData({
           }
         : null,
     items: items.map((i) => ({
-      nombre: i.nombre,
+      nombre: ticketNombreProducto(i.nombre),
       cantidad: i.cantidad,
       precio: Number(i.precio_unitario),
       subtotal: Number(i.subtotal),

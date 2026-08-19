@@ -32,6 +32,16 @@ export const TM_T20II_80MM = {
   autoPrintDelayMs: 600,
 }
 
+/** Redondea mm a 1 decimal (Chrome rechaza más precisión en márgenes). */
+export function formatTicketMm(value) {
+  const n = Math.round(Number(value) * 10) / 10
+  return Number.isInteger(n) ? String(Math.trunc(n)) : String(n)
+}
+
+export function mmCss(value) {
+  return `${formatTicketMm(value)}mm`
+}
+
 /** Config efectiva (config.js → fallback TM-T20II 80 mm). */
 export function getTicketPrintConfig() {
   const fromConfig = config.ticket?.printer ?? {}
@@ -44,22 +54,21 @@ export function getTicketPrintCssVars() {
   const offsetLeft = p.printOffsetLeftMm ?? inset
   const offsetRight = p.printOffsetRightMm ?? inset
   return {
-    "--ticket-paper-width": `${p.paperWidthMm}mm`,
-    "--ticket-print-width": `${p.printWidthMm}mm`,
-    "--ticket-offset-left": `${offsetLeft}mm`,
-    "--ticket-offset-right": `${offsetRight}mm`,
-    "--ticket-amount-padding": "2mm",
-    "--ticket-side-inset": `${inset}mm`,
-    "--ticket-padding-top": `${p.paddingTopMm}mm`,
-    "--ticket-padding-bottom": `${p.paddingBottomMm}mm`,
-    "--ticket-padding-x": `${p.paddingHorizontalMm}mm`,
+    "--ticket-paper-width": mmCss(p.paperWidthMm),
+    "--ticket-print-width": mmCss(p.printWidthMm),
+    "--ticket-offset-left": mmCss(offsetLeft),
+    "--ticket-offset-right": mmCss(offsetRight),
+    "--ticket-amount-padding": mmCss(2),
+    "--ticket-side-inset": mmCss(inset),
+    "--ticket-padding-top": mmCss(p.paddingTopMm),
+    "--ticket-padding-bottom": mmCss(p.paddingBottomMm),
+    "--ticket-padding-x": mmCss(p.paddingHorizontalMm),
     "--ticket-font-family": p.fontFamily,
     "--ticket-font-size": `${p.fontSizePt}pt`,
     "--ticket-font-size-sm": `${p.fontSizeSmallPt}pt`,
     "--ticket-font-size-title": `${p.fontSizeTitlePt}pt`,
     "--ticket-font-size-total": `${p.fontSizeTotalPt}pt`,
     "--ticket-line-height": String(p.lineHeight),
-    "--ticket-ch-width": `${p.printWidthMm / p.charsPerLine}mm`,
   }
 }
 

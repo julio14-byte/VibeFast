@@ -7,6 +7,7 @@ import TicketBody from "@/components/ventas/TicketBody"
 import {
   getTicketPrintConfig,
   getTicketPrintCssVars,
+  formatTicketMm,
   TICKET_PRINT_ROOT_CLASS,
   TICKET_PRINT_AREA_ID,
 } from "@/lib/ticket/print"
@@ -25,9 +26,9 @@ export default function TicketView({ ticket, autoPrint = false }) {
 
     const ticketEl = document.getElementById(TICKET_PRINT_AREA_ID)
     if (ticketEl) {
-      ticketEl.style.marginLeft = `${printConfig.printOffsetLeftMm}mm`
-      ticketEl.style.width = `${printConfig.printWidthMm}mm`
-      ticketEl.style.maxWidth = `${printConfig.printWidthMm}mm`
+      ticketEl.style.marginLeft = `${formatTicketMm(printConfig.printOffsetLeftMm)}mm`
+      ticketEl.style.width = `${formatTicketMm(printConfig.printWidthMm)}mm`
+      ticketEl.style.maxWidth = `${formatTicketMm(printConfig.printWidthMm)}mm`
       ticketEl.style.paddingLeft = "0"
       ticketEl.style.paddingRight = "0"
       ticketEl.style.boxSizing = "border-box"
