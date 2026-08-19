@@ -535,8 +535,8 @@ h4,
     top: auto !important;
     left: auto !important;
     transform: none !important;
-    width: var(--ticket-print-width, 68mm) !important;
-    max-width: var(--ticket-print-width, 68mm) !important;
+    width: var(--ticket-print-width, 67mm) !important;
+    max-width: var(--ticket-print-width, 67mm) !important;
     margin: 0 0 0 var(--ticket-offset-left, 8mm) !important;
     padding: 0 !important;
     box-shadow: none !important;
