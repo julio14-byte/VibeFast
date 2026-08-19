@@ -7,7 +7,7 @@ import {
   updateProducto,
 } from "@/app/(app)/productos/actions"
 import { margenDesdePrecioVenta, precioVentaConIva } from "@/lib/precios"
-import { normalizeNombreProducto } from "@/lib/productos"
+import { normalizeNombreProducto, normalizeNombreProductoInput } from "@/lib/productos"
 import { margenesParaMostrar, roundMargenPct } from "@/lib/productos/margenes"
 import SatCatalogSearch from "./SatCatalogSearch"
 
@@ -185,8 +185,9 @@ export default function ProductoFormModal({
                   maxLength={120}
                   value={nombre}
                   onChange={(e) =>
-                    setNombre(normalizeNombreProducto(e.target.value))
+                    setNombre(normalizeNombreProductoInput(e.target.value))
                   }
+                  onBlur={() => setNombre(normalizeNombreProducto(nombre))}
                   className="input input-bordered w-full uppercase"
                   placeholder="EJ. TUBO PVC 1/2"
                   autoCapitalize="characters"

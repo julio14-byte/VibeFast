@@ -20,9 +20,14 @@ export function formatPrecioTicket(value) {
   return `$${n.toFixed(2)}`
 }
 
-/** Nombre de producto en catálogo: mayúsculas (es-MX). */
+/** Mayúsculas mientras se escribe (conserva espacios entre palabras). */
+export function normalizeNombreProductoInput(nombre) {
+  return (nombre ?? "").toString().toLocaleUpperCase("es-MX")
+}
+
+/** Nombre final al guardar: trim + mayúsculas. */
 export function normalizeNombreProducto(nombre) {
-  return (nombre ?? "").toString().trim().toLocaleUpperCase("es-MX")
+  return normalizeNombreProductoInput(nombre).trim()
 }
 
 export function normalizeSearch(str) {
