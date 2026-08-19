@@ -35,7 +35,7 @@ export default async function TicketPage({
 
   const { data: empresa } = await supabase
     .from("empresa_fiscal")
-    .select("razon_social, rfc, direccion")
+    .select("razon_social, nombre_comercial, rfc, direccion, telefono, ticket_mensaje_pie, ticket_texto_extra, ticket_mostrar_rfc, ticket_mostrar_direccion, ticket_mostrar_telefono, ticket_mostrar_cliente, ticket_mostrar_iva, ticket_mostrar_forma_pago")
     .eq("organization_id", membership.organizationId)
     .maybeSingle()
 
@@ -58,7 +58,7 @@ export default async function TicketPage({
   }
 
   return (
-    <div className="mx-auto max-w-lg py-4">
+    <div className="ticket-page mx-auto max-w-lg py-4">
       <TicketView ticket={ticket} autoPrint={autoPrint} />
     </div>
   )

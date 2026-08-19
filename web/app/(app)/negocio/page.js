@@ -116,7 +116,7 @@ export default async function NegocioPage({ searchParams }) {
             <Link href="/ventas" className="link link-primary">
               Cobrar venta
             </Link>
-            . Marca «Imprimir ticket (80mm) al cobrar».
+            . Marca «Imprimir ticket (TM-T20II · 80 mm) al cobrar».
           </p>
         </aside>
       </div>

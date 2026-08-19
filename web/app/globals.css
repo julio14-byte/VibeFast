@@ -368,34 +368,149 @@ h4,
   @apply my-8 border-base-300;
 }
 
-/* Ticket impresora 80mm (térmica) */
+/* Ticket térmico Epson TM-T20II (rollo 80 mm, área útil 72 mm) */
+.ticket-paper {
+  width: var(--ticket-paper-width, 80mm);
+  max-width: var(--ticket-paper-width, 80mm);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.ticket-print-area {
+  width: var(--ticket-print-width, 72mm);
+  max-width: var(--ticket-print-width, 72mm);
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--ticket-padding-top, 1mm) var(--ticket-padding-x, 0)
+    var(--ticket-padding-bottom, 2mm);
+  box-sizing: border-box;
+  font-family: var(
+    --ticket-font-family,
+    "Courier New",
+    Courier,
+    "Liberation Mono",
+    monospace
+  );
+  font-size: var(--ticket-font-size, 9pt);
+  line-height: var(--ticket-line-height, 1.2);
+  letter-spacing: 0;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.ticket-print-area .ticket-title {
+  font-size: var(--ticket-font-size-title, 10pt);
+  line-height: 1.15;
+}
+
+.ticket-print-area .ticket-meta {
+  font-size: var(--ticket-font-size-sm, 8pt);
+  line-height: 1.15;
+}
+
+.ticket-print-area .ticket-total {
+  font-size: var(--ticket-font-size-total, 10pt);
+  line-height: 1.15;
+}
+
+.ticket-print-area .ticket-item-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ticket-print-area .ticket-row,
+.ticket-print-area .ticket-total {
+  max-width: 100%;
+}
+
+/* Compatibilidad con clase anterior */
 .ticket-80mm {
-  width: 80mm;
-  max-width: 80mm;
+  width: var(--ticket-paper-width, 80mm);
+  max-width: var(--ticket-paper-width, 80mm);
 }
 
 @media print {
-  body * {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html.ticket-print-mode,
+  html.ticket-print-mode body {
+    width: 80mm !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html.ticket-print-mode .app-shell,
+  html.ticket-print-mode .app-header,
+  html.ticket-print-mode .app-main,
+  html.ticket-print-mode .mobile-nav-bar,
+  html.ticket-print-mode aside {
+    background: #fff !important;
+  }
+
+  html.ticket-print-mode .app-header,
+  html.ticket-print-mode .mobile-nav-bar,
+  html.ticket-print-mode aside,
+  html.ticket-print-mode .no-print {
+    display: none !important;
+  }
+
+  html.ticket-print-mode .app-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+
+  html.ticket-print-mode .app-shell > div {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    gap: 0 !important;
+  }
+
+  html.ticket-print-mode body * {
     visibility: hidden;
   }
-  #ticket-print,
-  #ticket-print * {
+
+  html.ticket-print-mode #ticket-print,
+  html.ticket-print-mode #ticket-print * {
     visibility: visible;
   }
-  #ticket-print {
+
+  html.ticket-print-mode #ticket-print {
     position: absolute;
     left: 0;
     top: 0;
-    width: 80mm;
+    width: var(--ticket-paper-width, 80mm);
+    max-width: var(--ticket-paper-width, 80mm);
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
   }
-  .no-print {
-    display: none !important;
-  }
-}
 
-@page ticket {
-  size: 80mm auto;
-  margin: 2mm;
+  html.ticket-print-mode .ticket-print-area,
+  html.ticket-print-mode #ticket-print.ticket-print-area {
+    width: var(--ticket-print-width, 72mm);
+    max-width: var(--ticket-print-width, 72mm);
+    margin: 0 auto;
+    padding: var(--ticket-padding-top, 1mm) var(--ticket-padding-x, 0)
+      var(--ticket-padding-bottom, 2mm);
+  }
+
+  html.ticket-print-mode .ticket-item-name {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: unset;
+  }
 }
 
 /* ============================================================

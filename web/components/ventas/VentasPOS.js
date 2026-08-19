@@ -295,7 +295,7 @@ export default function VentasPOS({ clientes }) {
               onChange={(e) => setImprimirTicket(e.target.checked)}
               className="checkbox checkbox-sm checkbox-primary"
             />
-            Imprimir ticket (80mm) al cobrar
+            Imprimir ticket (TM-T20II · 80 mm) al cobrar
           </label>
 
           <div className="form-control w-full">

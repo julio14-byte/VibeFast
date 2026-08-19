@@ -70,6 +70,22 @@ const config = {
     lowStock: false, // Alertas de stock bajo / crítico y gráfica de estado
   },
 
+  // Ticket térmico (impresión desde navegador)
+  ticket: {
+    printer: {
+      model: "Epson TM-T20II",
+      paperWidthMm: 80,
+      rollWidthMm: 79.5,
+      printWidthMm: 72,
+      charsPerLine: 48,
+      pageMarginMm: 0,
+      paddingTopMm: 1,
+      paddingBottomMm: 2,
+      paddingHorizontalMm: 0,
+      autoPrintDelayMs: 600,
+    },
+  },
+
   // Métricas globales del producto SaaS (waitlist, signups) — solo fundadores.
   productMetrics: {
     enabled: false,

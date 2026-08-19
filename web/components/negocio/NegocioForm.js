@@ -134,7 +134,7 @@ export default function NegocioForm({ empresa, organizationName }) {
       </section>
 
       <section className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
-        <h2 className="text-lg font-bold">Personalizar ticket (80 mm)</h2>
+        <h2 className="text-lg font-bold">Personalizar ticket (TM-T20II · 80 mm)</h2>
         <p className="mt-1 text-sm text-base-content/60">
           Controla qué información sale al imprimir en mostrador.
         </p>
