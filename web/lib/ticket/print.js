@@ -15,7 +15,10 @@ export const TM_T20II_80MM = {
   printWidthMm: 72,
   charsPerLine: 48,
   pageMarginMm: 0,
-  sideInsetMm: 0,
+  /** Zona no imprimible del cabezal TM-T20II (4 mm c/lado en rollo 80 mm). */
+  sideInsetMm: 4,
+  printOffsetLeftMm: 4,
+  printOffsetRightMm: 4,
   paddingTopMm: 0,
   paddingBottomMm: 0,
   paddingHorizontalMm: 0,
@@ -36,11 +39,15 @@ export function getTicketPrintConfig() {
 
 export function getTicketPrintCssVars() {
   const p = getTicketPrintConfig()
-  const sideInset = p.sideInsetMm ?? 0
+  const inset = p.sideInsetMm ?? 4
+  const offsetLeft = p.printOffsetLeftMm ?? inset
+  const offsetRight = p.printOffsetRightMm ?? inset
   return {
     "--ticket-paper-width": `${p.paperWidthMm}mm`,
     "--ticket-print-width": `${p.printWidthMm}mm`,
-    "--ticket-side-inset": `${sideInset}mm`,
+    "--ticket-offset-left": `${offsetLeft}mm`,
+    "--ticket-offset-right": `${offsetRight}mm`,
+    "--ticket-side-inset": `${inset}mm`,
     "--ticket-padding-top": `${p.paddingTopMm}mm`,
     "--ticket-padding-bottom": `${p.paddingBottomMm}mm`,
     "--ticket-padding-x": `${p.paddingHorizontalMm}mm`,
@@ -61,5 +68,5 @@ export const TICKET_PRINT_AREA_ID = "ticket-print"
 /** Texto corto para el diálogo de impresión del navegador. */
 export function ticketPrintSetupHint() {
   const p = getTicketPrintConfig()
-  return `Impresora ${p.model}: papel ${p.paperWidthMm} mm, márgenes ninguno, escala 100%. En Windows/Chrome desactiva encabezado y pie de página.`
+  return `Impresora ${p.model}: papel ${p.paperWidthMm} mm, márgenes del navegador en «Ninguno», escala 100%. Desactiva encabezado/pie en Chrome.`
 }

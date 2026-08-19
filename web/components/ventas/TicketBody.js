@@ -6,7 +6,7 @@ import {
 
 /**
  * Cuerpo del ticket (vista previa e impresión).
- * Sin márgenes; ancho limitado al área imprimible de la TM-T20II (72 mm).
+ * Sin márgenes de navegador; incluye 4 mm de ajuste del cabezal TM-T20II.
  */
 export default function TicketBody({ ticket, preview = false }) {
   const paperClass = preview
