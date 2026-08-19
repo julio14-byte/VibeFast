@@ -375,8 +375,8 @@ h4,
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
-  padding-left: var(--ticket-offset-left, 4mm);
-  padding-right: var(--ticket-offset-right, 4mm);
+  padding-left: var(--ticket-offset-left, 8mm);
+  padding-right: var(--ticket-offset-right, 2mm);
 }
 
 .ticket-print-area {
@@ -478,11 +478,9 @@ h4,
     margin: 0;
   }
 
-  html.ticket-print-mode,
   html.ticket-print-mode body {
-    width: 80mm !important;
-    min-width: 0 !important;
-    max-width: 80mm !important;
+    width: auto !important;
+    max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
@@ -491,6 +489,11 @@ h4,
     background: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  html.ticket-print-mode {
+    width: auto !important;
+    max-width: none !important;
   }
 
   html.ticket-print-mode .app-shell,
@@ -517,32 +520,23 @@ h4,
   }
 
   html.ticket-print-mode .app-shell > div {
+    display: block !important;
     padding: 0 !important;
     margin: 0 !important;
     max-width: none !important;
     gap: 0 !important;
   }
 
-  html.ticket-print-mode body * {
-    visibility: hidden;
-  }
-
-  html.ticket-print-mode #ticket-print,
-  html.ticket-print-mode #ticket-print * {
-    visibility: visible;
-  }
-
-  /* absolute (no fixed) → ticket largo no se corta abajo en Chrome/Windows */
+  /* Sin visibility:hidden — Windows ignora padding/left con ese truco */
   html.ticket-print-mode #ticket-print {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: none;
-    width: var(--ticket-paper-width, 80mm) !important;
-    max-width: var(--ticket-paper-width, 80mm) !important;
-    margin: 0 !important;
-    padding-left: var(--ticket-offset-left, 4mm) !important;
-    padding-right: var(--ticket-offset-right, 4mm) !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: var(--ticket-print-width, 72mm) !important;
+    max-width: var(--ticket-print-width, 72mm) !important;
+    margin: 0 0 0 var(--ticket-offset-left, 8mm) !important;
+    padding: 0 !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
     overflow: visible !important;

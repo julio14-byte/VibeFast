@@ -9,6 +9,7 @@ import {
   getTicketPrintCssVars,
   ticketPrintSetupHint,
   TICKET_PRINT_ROOT_CLASS,
+  TICKET_PRINT_AREA_ID,
 } from "@/lib/ticket/print"
 
 export default function TicketView({ ticket, autoPrint = false }) {
@@ -23,13 +24,32 @@ export default function TicketView({ ticket, autoPrint = false }) {
       root.style.setProperty(key, value)
     }
 
+    const ticketEl = document.getElementById(TICKET_PRINT_AREA_ID)
+    if (ticketEl) {
+      ticketEl.style.marginLeft = `${printConfig.printOffsetLeftMm}mm`
+      ticketEl.style.width = `${printConfig.printWidthMm}mm`
+      ticketEl.style.maxWidth = `${printConfig.printWidthMm}mm`
+      ticketEl.style.paddingLeft = "0"
+      ticketEl.style.paddingRight = "0"
+      ticketEl.style.boxSizing = "border-box"
+    }
+
     return () => {
       root.classList.remove(TICKET_PRINT_ROOT_CLASS)
       for (const key of Object.keys(vars)) {
         root.style.removeProperty(key)
       }
+      const el = document.getElementById(TICKET_PRINT_AREA_ID)
+      if (el) {
+        el.style.removeProperty("margin-left")
+        el.style.removeProperty("width")
+        el.style.removeProperty("max-width")
+        el.style.removeProperty("padding-left")
+        el.style.removeProperty("padding-right")
+        el.style.removeProperty("box-sizing")
+      }
     }
-  }, [])
+  }, [printConfig.printOffsetLeftMm, printConfig.printWidthMm])
 
   useEffect(() => {
     if (!autoPrint) return

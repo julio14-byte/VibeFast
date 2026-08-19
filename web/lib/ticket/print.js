@@ -15,10 +15,10 @@ export const TM_T20II_80MM = {
   printWidthMm: 72,
   charsPerLine: 48,
   pageMarginMm: 0,
-  /** Zona no imprimible del cabezal TM-T20II (4 mm c/lado en rollo 80 mm). */
+  /** Ajuste izquierdo del cabezal (Windows suele necesitar 7–9 mm). */
   sideInsetMm: 4,
-  printOffsetLeftMm: 4,
-  printOffsetRightMm: 4,
+  printOffsetLeftMm: 8,
+  printOffsetRightMm: 2,
   paddingTopMm: 0,
   paddingBottomMm: 0,
   paddingHorizontalMm: 0,
@@ -68,5 +68,5 @@ export const TICKET_PRINT_AREA_ID = "ticket-print"
 /** Texto corto para el diálogo de impresión del navegador. */
 export function ticketPrintSetupHint() {
   const p = getTicketPrintConfig()
-  return `Impresora ${p.model}: papel ${p.paperWidthMm} mm, márgenes del navegador en «Ninguno», escala 100%. Desactiva encabezado/pie en Chrome.`
+  return `${p.model}: papel ${p.paperWidthMm} mm, márgenes «Ninguno», escala 100%. Si se corta a la izquierda, ajusta printOffsetLeftMm en config.js (actual: ${p.printOffsetLeftMm} mm).`
 }
