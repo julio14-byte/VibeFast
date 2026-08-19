@@ -12,7 +12,7 @@ export const TM_T20II_80MM = {
   model: "Epson TM-T20II",
   paperWidthMm: 80,
   rollWidthMm: 79.5,
-  printWidthMm: 67,
+  printWidthMm: 66,
   charsPerLine: 42,
   pageMarginMm: 0,
   /** Ajuste izquierdo del cabezal (Windows suele necesitar 7–9 mm). */
