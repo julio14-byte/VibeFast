@@ -287,11 +287,12 @@ export async function createProducto(formData) {
     }
 
     revalidateCatalogo()
-    const returnTo = safeReturnPath(
-      formData.get("return_to"),
-      `${BASE}?ok=creado`
-    )
-    redirect(returnTo.includes("?") ? `${returnTo}&ok=creado` : `${returnTo}?ok=creado`)
+    const returnTo = safeReturnPath(formData.get("return_to"), BASE)
+    const [path, existingQuery = ""] = returnTo.split("?")
+    const params = new URLSearchParams(existingQuery)
+    params.set("ok", "creado")
+    params.set("nombre", data.nombre)
+    redirect(`${path}?${params}`)
   } catch (err) {
     if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err
     fail(err?.message || "Error al crear.")

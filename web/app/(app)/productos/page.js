@@ -7,6 +7,7 @@ import { formatError } from "@/lib/errors"
 import PageHeader from "@/components/ui/PageHeader"
 import CatalogoNav from "@/components/catalogo/CatalogoNav"
 import ProductosCrud from "@/components/productos/ProductosCrud"
+import { productoOkMessage } from "@/lib/ui/flashMessages"
 
 export const metadata = { title: "Productos · SmartPOS" }
 export const dynamic = "force-dynamic"
@@ -17,6 +18,8 @@ export default async function ProductosPage({ searchParams }) {
   const query = typeof params?.q === "string" ? params.q.trim() : ""
   const formError = params?.error?.toString()
   const ok = params?.ok?.toString()
+  const nombreOk = params?.nombre?.toString()
+  const successMessage = productoOkMessage(ok, { nombre: nombreOk })
 
   let productos = []
   let pagination = { page: 1, totalPages: 1, total: 0 }
@@ -76,13 +79,9 @@ export default async function ProductosPage({ searchParams }) {
           <span>{formError}</span>
         </div>
       )}
-      {ok && !formError && (
+      {successMessage && !formError && (
         <div role="alert" className="alert alert-success">
-          <span>
-            {ok === "creado" && "Producto guardado correctamente."}
-            {ok === "actualizado" && "Cambios guardados."}
-            {ok === "eliminado" && "Producto eliminado."}
-          </span>
+          <span>{successMessage}</span>
         </div>
       )}
 

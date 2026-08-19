@@ -26,8 +26,12 @@
   --color-base-content: #1e293b;
   --color-info: #0ea5e9;
   --color-success: #16a34a;
+  --color-success-content: #ffffff;
   --color-warning: #f59e0b;
+  --color-warning-content: #422006;
   --color-error: #dc2626;
+  --color-error-content: #ffffff;
+  --color-info-content: #ffffff;
   --radius-box: 1rem;
   --radius-field: 0.5rem;
   --radius-selector: 0.5rem;
@@ -52,8 +56,12 @@
   --color-base-content: #e2e8f0;
   --color-info: #38bdf8;
   --color-success: #4ade80;
+  --color-success-content: #052e16;
   --color-warning: #fbbf24;
+  --color-warning-content: #422006;
   --color-error: #f87171;
+  --color-error-content: #450a0a;
+  --color-info-content: #0c4a6e;
   --radius-box: 1rem;
   --radius-field: 0.5rem;
   --radius-selector: 0.5rem;
