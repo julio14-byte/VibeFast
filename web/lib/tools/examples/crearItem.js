@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { requireToolOrgContext } from "@/lib/tools/orgContext"
 
 export const crearItem = {
   name: "crear_producto",
@@ -59,11 +59,7 @@ export const crearItem = {
     proveedor_nombre,
     clave_sat = "01010101",
   }) {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error("No autenticado")
+    const { supabase, user, organizationId } = await requireToolOrgContext()
 
     const nombreStr = nombre?.trim()
     if (!nombreStr) throw new Error("El nombre del producto es obligatorio.")
@@ -86,7 +82,7 @@ export const crearItem = {
     const { data: existente } = await supabase
       .from("productos")
       .select("codigo")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .eq("codigo", codigoNorm)
       .maybeSingle()
 
@@ -102,7 +98,7 @@ export const crearItem = {
       const { data: prov } = await supabase
         .from("proveedores")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
         .ilike("nombre", proveedor_nombre.trim())
         .maybeSingle()
 
@@ -111,7 +107,11 @@ export const crearItem = {
       } else {
         const { data: newProv } = await supabase
           .from("proveedores")
-          .insert({ user_id: user.id, nombre: proveedor_nombre.trim() })
+          .insert({
+            user_id: user.id,
+            organization_id: organizationId,
+            nombre: proveedor_nombre.trim(),
+          })
           .select("id")
           .single()
         proveedor_id = newProv?.id
@@ -122,6 +122,7 @@ export const crearItem = {
       .from("productos")
       .insert({
         user_id: user.id,
+        organization_id: organizationId,
         nombre: nombreStr,
         codigo: codigoNorm,
         precio: precioPublicoNum,

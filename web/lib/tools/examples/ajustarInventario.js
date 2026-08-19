@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { requireToolOrgContext } from "@/lib/tools/orgContext"
 
 export const ajustarInventario = {
   name: "ajustar_inventario",
@@ -49,11 +49,7 @@ export const ajustarInventario = {
     precio,
     stock,
   }) {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error("No autenticado")
+    const { supabase, organizationId } = await requireToolOrgContext()
 
     const codigoNorm = normalizeCodigo(String(codigo ?? ""))
     if (!codigoNorm) {
@@ -63,7 +59,7 @@ export const ajustarInventario = {
     const { data: producto, error: selectError } = await supabase
       .from("productos")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .eq("codigo", codigoNorm)
       .maybeSingle()
 
@@ -91,7 +87,7 @@ export const ajustarInventario = {
       .from("productos")
       .update(updates)
       .eq("id", producto.id)
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .select("codigo, nombre, precio_compra, precio_mayoreo, precio_publico, stock")
       .single()
 

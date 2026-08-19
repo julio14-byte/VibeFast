@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { requireToolOrgContext } from "@/lib/tools/orgContext"
 
 export const gestionarInventario = {
   name: "gestionar_inventario",
@@ -29,11 +29,7 @@ export const gestionarInventario = {
     additionalProperties: false,
   },
   async execute({ nombre, codigo, precio, stock }) {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error("No autenticado")
+    const { supabase, user, organizationId } = await requireToolOrgContext()
 
     const nombreStr = nombre?.trim()
     if (!nombreStr) throw new Error("El nombre del producto es obligatorio.")
@@ -59,7 +55,7 @@ export const gestionarInventario = {
     const { data: existente, error: selectError } = await supabase
       .from("productos")
       .select("id, codigo, nombre, precio, stock")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .eq("codigo", codigoNorm)
       .maybeSingle()
 
@@ -75,7 +71,7 @@ export const gestionarInventario = {
           stock: stockNum,
         })
         .eq("id", existente.id)
-        .eq("user_id", user.id)
+        .eq("organization_id", organizationId)
         .select("id, codigo, nombre, precio, precio_publico, stock")
         .single()
 
@@ -93,6 +89,7 @@ export const gestionarInventario = {
       .from("productos")
       .insert({
         user_id: user.id,
+        organization_id: organizationId,
         nombre: nombreStr,
         codigo: codigoNorm,
         precio: precioNum,

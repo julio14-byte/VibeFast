@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
 import { normalizeCodigo } from "@/lib/productos/codigo"
 import { calcularTotalesDesdePreciosConIva } from "@/lib/cfdi"
 import { getPrecioVenta } from "@/lib/productos"
+import { requireToolOrgContext } from "@/lib/tools/orgContext"
 
 // Registra una venta desde el chat: busca productos, descuenta stock.
 export const registrarVenta = {
@@ -33,11 +33,7 @@ export const registrarVenta = {
     additionalProperties: false,
   },
   async execute({ codigo, cantidad, tipo_precio = "publico", forma_pago = "01" }) {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error("No autenticado")
+    const { supabase, user, organizationId } = await requireToolOrgContext()
 
     const codigoNorm = normalizeCodigo(String(codigo ?? ""))
     const cantidadNum = Number(cantidad)
@@ -51,7 +47,7 @@ export const registrarVenta = {
     const { data: producto, error: pErr } = await supabase
       .from("productos")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .eq("codigo", codigoNorm)
       .maybeSingle()
 
@@ -75,7 +71,7 @@ export const registrarVenta = {
     const { data: lastVenta } = await supabase
       .from("ventas")
       .select("folio")
-      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
       .order("folio", { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -86,6 +82,7 @@ export const registrarVenta = {
       .from("ventas")
       .insert({
         user_id: user.id,
+        organization_id: organizationId,
         folio,
         tipo_precio: tipo_precio,
         subtotal,
