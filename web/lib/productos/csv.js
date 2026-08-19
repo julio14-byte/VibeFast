@@ -3,6 +3,7 @@
  */
 
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { normalizeNombreProducto } from "@/lib/productos"
 import { margenesParaPersistir } from "@/lib/productos/margenes"
 
 const HEADER_ALIASES = {
@@ -100,7 +101,7 @@ function parseNumber(raw, { integer = false } = {}) {
  * @returns {{ ok: true, data } | { ok: false, error: string }}
  */
 export function mapCsvRowToProducto(row, lineNumber) {
-  const nombre = row.nombre?.trim()
+  const nombre = normalizeNombreProducto(row.nombre)
   const codigo = row.codigo?.trim()
 
   if (!nombre || !codigo) {

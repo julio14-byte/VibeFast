@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { parseCsv, mapCsvRowToProducto } from "@/lib/productos/csv"
 import { normalizeCodigo } from "@/lib/productos/codigo"
+import { normalizeNombreProducto } from "@/lib/productos"
 import { margenesParaPersistir, roundMargenPct } from "@/lib/productos/margenes"
 import { deleteDemoProductosForOrg, deleteAllProductosForOrg } from "@/lib/productos/queries"
 import { canManageTeam, requireOrgContext } from "@/lib/organization/context"
@@ -42,7 +43,7 @@ function parseOptionalNumber(raw, fallback = 0) {
 }
 
 function parseProductoForm(formData) {
-  const nombre = formData.get("nombre")?.toString().trim()
+  const nombre = normalizeNombreProducto(formData.get("nombre")?.toString())
   const codigoRaw = formData.get("codigo")?.toString().trim()
   const precioCompraRaw = formData.get("precio_compra")?.toString().trim()
   const precioMayoreoRaw = formData.get("precio_mayoreo")?.toString().trim()

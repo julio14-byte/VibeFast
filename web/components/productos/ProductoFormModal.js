@@ -7,6 +7,7 @@ import {
   updateProducto,
 } from "@/app/(app)/productos/actions"
 import { margenDesdePrecioVenta, precioVentaConIva } from "@/lib/precios"
+import { normalizeNombreProducto } from "@/lib/productos"
 import { margenesParaMostrar, roundMargenPct } from "@/lib/productos/margenes"
 import SatCatalogSearch from "./SatCatalogSearch"
 
@@ -62,6 +63,7 @@ export default function ProductoFormModal({
   const [margenPublico, setMargenPublico] = useState("")
   const [precioPublico, setPrecioPublico] = useState("")
   const [precioMayoreo, setPrecioMayoreo] = useState("")
+  const [nombre, setNombre] = useState("")
   const [publicoManual, setPublicoManual] = useState(false)
   const [mayoreoManual, setMayoreoManual] = useState(false)
 
@@ -82,6 +84,9 @@ export default function ProductoFormModal({
     )
     setPrecioMayoreo(
       producto?.precio_mayoreo != null ? String(producto.precio_mayoreo) : ""
+    )
+    setNombre(
+      producto?.nombre ? normalizeNombreProducto(producto.nombre) : ""
     )
     setPublicoManual(Boolean(producto?.id))
     setMayoreoManual(Boolean(producto?.id))
@@ -178,9 +183,14 @@ export default function ProductoFormModal({
                   name="nombre"
                   required
                   maxLength={120}
-                  defaultValue={producto?.nombre ?? ""}
-                  className="input input-bordered w-full"
-                  placeholder="Ej. Tubo PVC 1/2"
+                  value={nombre}
+                  onChange={(e) =>
+                    setNombre(normalizeNombreProducto(e.target.value))
+                  }
+                  className="input input-bordered w-full uppercase"
+                  placeholder="EJ. TUBO PVC 1/2"
+                  autoCapitalize="characters"
+                  spellCheck={false}
                 />
               </Field>
             </div>

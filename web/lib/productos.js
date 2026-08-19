@@ -20,6 +20,11 @@ export function formatPrecioTicket(value) {
   return `$${n.toFixed(2)}`
 }
 
+/** Nombre de producto en catálogo: mayúsculas (es-MX). */
+export function normalizeNombreProducto(nombre) {
+  return (nombre ?? "").toString().trim().toLocaleUpperCase("es-MX")
+}
+
 export function normalizeSearch(str) {
   return (str || "")
     .toLowerCase()
